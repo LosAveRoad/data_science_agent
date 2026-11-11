@@ -1,0 +1,53 @@
+name: PR Structure
+
+# PR 结构强制检查：标题规范 / 文档同步 / AgenticDataBench 评测证据。
+# 规则说明见 CONTRIBUTING.md，规则实现见 scripts/check-pr-structure.mjs。
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 校验 PR 标题（Conventional Commits）
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-pr-structure.mjs title
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 校验文档同步
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-pr-structure.mjs docs
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 校验 AgenticDataBench 评测结果
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-pr-structure.mjs benchmark

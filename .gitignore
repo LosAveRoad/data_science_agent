@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.DS_Store
+
+# 实验产物默认忽略，但保留 runs/<experiment_id>/ 下的 JSON 评测证据（PR 结构检查的审计依据）
+runs/**
+!runs/**/
+!runs/**/*.json
+!runs/.gitkeep

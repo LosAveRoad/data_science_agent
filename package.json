@@ -1,0 +1,21 @@
+{
+  "name": "data-science-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AgenticDataBench 数据分析 Agent：Pi Agent Runtime + 自研 DAG 编排层",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "check:pr": "node scripts/check-pr-structure.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  }
+}
