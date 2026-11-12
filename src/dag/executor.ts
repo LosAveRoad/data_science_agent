@@ -5,6 +5,7 @@ import { ArtifactStore } from '../artifacts/store.js';
 import type { ArtifactRef } from '../artifacts/store.js';
 import { addTokenUsage, emptyTokenUsage } from '../tracing/recorder.js';
 import type { RunRecorder, SerializedStep, TokenUsage } from '../tracing/recorder.js';
+import { schemaForArtifact, validateArtifactFile } from '../artifacts/schemas.js';
 import { executionOrder } from './graph.js';
 import type { DagNode, NodeRun, WorkflowDefinition } from './types.js';
 
@@ -18,7 +19,30 @@ export interface NodeRunResult {
   /** 本节点完成的 ReAct 步数。 */
   steps: number;
   error?: string;
+  /** 失败终止原因：step_limit 表示达到 ReAct 步数上限（executor 据此做断点续跑而非普通重试）。 */
+  stopReason?: 'step_limit';
 }
+
+/** 上一次尝试的失败反馈（executor 回灌给 runner，用于构造重试 / 续跑 prompt）。 */
+export interface NodeAttemptFeedback {
+  /** 失败类型：error = 一般失败（带错误重试）；step_limit = 步数耗尽（从断点续跑）。 */
+  kind: 'error' | 'step_limit';
+  /** 上一次尝试的错误信息（含产物 schema / 验证门问题清单）。 */
+  message: string;
+  /** 上一次尝试的序号（1 基）。 */
+  attempt: number;
+}
+
+/**
+ * 节点程序化验证门（契约单一来源）：节点 runner 成功且产物登记后调用，
+ * 返回问题清单（空列表 = 通过）；非空时该节点按失败处理并触发重试。
+ * 实现见 src/validate/gate.ts（execute 节点的任务输出文件确定性检查）。
+ */
+export type NodeOutputGateFn = (
+  nodeId: string,
+  declaredArtifacts: readonly string[],
+  workspacePath: string,
+) => Promise<string[]> | string[];
 
 /** DagExecutor 传给 AgentRunner 的节点执行输入。 */
 export interface AgentRunnerInput {
@@ -41,6 +65,10 @@ export interface AgentRunnerInput {
   recorder: RunRecorder;
   /** 取消信号（可选）。 */
   signal?: AbortSignal;
+  /** 本次尝试序号（1 基）；节点重试 / 步数续跑时 >1。 */
+  attempt?: number;
+  /** 上一次尝试的失败反馈（重试 / 续跑时由 executor 回灌，runner 应据此调整行为）。 */
+  previousFailure?: NodeAttemptFeedback;
 }
 
 /** 节点执行器接口：由 src/agent 的 Pi Agent Runtime 实现，DagExecutor 只依赖此抽象。 */
@@ -54,6 +82,14 @@ export interface DagExecutorOptions {
   maxStepsPerNode?: number;
   /** run 级 token 预算（所有节点用量合计），超限即中止并标记 failed。 */
   tokenBudgetPerRun?: number;
+  /**
+   * 单节点最大尝试次数（首次 + 重试/续跑共用该预算，默认 2 = 至多重试或续跑 1 次）。
+   * 触发条件：runner 异常、runner 返回失败（含步数耗尽）、产物登记失败、
+   * 未产出声明产物、产物 schema 不合规、程序化验证门未通过。
+   */
+  maxAttemptsPerNode?: number;
+  /** 节点成功后的程序化验证门（见 NodeOutputGateFn；未设置则不做门检查）。 */
+  outputGate?: NodeOutputGateFn;
 }
 
 /** runTask 的任务上下文。 */
@@ -101,6 +137,8 @@ const STATE_FILE_NAME = 'state.json';
 const ARTIFACTS_DIR_NAME = 'artifacts';
 /** 单节点 ReAct 步数默认上限（设计文档 3.3 护栏）。 */
 const DEFAULT_MAX_STEPS_PER_NODE = 40;
+/** 单节点默认最大尝试次数（首次 + 至多重试/续跑 1 次，#2 Phase A 失败策略）。 */
+const DEFAULT_MAX_ATTEMPTS_PER_NODE = 2;
 
 /** state.json 中单个已完成节点的记录（只持久化 succeeded 节点）。 */
 interface SerializedNodeState {
@@ -157,6 +195,8 @@ export class DagExecutor {
   private readonly runner: AgentRunner;
   private readonly maxStepsPerNode: number;
   private readonly tokenBudgetPerRun: number | undefined;
+  private readonly maxAttemptsPerNode: number;
+  private readonly outputGate: NodeOutputGateFn | undefined;
 
   constructor(workflow: WorkflowDefinition, runner: AgentRunner, opts: DagExecutorOptions = {}) {
     this.workflow = workflow;
@@ -166,6 +206,8 @@ export class DagExecutor {
     this.runner = runner;
     this.maxStepsPerNode = opts.maxStepsPerNode ?? DEFAULT_MAX_STEPS_PER_NODE;
     this.tokenBudgetPerRun = opts.tokenBudgetPerRun;
+    this.maxAttemptsPerNode = Math.max(1, opts.maxAttemptsPerNode ?? DEFAULT_MAX_ATTEMPTS_PER_NODE);
+    this.outputGate = opts.outputGate;
   }
 
   /** 按依赖顺序串行执行整个工作流，返回 run 结果。 */
@@ -226,75 +268,63 @@ export class DagExecutor {
         break;
       }
 
-      // 5. 执行节点（runner 抛出的异常视作节点失败）
-      ctx.recorder.startNode(node.id);
+      // 5. 执行节点（含失败重试与步数耗尽续跑：单节点最多 maxAttempts 次尝试，
+      //    每次尝试的错误反馈回灌给 runner；产物登记 / 声明产物 / schema / 验证门
+      //    任一不通过都按本次尝试失败处理）
       const startedAt = new Date().toISOString();
-      let result: NodeRunResult;
-      try {
-        result = await this.runner.run({
-          taskId: ctx.taskId,
-          nodeId: node.id,
-          question: ctx.question,
-          workspacePath: ctx.workspacePath,
-          nodeTask: node.task,
-          upstreamArtifacts: node.dependsOn.flatMap((dep) => store.list(dep)),
-          maxSteps: this.maxStepsPerNode,
-          runDir,
-          recorder: ctx.recorder,
-        });
-      } catch (err) {
-        result = {
-          status: 'failed',
-          artifacts: [],
-          tokenUsage: emptyTokenUsage(),
-          steps: 0,
-          error: err instanceof Error ? err.message : String(err),
+      let previousFailure: NodeAttemptFeedback | undefined;
+      let attempts = 0;
+      let attemptUsage = emptyTokenUsage();
+      let lastResult: NodeRunResult | null = null;
+      let lastFinishedAt = startedAt;
+      while (attempts < this.maxAttemptsPerNode) {
+        attempts += 1;
+        ctx.recorder.startNode(node.id);
+        const rawResult = await this.invokeRunner(node, ctx, store, runDir, attempts, previousFailure);
+        const result = await this.finalizeSuccess(node, store, rawResult, ctx.workspacePath);
+        lastFinishedAt = new Date().toISOString();
+        ctx.recorder.endNode(result.status, result.error);
+        lastResult = result;
+        attemptUsage = addTokenUsage(attemptUsage, result.tokenUsage);
+        if (result.status === 'succeeded') {
+          break;
+        }
+        previousFailure = {
+          kind: result.stopReason === 'step_limit' ? 'step_limit' : 'error',
+          message: result.error ?? '未知错误',
+          attempt: attempts,
         };
       }
-      const finishedAt = new Date().toISOString();
-      // 产物登记：runner 声称成功但产物文件不可用时，按节点失败处理（不让坏引用进入注册表）
-      if (result.status === 'succeeded') {
-        try {
-          for (const artifact of result.artifacts) {
-            await store.register(node.id, artifact.name, artifact.path);
-          }
-        } catch (err) {
-          result = {
-            status: 'failed',
-            artifacts: [],
-            tokenUsage: result.tokenUsage,
-            steps: result.steps,
-            error: `产物登记失败: ${err instanceof Error ? err.message : String(err)}`,
-          };
-        }
-      }
-      ctx.recorder.endNode(result.status, result.error);
+      const result = lastResult as NodeRunResult;
       nodeRuns.push({
         nodeId: node.id,
         status: result.status,
         startedAt,
-        finishedAt,
+        finishedAt: lastFinishedAt,
         ...(result.error !== undefined ? { error: result.error } : {}),
+        ...(attempts > 1 ? { attempts } : {}),
       });
       recorded.add(node.id);
       executedThisProcess += 1;
 
       if (result.status !== 'succeeded') {
         failed = true;
-        runError = `节点 ${node.id} 失败: ${result.error ?? '未知错误'}`;
+        const retryNote = attempts > 1 ? `（已重试 ${attempts - 1} 次）` : '';
+        runError = `节点 ${node.id} 失败${retryNote}: ${result.error ?? '未知错误'}`;
         break;
       }
 
-      // 6. 节点成功：累计 token、持久化断点状态（产物已在上方登记）
-      totalUsage = addTokenUsage(totalUsage, result.tokenUsage);
+      // 6. 节点成功：累计 token（含全部尝试）、持久化断点状态
+      //    （产物以注册表为准：包含历次尝试写出的文件，保证下游依赖完整）
+      totalUsage = addTokenUsage(totalUsage, attemptUsage);
       completed.set(node.id, {
         nodeId: node.id,
         status: 'succeeded',
         startedAt,
-        finishedAt,
-        tokenUsage: result.tokenUsage,
+        finishedAt: lastFinishedAt,
+        tokenUsage: attemptUsage,
         steps: result.steps,
-        artifacts: result.artifacts.map((artifact) => ({ name: artifact.name, path: artifact.path })),
+        artifacts: store.list(node.id).map((ref) => ({ name: ref.name, path: ref.path })),
         stepRecords: ctx.recorder.nodeRecord(node.id)?.steps,
       });
       await this.persistState(runDir, ctx.taskId, completed, totalUsage);
@@ -330,6 +360,107 @@ export class DagExecutor {
   /** run 级 token 预算是否已超限（严格大于）。 */
   private isOverBudget(usage: TokenUsage): boolean {
     return this.tokenBudgetPerRun !== undefined && usage.totalTokens > this.tokenBudgetPerRun;
+  }
+
+  /**
+   * 调用 AgentRunner 执行一次节点尝试；runner 抛出的异常按失败结果处理。
+   * attempt > 1 时透传上一次尝试的失败反馈（runner 据此构造重试 / 续跑 prompt）。
+   */
+  private async invokeRunner(
+    node: DagNode,
+    ctx: ExecutorTaskContext,
+    store: ArtifactStore,
+    runDir: string,
+    attempt: number,
+    previousFailure: NodeAttemptFeedback | undefined,
+  ): Promise<NodeRunResult> {
+    try {
+      return await this.runner.run({
+        taskId: ctx.taskId,
+        nodeId: node.id,
+        question: ctx.question,
+        workspacePath: ctx.workspacePath,
+        nodeTask: node.task,
+        upstreamArtifacts: node.dependsOn.flatMap((dep) => store.list(dep)),
+        maxSteps: this.maxStepsPerNode,
+        runDir,
+        recorder: ctx.recorder,
+        attempt,
+        ...(previousFailure !== undefined ? { previousFailure } : {}),
+      });
+    } catch (err) {
+      return {
+        status: 'failed',
+        artifacts: [],
+        tokenUsage: emptyTokenUsage(),
+        steps: 0,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  /**
+   * 节点成功结果的确定性收口：产物登记 → 声明产物核对 → 结构化 schema 校验 →
+   * 程序化验证门。任一环节不通过都把成功结果改写为失败结果（触发重试），
+   * 不让坏产物进入注册表、也不把机械错误留给 LLM verify 或下游节点。
+   */
+  private async finalizeSuccess(
+    node: DagNode,
+    store: ArtifactStore,
+    result: NodeRunResult,
+    workspacePath: string,
+  ): Promise<NodeRunResult> {
+    if (result.status !== 'succeeded') {
+      return result;
+    }
+    const asFailure = (error: string): NodeRunResult => ({
+      status: 'failed',
+      artifacts: [],
+      tokenUsage: result.tokenUsage,
+      steps: result.steps,
+      error,
+    });
+
+    // a) 产物登记：runner 声称成功但产物文件不可用时按失败处理（不让坏引用进入注册表）
+    try {
+      for (const artifact of result.artifacts) {
+        await store.register(node.id, artifact.name, artifact.path);
+      }
+    } catch (err) {
+      return asFailure(`产物登记失败: ${err instanceof Error ? err.message : String(err)}`);
+    }
+
+    // b) 声明产物核对：节点必须产出 workflow 声明的全部产物（strategy_3 类失败的根因修复）
+    const produced = new Set(store.list(node.id).map((ref) => ref.name));
+    const missingDeclared = node.outputArtifacts.filter((name) => !produced.has(name));
+    if (missingDeclared.length > 0) {
+      return asFailure(`节点未产出声明产物: ${missingDeclared.join('; ')}`);
+    }
+
+    // c) 结构化 schema 校验：关键 Artifact（data_profile / analysis_plan）必须有下游可消费的结构
+    const schemaProblems: string[] = [];
+    for (const ref of store.list(node.id)) {
+      const schemaId = schemaForArtifact(ref.name);
+      if (schemaId === null) {
+        continue;
+      }
+      for (const problem of await validateArtifactFile(schemaId, ref.path)) {
+        schemaProblems.push(`${ref.name}: ${problem}`);
+      }
+    }
+    if (schemaProblems.length > 0) {
+      return asFailure(`产物不符合结构化 schema: ${schemaProblems.join('; ')}`);
+    }
+
+    // d) 程序化验证门：任务输出文件的存在性 / 非空 / 格式检查（0 token）
+    if (this.outputGate !== undefined) {
+      const gateProblems = await this.outputGate(node.id, node.outputArtifacts, workspacePath);
+      if (gateProblems.length > 0) {
+        return asFailure(`程序化验证门未通过: ${gateProblems.join('; ')}`);
+      }
+    }
+
+    return result;
   }
 
   private budgetErrorMessage(usage: TokenUsage): string {

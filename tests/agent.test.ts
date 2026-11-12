@@ -98,7 +98,7 @@ describe('MockAgentRunner', () => {
     await expect(fsp.stat(path.join(workspace, 'step2.json'))).rejects.toThrow();
   });
 
-  it('超步剧本：exceedMaxSteps 空转后按护栏返回 failed', async () => {
+  it('超步剧本：exceedMaxSteps 空转后按护栏返回 failed（带 step_limit 信号）', async () => {
     const runner = new MockAgentRunner({ steps: [], exceedMaxSteps: true });
     const result = await runner.run(makeInput({ maxSteps: 3 }));
 
@@ -107,6 +107,18 @@ describe('MockAgentRunner', () => {
     expect(result.artifacts).toEqual([]);
     expect(result.tokenUsage.totalTokens).toBe(0);
     expect(result.error).toContain('已达最大 ReAct 步数上限');
+    // stopReason 供 DagExecutor 判定「步数耗尽续跑」（#2 Phase A）
+    expect(result.stopReason).toBe('step_limit');
+  });
+
+  it('Uint8Array 剧本内容按二进制写出（PNG 文件头占位）', async () => {
+    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const runner = new MockAgentRunner({ steps: [{ path: 'output.png', content: new Uint8Array(pngHeader) }] });
+    const result = await runner.run(makeInput());
+
+    expect(result.status).toBe('succeeded');
+    const written = await fsp.readFile(path.join(workspace, 'output.png'));
+    expect(written.subarray(0, 8).equals(pngHeader)).toBe(true);
   });
 
   it('剧本内容为字符串时原样写出，不强制 JSON', async () => {

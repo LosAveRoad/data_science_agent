@@ -19,7 +19,10 @@ type AgentArtifact = NodeRunResult['artifacts'][number];
 export interface MockWriteStep {
   /** 相对工作区的 artifact 路径。 */
   path: string;
-  /** 文件内容：对象/数组会 JSON.stringify 美化写出，字符串原样写出。 */
+  /**
+   * 文件内容：对象/数组会 JSON.stringify 美化写出，字符串原样写出，
+   * Uint8Array 按二进制写出（如带文件头的 PNG 占位）。
+   */
   content: unknown;
 }
 
@@ -31,7 +34,7 @@ export interface MockScript {
   failAfterStep?: number;
   /** 失败时的错误信息（默认 "Mock agent 注入失败"）。 */
   errorMessage?: string;
-  /** 模拟模型空转直到超过 maxSteps（返回 failed，符合护栏语义）。 */
+  /** 模拟模型空转直到超过 maxSteps（返回 failed + stopReason='step_limit'，与护栏语义一致）。 */
   exceedMaxSteps?: boolean;
   /** 每步回调（与 PiAgentRunner 对齐，便于 tracing 联调）。 */
   onStep?: (step: AgentStepRecord) => void;
@@ -90,7 +93,7 @@ export class MockAgentRunner implements AgentRunner {
       ...(error === undefined ? {} : { error }),
     });
 
-    // —— 超步行为：空转 maxSteps 步后按护栏标记 failed ——
+    // —— 超步行为：空转 maxSteps 步后按护栏标记 failed（stopReason 供 executor 续跑判定） ——
     if (this.script.exceedMaxSteps) {
       for (let step = 1; step <= input.maxSteps; step++) {
         if (input.signal?.aborted) {
@@ -98,7 +101,8 @@ export class MockAgentRunner implements AgentRunner {
         }
         record({ index: step, kind: 'llm', name: 'mock', summary: 'mock 空转步骤', durationMs: 0 });
       }
-      return makeResult('failed', `已达最大 ReAct 步数上限（${input.maxSteps} 步）`);
+      const result = makeResult('failed', `已达最大 ReAct 步数上限（${input.maxSteps} 步）`);
+      return { ...result, stopReason: 'step_limit' };
     }
 
     // —— 正常剧本：依次写出 artifact；failAfterStep 在第 N 步写出后失败 ——
@@ -113,7 +117,11 @@ export class MockAgentRunner implements AgentRunner {
       const step = this.script.steps[i] as MockWriteStep;
       const abs = resolveWithinWorkspace(input.workspacePath, step.path);
       await fsp.mkdir(path.dirname(abs), { recursive: true });
-      await fsp.writeFile(abs, serializeContent(step.content), 'utf-8');
+      if (step.content instanceof Uint8Array) {
+        await fsp.writeFile(abs, step.content);
+      } else {
+        await fsp.writeFile(abs, serializeContent(step.content), 'utf-8');
+      }
       artifacts.push({ name: path.basename(abs), path: abs });
       record({
         index: i + 1,

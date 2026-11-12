@@ -82,8 +82,8 @@ export async function prepareWorkspace(
   return { workspacePath, copiedFiles };
 }
 
-/** 递归收集目录下的常规文件绝对路径。 */
-async function walkFiles(dir: string, found: string[]): Promise<void> {
+/** 递归收集目录下的常规文件绝对路径（gate 模块复用）。 */
+export async function walkFiles(dir: string, found: string[]): Promise<void> {
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const entryPath = path.resolve(dir, entry.name);

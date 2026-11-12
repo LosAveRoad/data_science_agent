@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { DagExecutor, ExecutorError } from '../src/dag/executor.js';
-import type { AgentRunner, AgentRunnerInput, NodeRunResult } from '../src/dag/executor.js';
+import type { AgentRunner, AgentRunnerInput, NodeOutputGateFn, NodeRunResult } from '../src/dag/executor.js';
 import { defaultWorkflow, taskWorkflow } from '../src/dag/workflow.js';
 import { executionOrder, validateWorkflow } from '../src/dag/graph.js';
 import { RunRecorder } from '../src/tracing/recorder.js';
@@ -26,6 +26,28 @@ function declaredFor(nodeId: string): string[] {
   return DECLARED[nodeId] ?? [];
 }
 
+/** 结构化产物内容（与 src/artifacts/schemas.ts 的 schema 对齐；其余产物用通用占位）。 */
+function artifactContent(nodeId: string, name: string): unknown {
+  if (name === 'data_profile.json') {
+    return {
+      files: [
+        {
+          name: 'data.csv',
+          rows: 10,
+          columns: [
+            { name: 'a', dtype: 'int' },
+            { name: 'b', dtype: 'float' },
+          ],
+        },
+      ],
+    };
+  }
+  if (name === 'analysis_plan.json') {
+    return { steps: [{ description: 'mock 分析步骤', tools: ['run_python'] }] };
+  }
+  return { node: nodeId };
+}
+
 /** 成功脚本：模拟 ReAct 三步（thought / tool_call / observation）并在工作区写出产物文件。 */
 function succeed(artifactNames: string[]): (input: AgentRunnerInput) => Promise<NodeRunResult> {
   return async (input) => {
@@ -42,11 +64,7 @@ function succeed(artifactNames: string[]): (input: AgentRunnerInput) => Promise<
     for (const name of artifactNames) {
       const filePath = path.join(input.workspacePath, name);
       await mkdir(path.dirname(filePath), { recursive: true });
-      await writeFile(
-        filePath,
-        JSON.stringify({ node: input.nodeId, upstreamCount: input.upstreamArtifacts.length }),
-        'utf8',
-      );
+      await writeFile(filePath, JSON.stringify(artifactContent(input.nodeId, name)), 'utf8');
       artifacts.push({ name, path: filePath });
     }
     return { status: 'succeeded', artifacts, tokenUsage: USAGE_PER_NODE, steps: 3 };
@@ -191,13 +209,18 @@ describe('DagExecutor / 失败传播', () => {
 
     expect(outcome.status).toBe('failed');
     expect(outcome.error).toMatch(/plan 失败[\s\S]*LLM 超时/);
-    expect(runner.calledIds).toEqual(['inspect', 'plan']);
+    // Phase A 失败策略：plan 第一次失败后带错误重试 1 次，仍失败才终止 run
+    expect(runner.calledIds).toEqual(['inspect', 'plan', 'plan']);
+    // 第二次尝试携带上一次的失败反馈
+    expect(runner.calls[2]?.attempt).toBe(2);
+    expect(runner.calls[2]?.previousFailure).toMatchObject({ kind: 'error', attempt: 1, message: 'LLM 超时' });
     expect(outcome.nodeRuns.map((node) => [node.nodeId, node.status])).toEqual([
       ['inspect', 'succeeded'],
       ['plan', 'failed'],
       ['execute', 'pending'],
       ['verify', 'pending'],
     ]);
+    expect(outcome.nodeRuns[1]?.attempts).toBe(2);
     // 失败节点不进入断点状态
     const state = JSON.parse(await readFile(path.join(runDir, 'state.json'), 'utf8')) as Record<string, unknown>;
     expect((state['completedNodes'] as Array<Record<string, unknown>>).map((node) => node['nodeId'])).toEqual([
@@ -241,7 +264,8 @@ describe('DagExecutor / 失败传播', () => {
 
     expect(outcome.status).toBe('failed');
     expect(outcome.error).toMatch(/inspect 失败[\s\S]*产物登记失败[\s\S]*data_profile\.json/);
-    expect(runner.calledIds).toEqual(['inspect']);
+    // 产物登记失败也属于可重试失败：inspect 共尝试 2 次
+    expect(runner.calledIds).toEqual(['inspect', 'inspect']);
     expect(outcome.nodeRuns.map((node) => [node.nodeId, node.status])).toEqual([
       ['inspect', 'failed'],
       ['plan', 'pending'],
@@ -250,10 +274,10 @@ describe('DagExecutor / 失败传播', () => {
     ]);
   });
 
-  it('上游成功但未产出声明产物时，下游依赖检查失败且不调用 runner', async () => {
+  it('上游成功但未产出声明产物时，该节点自身被判失败并重试（不再拖到下游依赖检查）', async () => {
     const runDir = mkdtempSync(path.join(tmpRoot, 'run-nodep-'));
     const runner = new MockRunner({
-      // inspect “成功”但什么产物都没有
+      // inspect “成功”但什么产物都没有：Phase A 会在 inspect 节点直接判失败并重试
       inspect: async () => ({ status: 'succeeded' as const, artifacts: [], tokenUsage: USAGE_PER_NODE, steps: 1 }),
       plan: succeed(declaredFor('plan')),
     });
@@ -262,19 +286,155 @@ describe('DagExecutor / 失败传播', () => {
     const outcome = await new DagExecutor(defaultWorkflow(), runner).runTask(ctx);
 
     expect(outcome.status).toBe('failed');
-    expect(outcome.error).toMatch(/依赖产物缺失[\s\S]*inspect[\s\S]*data_profile\.json/);
-    expect(runner.calledIds).toEqual(['inspect']);
+    expect(outcome.error).toMatch(/inspect 失败[\s\S]*未产出声明产物[\s\S]*data_profile\.json/);
+    expect(runner.calledIds).toEqual(['inspect', 'inspect']);
+    // plan 未被执行（失败发生在 inspect 节点自身）
     expect(outcome.nodeRuns.map((node) => [node.nodeId, node.status])).toEqual([
-      ['inspect', 'succeeded'],
-      ['plan', 'failed'],
+      ['inspect', 'failed'],
+      ['plan', 'pending'],
       ['execute', 'pending'],
       ['verify', 'pending'],
     ]);
-    // inspect 的状态已持久化（它是成功的）
+    // inspect 未成功：断点状态文件不落盘（无任何已完成节点）
+    expect(existsSync(path.join(runDir, 'state.json'))).toBe(false);
+  });
+});
+
+describe('DagExecutor / Phase A 失败策略', () => {
+  it('节点第一次失败、重试成功后 run 正常继续', async () => {
+    const runDir = mkdtempSync(path.join(tmpRoot, 'run-retry-ok-'));
+    const runner = new MockRunner({
+      inspect: succeed(declaredFor('inspect')),
+      plan: async (input) => {
+        if (input.attempt === 1) {
+          return { status: 'failed' as const, artifacts: [], tokenUsage: USAGE_PER_NODE, steps: 1, error: 'LLM 调用异常' };
+        }
+        return succeed(declaredFor('plan'))(input);
+      },
+      execute: succeed(declaredFor('execute')),
+      verify: succeed(declaredFor('verify')),
+    });
+    const { recorder, ctx } = buildContext(runDir);
+
+    const outcome = await new DagExecutor(defaultWorkflow(), runner).runTask(ctx);
+
+    expect(outcome.status).toBe('succeeded');
+    expect(runner.calledIds).toEqual(['inspect', 'plan', 'plan', 'execute', 'verify']);
+    expect(outcome.nodeRuns[1]).toMatchObject({ nodeId: 'plan', status: 'succeeded', attempts: 2 });
+    // 重试成功后 error 不再出现在最终 nodeRuns
+    expect(outcome.nodeRuns[1]?.error).toBeUndefined();
+    // token 汇总包含两次尝试：5 次成功执行 × 100
+    expect(outcome.tokenUsage.totalTokens).toBe(500);
+    // 断点状态包含全部 4 个节点
     const state = JSON.parse(await readFile(path.join(runDir, 'state.json'), 'utf8')) as Record<string, unknown>;
-    expect((state['completedNodes'] as Array<Record<string, unknown>>).map((node) => node['nodeId'])).toEqual([
-      'inspect',
-    ]);
+    expect((state['completedNodes'] as unknown[]).length).toBe(4);
+    // recorder 中 plan 记录了失败与成功两次轨迹
+    expect(recorder.nodeRecord('plan')?.status).toBe('succeeded');
+  });
+
+  it('步数耗尽（stopReason=step_limit）触发续跑而非普通重试，续跑成功后继续', async () => {
+    const runDir = mkdtempSync(path.join(tmpRoot, 'run-continue-'));
+    const runner = new MockRunner({
+      inspect: async (input) => {
+        if (input.attempt === 1) {
+          return {
+            status: 'failed' as const,
+            artifacts: [],
+            tokenUsage: USAGE_PER_NODE,
+            steps: 40,
+            error: '已达最大 ReAct 步数上限（40 步），未收到 finish',
+            stopReason: 'step_limit' as const,
+          };
+        }
+        return succeed(declaredFor('inspect'))(input);
+      },
+      plan: succeed(declaredFor('plan')),
+      execute: succeed(declaredFor('execute')),
+      verify: succeed(declaredFor('verify')),
+    });
+    const { ctx } = buildContext(runDir);
+
+    const outcome = await new DagExecutor(defaultWorkflow(), runner).runTask(ctx);
+
+    expect(outcome.status).toBe('succeeded');
+    expect(runner.calledIds).toEqual(['inspect', 'inspect', 'plan', 'execute', 'verify']);
+    // 第二次尝试的反馈是 step_limit 类型
+    expect(runner.calls[1]?.previousFailure).toMatchObject({
+      kind: 'step_limit',
+      attempt: 1,
+      message: '已达最大 ReAct 步数上限（40 步），未收到 finish',
+    });
+    expect(outcome.nodeRuns[0]).toMatchObject({ nodeId: 'inspect', status: 'succeeded', attempts: 2 });
+  });
+
+  it('重试次数耗尽后 run 终止，错误注明重试次数', async () => {
+    const runDir = mkdtempSync(path.join(tmpRoot, 'run-retry-cap-'));
+    const runner = new MockRunner({ inspect: failWith('持续失败') });
+    const { ctx } = buildContext(runDir);
+
+    const outcome = await new DagExecutor(defaultWorkflow(), runner, { maxAttemptsPerNode: 3 }).runTask(ctx);
+
+    expect(outcome.status).toBe('failed');
+    expect(outcome.error).toMatch(/inspect 失败（已重试 2 次）[\s\S]*持续失败/);
+    expect(runner.calledIds).toEqual(['inspect', 'inspect', 'inspect']);
+    // 每次尝试的反馈逐次递进
+    expect(runner.calls[1]?.previousFailure?.attempt).toBe(1);
+    expect(runner.calls[2]?.previousFailure?.attempt).toBe(2);
+    expect(outcome.nodeRuns[0]?.attempts).toBe(3);
+  });
+
+  it('产物不符合结构化 schema 时触发重试，问题清单回灌给 runner', async () => {
+    const runDir = mkdtempSync(path.join(tmpRoot, 'run-schema-'));
+    const runner = new MockRunner({
+      inspect: async (input) => {
+        if (input.attempt === 1) {
+          const filePath = path.join(input.workspacePath, 'data_profile.json');
+          await mkdir(path.dirname(filePath), { recursive: true });
+          await writeFile(filePath, JSON.stringify({ oops: true }), 'utf8');
+          return {
+            status: 'succeeded' as const,
+            artifacts: [{ name: 'data_profile.json', path: filePath }],
+            tokenUsage: USAGE_PER_NODE,
+            steps: 1,
+          };
+        }
+        return succeed(declaredFor('inspect'))(input);
+      },
+      plan: succeed(declaredFor('plan')),
+      execute: succeed(declaredFor('execute')),
+      verify: succeed(declaredFor('verify')),
+    });
+    const { ctx } = buildContext(runDir);
+
+    const outcome = await new DagExecutor(defaultWorkflow(), runner).runTask(ctx);
+
+    expect(outcome.status).toBe('succeeded');
+    expect(runner.calls[1]?.previousFailure?.kind).toBe('error');
+    expect(runner.calls[1]?.previousFailure?.message).toMatch(/产物不符合结构化 schema[\s\S]*files/);
+    expect(runner.calledIds).toEqual(['inspect', 'inspect', 'plan', 'execute', 'verify']);
+  });
+
+  it('程序化验证门未通过时 execute 重试；门只对挂接节点产生问题', async () => {
+    const runDir = mkdtempSync(path.join(tmpRoot, 'run-gate-'));
+    const gateCalls: string[] = [];
+    const gate: NodeOutputGateFn = (nodeId) => {
+      if (nodeId !== 'execute') {
+        return [];
+      }
+      gateCalls.push(`attempt:${gateCalls.length + 1}`);
+      return gateCalls.length === 1 ? ['output.csv: 文件为空'] : [];
+    };
+    const runner = allSucceed();
+    const { ctx } = buildContext(runDir);
+
+    const outcome = await new DagExecutor(defaultWorkflow(), runner, { outputGate: gate }).runTask(ctx);
+
+    expect(outcome.status).toBe('succeeded');
+    // execute 第一次过门失败、重试后通过；其余节点过门直接放行
+    expect(runner.calledIds).toEqual(['inspect', 'plan', 'execute', 'execute', 'verify']);
+    expect(gateCalls).toEqual(['attempt:1', 'attempt:2']);
+    expect(runner.calls[3]?.previousFailure?.message).toMatch(/程序化验证门未通过[\s\S]*output\.csv: 文件为空/);
+    expect(outcome.nodeRuns[2]).toMatchObject({ nodeId: 'execute', status: 'succeeded', attempts: 2 });
   });
 });
 

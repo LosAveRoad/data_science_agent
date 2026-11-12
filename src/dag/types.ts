@@ -27,4 +27,6 @@ export interface NodeRun {
   startedAt?: string;
   finishedAt?: string;
   error?: string;
+  /** 实际执行的尝试次数（>1 表示发生过重试 / 步数续跑）。 */
+  attempts?: number;
 }

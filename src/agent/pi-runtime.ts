@@ -30,7 +30,7 @@ import {
   type ToolResultMessage,
 } from '@mariozechner/pi-ai';
 import type { AgentRunner, AgentRunnerInput, NodeRunResult } from '../dag/executor.js';
-import { baselineSystemPrompt, nodeSystemPrompt, userPrompt } from './prompts.js';
+import { attemptFeedbackSection, baselineSystemPrompt, nodeSystemPrompt, userPrompt } from './prompts.js';
 import {
   DEFAULT_TOOL_TIMEOUT_MS,
   executeWorkspaceTool,
@@ -192,7 +192,8 @@ function registerArtifact(produced: Map<string, AgentArtifact>, workspacePath: s
  * - 模型调用 finish → 结束；按 finish 声明 + write_file 实际写出的文件确定 artifacts，
  *   一个产出文件都没有则标记 failed；
  * - 模型以纯文本结束（未调用 finish）→ failed（不符合完成协议）；
- * - 达到 maxSteps 上限 → failed（护栏要求）；
+ * - 达到 maxSteps 上限 → failed 并标记 stopReason='step_limit'（护栏要求；
+ *   executor 收到该信号会做一次「从断点继续」的续跑而非普通重试，#2 Phase A）；
  * - 外部中止 / LLM 超时 / LLM 错误 → failed。
  *
  * 轨迹对接：input.recorder（executor 契约必填）会在每步把 ReAct 步骤镜像进去
@@ -220,12 +221,14 @@ export class PiAgentRunner implements AgentRunner {
       status: 'succeeded' | 'failed',
       artifacts: AgentArtifact[],
       error?: string,
+      stopReason?: 'step_limit',
     ): AgentRunnerResult => ({
       status,
       artifacts,
       tokenUsage: { ...usage },
       steps,
       ...(error === undefined ? {} : { error }),
+      ...(stopReason === undefined ? {} : { stopReason }),
     });
 
     // —— 步骤出口：缓冲 + 回调 + 镜像进轨迹记录器 ——
@@ -275,7 +278,7 @@ export class PiAgentRunner implements AgentRunner {
     const upstreamSummary = input.upstreamArtifacts.length > 0
       ? input.upstreamArtifacts.map((a) => `- ${a.name}: ${a.path}`).join('\n')
       : undefined;
-    const userText = userPrompt(
+    const baseUserText = userPrompt(
       {
         question: input.question,
         outputFileName: this.options.outputFileName,
@@ -283,6 +286,11 @@ export class PiAgentRunner implements AgentRunner {
       },
       upstreamSummary,
     );
+    // 重试 / 续跑（#2 Phase A）：executor 回灌的上次失败原因追加到 user prompt，
+    // 使重试「带着失败原因」——schema/验证门问题针对性修复，步数耗尽从断点继续
+    const userText = input.previousFailure !== undefined
+      ? `${baseUserText}\n\n${attemptFeedbackSection(input.previousFailure)}`
+      : baseUserText;
 
     const tools: Tool[] = WORKSPACE_TOOLS;
     const context: Context = {
@@ -451,6 +459,7 @@ export class PiAgentRunner implements AgentRunner {
       'failed',
       [...produced.values()],
       `已达最大 ReAct 步数上限（${input.maxSteps} 步），未收到 finish`,
+      'step_limit',
     );
   }
 }

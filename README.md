@@ -6,7 +6,7 @@
 基于 AgenticDataBench 基准，使用 Pi Agent 作为底层 ReAct Runtime 的数据分析 Agent，并自主实现 DAG 编排层，探索任务分阶段执行与依赖管理对数据分析任务完成效果的影响。
 
 - **Baseline**：Pi Agent 直接接收任务，通过 ReAct 与工具调用完成数据分析。
-- **DAG Prototype**：Pi Agent 作为执行节点，由自研 DAG Orchestrator 管理固定四阶段工作流 `Inspect → Plan → Execute → Verify`，节点之间通过文件 Artifact 传递信息。
+- **DAG Prototype**：Pi Agent 作为执行节点，由自研 DAG Orchestrator 管理固定四阶段工作流 `Inspect → Plan → Execute → Verify`，节点之间通过文件 Artifact 传递信息；节点失败自动重试 / 步数耗尽续跑，关键 Artifact 做结构化 schema 校验，execute 产出过程序化验证门（Phase A，[issue #2](https://github.com/LosAveRoad/data_science_agent/issues/2)）。
 
 两套系统使用相同的模型、工具、数据集和执行环境，统一由 AgenticDataBench 官方 Evaluator 评价。第一阶段固定评测 **30 个任务的冻结子集**，不跑全量 344 任务（选样标准与成本预估见 [docs/design.md](docs/design.md) §3）。完整设计见 [docs/design.md](docs/design.md)，Phase 1 开发计划与里程碑见 [docs/development-plan.md](docs/development-plan.md)。
 
@@ -17,6 +17,7 @@
 - [x] DAG Prototype（四阶段 + Executor + 实验入口，mock 联调通过）
 - [x] 官方 Evaluator 接入与 Run 记录（`scripts/evaluate.sh`，mock 输出已验证解析管线）
 - [x] 执行轨迹（Tool Calls / Token Usage / 节点耗时）与失败定位
+- [x] Phase A 失败策略与产物契约（[issue #2](https://github.com/LosAveRoad/data_science_agent/issues/2)）：节点失败重试 / 步数耗尽续跑 / Artifact 结构化 schema / 程序化验证门——单测与 `--mock` 管线验证通过，真实 LLM 对照运行待执行
 
 ## 目录结构
 
@@ -26,8 +27,9 @@
 ├── src/
 │   ├── benchmark/    # 任务读取（dev.jsonl）、隔离工作区准备
 │   ├── agent/        # Pi Agent Runtime、工作区工具、Baseline/节点两套 Prompt、MockAgentRunner
-│   ├── dag/          # 节点/依赖/固定工作流/串行 Executor（AgentRunner 契约单一来源）
-│   ├── artifacts/    # Artifact 存取（节点间文件产物注册表）
+│   ├── dag/          # 节点/依赖/固定工作流/串行 Executor（AgentRunner 契约单一来源，含失败重试/步数续跑/验证门接入）
+│   ├── artifacts/    # Artifact 存取（节点间文件产物注册表 + data_profile/analysis_plan 结构化 schema 校验）
+│   ├── validate/     # 程序化验证门（任务输出文件存在性/非空/格式检查，0 token）
 │   ├── tracing/      # RunRecorder：轨迹、Token 统计、官方 result.json / run 级 summary
 │   ├── experiments/  # 实验公共代码：runner.ts（共享运行循环 + CLI 解析）、mock-scripts.ts
 │   └── main.ts       # CLI 分发入口：node dist/src/main.js baseline|dag [--...]

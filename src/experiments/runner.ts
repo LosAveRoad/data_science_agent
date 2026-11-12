@@ -33,6 +33,7 @@ import { taskWorkflow } from '../dag/workflow.js';
 import { addTokenUsage, emptyTokenUsage } from '../tracing/recorder.js';
 import { RunRecorder } from '../tracing/recorder.js';
 import type { TokenUsage } from '../tracing/recorder.js';
+import { createTaskOutputGate } from '../validate/gate.js';
 import { baselineMockScript, dagMockScripts, NodeScriptedMockRunner } from './mock-scripts.js';
 
 /** 实验模式。 */
@@ -616,6 +617,9 @@ async function runSingleTask(
       const executor = new DagExecutor(taskWorkflow(task), runner, {
         maxStepsPerNode: config.maxSteps,
         tokenBudgetPerRun: config.tokenBudget,
+        // #2 Phase A：单节点失败重试 / 步数耗尽续跑（默认 2 次尝试）+
+        // execute 节点成功后的程序化验证门（任务输出文件存在性 / 非空 / 格式）
+        outputGate: createTaskOutputGate(task),
       });
       const outcome = await executor.runTask({
         taskId: task.id,

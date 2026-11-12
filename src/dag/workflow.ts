@@ -4,18 +4,27 @@ import type { DagNode, WorkflowDefinition } from './types.js';
  * 设计文档 2.2 节定义的固定四阶段工作流：
  * Inspect → Plan → Execute → Verify。
  * 初版固定拓扑，Plan 产出的是分析计划而非新 DAG。
+ * inspect / plan 的节点任务内嵌结构化 schema 要求（#2 Phase A 升级点 3），
+ * 不合规产物由 executor 的 schema 校验拦截并触发重试。
  */
 export function defaultWorkflow(): WorkflowDefinition {
   const nodes: DagNode[] = [
     {
       id: 'inspect',
-      task: '检查任务涉及的数据文件、Schema 和样本，输出 data_profile.json',
+      task:
+        '检查任务涉及的数据文件、Schema 和样本，输出 data_profile.json。' +
+        '结构要求：顶层对象含 files 数组，每个文件条目含 name（数据文件相对路径）、' +
+        'rows（行数）、columns（数组，每列含 name 与 dtype），' +
+        '并尽量给出每文件关键统计量（stats）与数据质量问题清单（quality_issues）',
       dependsOn: [],
       outputArtifacts: ['data_profile.json'],
     },
     {
       id: 'plan',
-      task: '根据任务和数据结构制定分析计划，输出 analysis_plan.json',
+      task:
+        '根据任务和数据结构制定分析计划，输出 analysis_plan.json。' +
+        '结构要求：顶层对象含 steps 数组，每个步骤含 description（字符串），' +
+        '可含 tools（使用的工具）与 expected_outputs（预期产出）',
       dependsOn: ['inspect'],
       outputArtifacts: ['analysis_plan.json'],
     },
@@ -45,13 +54,20 @@ export function taskWorkflow(task: { outputFileName: string[] }): WorkflowDefini
   const nodes: DagNode[] = [
     {
       id: 'inspect',
-      task: '检查任务涉及的数据文件、Schema 和样本，输出 data_profile.json',
+      task:
+        '检查任务涉及的数据文件、Schema 和样本，输出 data_profile.json。' +
+        '结构要求：顶层对象含 files 数组，每个文件条目含 name（数据文件相对路径）、' +
+        'rows（行数）、columns（数组，每列含 name 与 dtype），' +
+        '并尽量给出每文件关键统计量（stats）与数据质量问题清单（quality_issues）',
       dependsOn: [],
       outputArtifacts: ['data_profile.json'],
     },
     {
       id: 'plan',
-      task: '根据任务和数据结构制定分析计划，输出 analysis_plan.json',
+      task:
+        '根据任务和数据结构制定分析计划，输出 analysis_plan.json。' +
+        '结构要求：顶层对象含 steps 数组，每个步骤含 description（字符串），' +
+        '可含 tools（使用的工具）与 expected_outputs（预期产出）',
       dependsOn: ['inspect'],
       outputArtifacts: ['analysis_plan.json'],
     },

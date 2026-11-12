@@ -47,18 +47,21 @@ Inspect → Plan → Execute → Verify
 3. 使用工作区内的文件、Python、SQL 等工具。
 4. 将执行结果保存为 Artifact。
 5. Executor 确认节点成功后，启动下一个节点。
+6. 节点失败时（runner 异常、产物缺失、schema 不合规、验证门未通过、步数耗尽），Executor 将失败原因回灌给节点重试；步数耗尽则从工作区断点续跑（单节点默认至多 2 次尝试）。
 
 节点之间不直接依赖聊天历史，而是通过明确的文件产物传递信息。
 
 ### 2.4 DAG Executor
 
-初版 Executor 只需要实现：
+初版 Executor 实现以下能力：
 
 - 注册固定工作流。
 - 检查节点 ID 和依赖关系。
 - 按依赖顺序执行节点。
 - 记录节点状态和执行耗时。
 - 保存节点输出和错误信息。
+- 节点失败重试与步数耗尽续跑（#2 Phase A）：单节点默认 2 次尝试，失败原因回灌 runner 供其修复。
+- 产物确定性收口（#2 Phase A）：声明产物核对 → data_profile / analysis_plan 结构化 schema 校验 → execute 产出的程序化验证门（文件存在性 / 非空 / 格式检查，0 token），任一不通过按节点失败处理并触发重试。
 
 不实现通用动态 DAG 引擎。
 
@@ -90,6 +93,8 @@ Inspect → Plan → Execute → Verify
 | Inspect 类操作 | 只允许 head / schema / dtypes，禁止全量读取数据文件 |
 | Run 级 token 预算 | 超限中止该任务并记录 |
 | 断点续跑 | 已成功任务跳过，不重复执行 |
+| 节点失败重试 / 步数续跑 | 单节点默认 2 次尝试（#2 Phase A）；重试带失败原因回灌，步数耗尽从工作区断点继续 |
+| 程序化验证门 | execute 节点产出后确定性检查任务输出文件（存在 / 非空 / 格式，0 token，#2 Phase A） |
 
 ### 3.4 成本预估
 
@@ -134,7 +139,11 @@ agentic-data-dag/
 │   │   └── workflow.ts
 │   │
 │   ├── artifacts/
-│   │   └── store.ts
+│   │   ├── store.ts
+│   │   └── schemas.ts         # data_profile / analysis_plan 结构化 schema 校验（#2 Phase A）
+│   │
+│   ├── validate/
+│   │   └── gate.ts            # 程序化验证门：任务输出文件存在性/非空/格式检查（#2 Phase A）
 │   │
 │   ├── tracing/
 │   │   └── recorder.ts
