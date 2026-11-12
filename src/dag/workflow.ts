@@ -197,3 +197,24 @@ export function taskRepairWorkflow(
   ];
   return { id: 'inspect-plan-execute-verify-adjudicate', nodes };
 }
+
+/**
+ * 极简工作流（#4 Phase C 可选档）：单节点直做——baseline 式 prompt（经 promptStyle 覆盖）
+ * + executor 的重试护栏与程序化验证门，不再走四阶段流水线。
+ * 节点 ID 固定为 execute，使 createTaskOutputGate 的验证门继续生效。
+ */
+export function taskMinimalWorkflow(task: { outputFileName: string[]; question: string }): WorkflowDefinition {
+  const outputs = [...new Set(task.outputFileName)];
+  const outputsText = outputs.length > 0 ? outputs.join('、') : '任务要求的输出文件';
+  const nodes: DagNode[] = [
+    {
+      id: 'execute',
+      promptStyle: 'baseline',
+      task: `独立完成整个数据分析任务：产出最终结果文件（${outputsText}，文件名必须与要求完全一致）`,
+      dependsOn: [],
+      outputArtifacts: outputs,
+      maxExecutions: 1,
+    },
+  ];
+  return { id: 'minimal-direct-execute', nodes };
+}

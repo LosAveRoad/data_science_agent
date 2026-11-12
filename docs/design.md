@@ -94,6 +94,22 @@ Inspect → Plan → Execute ⇄ Verify（挑战） → Adjudicate（裁决）
 - 强模型未配置（`MODEL_ID_STRONG` 留空）时自动退化为单模型，不改变运行行为。
 - tracing 按节点记录所用模型与用量（summary nodes[].model）；run-summary 汇总分档成本（`totals.usageByModel`）与分层配置（`config.strongModel`）。
 
+### 2.6 难度路由（#4 Phase C）
+
+入口 router 节点（`src/dag/router.ts`）按任务特征规则分档选择路径（零 LLM 成本；LLM 路由为非目标，效果不佳再升级）：
+
+| 档位 | 路径 | token 预算系数 |
+|---|---|---|
+| full 完整路径 | Inspect → Plan → Execute ⇄ Verify → Adjudicate（含修复回路） | 1×（run 级预算） |
+| simple 简单路径 | 同 full 但跳过 Plan（executor `skipNodes` 跳过子图，依赖透明传递） | 0.6× |
+| minimal 极简路径 | 单节点直做（baseline 式 prompt + 重试护栏 + 程序化验证门） | 0.25× |
+
+- 路由特征（全部可从任务定义确定性导出）：输出文件数量（`output_file_name`）、问题复杂度（问题文本长度）、数据集规模/文件数（`data_sources` 条目数）。
+- 阈值（保守，优先保证得分不回退）：simple = 单输出 ∧ ≤3 数据源 ∧ ≤1200 字符；minimal = 单输出 ∧ ≤2 数据源 ∧ ≤500 字符；其余 full。逐档下沉判定（minimal ⊂ simple ⊂ full）。
+- 表达方式：workflow 条件化构建（minimal 单节点工作流 vs full 回路工作流，`src/dag/workflow.ts`）+ executor 跳过子图（simple = full 工作流 + `skipNodes: ['plan']`，`src/dag/executor.ts`）；跳过节点的下游改从其上游取产物（如 execute 直接读 inspect 的 data_profile.json），修复回路保留。
+- 可归因：路由决策（特征依据与选择结果）写入 tracing（轨迹首步）与任务 summary（`routing` 字段）；run-summary 记录路由模式与各档位任务数（`config.routing` / `config.routeCounts`）与每任务决策（`tasks[].route`）。
+- CLI：`--routing auto|full|simple|minimal`（默认 auto；强制档位用于消融对照）。
+
 ## 3. Benchmark 任务子集
 
 第一阶段不运行全量 344 个任务，**固定使用 30 个任务的冻结子集**作为两套系统的统一评测集。
@@ -126,6 +142,8 @@ Inspect → Plan → Execute ⇄ Verify（挑战） → Adjudicate（裁决）
 | 程序化验证门 | execute 节点产出后确定性检查任务输出文件（存在 / 非空 / 格式，0 token，#2 Phase A） |
 | 修复回路轮数上限 | 默认 2 轮（#3 Phase B）；超限强制 accept 收口并记录，回路不再无界膨胀 |
 | 模型分层 | Plan / Verify / 裁决 = 强模型（$MODEL_ID_STRONG）；Inspect / Execute = 默认档（#3 Phase B） |
+| 难度路由预算分档 | run 级预算按档位生效：full 1× / simple 0.6× / minimal 0.25×（#4 Phase C，超限中止并记录） |
+| 路由可归因 | 每任务的路由决策（特征依据 + 选择结果）写入 tracing 与 summary；run-summary 汇总各档位任务数（#4 Phase C） |
 
 ### 3.4 成本预估
 
@@ -167,7 +185,8 @@ agentic-data-dag/
 │   │   ├── types.ts
 │   │   ├── graph.ts
 │   │   ├── executor.ts        # AgentRunner / AgentRunnerInput 契约单一来源
-│   │   └── workflow.ts
+│   │   ├── workflow.ts
+│   │   └── router.ts          # 难度路由：规则分档 + 分档预算（#4 Phase C）
 │   │
 │   ├── artifacts/
 │   │   ├── store.ts
@@ -196,6 +215,7 @@ agentic-data-dag/
 │   ├── graph.test.ts
 │   ├── executor.test.ts
 │   ├── loop.test.ts           # 修复回路：裁决三分支 / 2 轮上限 / 含中间轮次断点续跑（#3 Phase B）
+│   ├── router.test.ts         # 难度路由：规则分档 / 预算分档 / 跳过子图依赖检查（#4 Phase C）
 │   ├── agent.test.ts
 │   ├── benchmark.test.ts
 │   ├── validate.test.ts
