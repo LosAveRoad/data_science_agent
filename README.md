@@ -48,6 +48,30 @@ npm run build
 npm test
 ```
 
+### 模型接入
+
+两套系统通过 `PI_BASE_URL` / `MODEL_ID` 接入任意 OpenAI 兼容端点，`.env.example` 给出两条路径：
+
+| 路径 | 端点 | 模型 ID | 计费 |
+|---|---|---|---|
+| 直连 DeepSeek | `https://api.deepseek.com` | `deepseek-flash` | 按 token |
+| 本地代理 mistral-gateway | `http://127.0.0.1:8788/v1` | `deepseek-v4-1-flash` | Mistral Vibe 订阅额度 |
+
+两者背后是同一模型（DeepSeek V4.1 Flash-1017），实验分数可比。经代理时链路多一跳、延迟约 3–4s/次往返，全量跑建议配 `--concurrency` 抵消。
+
+**mistral-gateway 本地配置**（可选，仅走订阅额度时需要）：
+
+```bash
+git clone https://github.com/Classic298/mistral-gateway
+cd mistral-gateway
+cp gateway.env.example gateway.env   # VIBE_KEY=<Vibe 订阅 key>
+python3 gateway.py                   # 监听 127.0.0.1:8788
+curl -s localhost:8788/health        # {"ok": true, ...}
+curl -s localhost:8788/quota         # 订阅计划与剩余额度
+```
+
+注意：该仓库为非官方代理（PolyForm Noncommercial 许可），仅适合个人研究用途；Mistral API 对未知字段严格校验，运行时的 `buildModel` 已默认 `supportsStore: false` 适配。
+
 ### Benchmark 运行
 
 前置条件：项目根目录 `.env` 提供 `PI_API_KEY` / `PI_BASE_URL` / `MODEL_ID` 与

@@ -49,7 +49,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  // 与 src/agent/pi-runtime.ts 相同的 openai-completions 自定义 Model 接入方式
+  // 与 src/agent/pi-runtime.ts 的 buildModel 保持一致（脚本自包含，不 import src/）。
+  // supportsStore=false：Mistral 及本地代理网关会对未知字段直接 422。
   const model = {
     id: modelId,
     name: modelId,
@@ -61,6 +62,7 @@ async function main(): Promise<void> {
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 128_000,
     maxTokens: 8192,
+    compat: { supportsStore: false },
   };
 
   const startedAt = Date.now();
