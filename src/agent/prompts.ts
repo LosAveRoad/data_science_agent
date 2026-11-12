@@ -1,7 +1,9 @@
 /**
  * Prompt 构造：Baseline（整任务直做）与 DAG 单节点两套 system prompt，
- * 以及统一的 user prompt。护栏与 docs/design.md §3.3 一致。
+ * 以及统一的 user prompt、重试/续跑反馈段。护栏与 docs/design.md §3.3 一致。
  */
+
+import type { NodeAttemptFeedback } from '../dag/executor.js';
 
 /** user prompt 的任务输入。 */
 export interface TaskPromptInput {
@@ -100,4 +102,25 @@ export function userPrompt(task: TaskPromptInput, upstreamSummary?: string): str
 
   parts.push('请开始。先了解数据和文件结构，再动手完成上述任务。');
   return parts.join('\n\n');
+}
+
+/**
+ * 重试 / 续跑反馈段（#2 Phase A 失败策略）：executor 在第 N 次尝试失败后回灌
+ * 错误信息，runner 把本段追加到 user prompt，使重试「带着失败原因」而不是盲目重跑。
+ * - kind=error：一般失败（产物缺失 / schema 不合规 / 验证门未通过 / 运行异常）→ 针对原因修复；
+ * - kind=step_limit：步数耗尽 → 工作区保留了已写出的文件，从断点继续而不是重新开始。
+ */
+export function attemptFeedbackSection(feedback: NodeAttemptFeedback): string {
+  const lines = [`## 上次尝试反馈（第 ${feedback.attempt} 次执行未完成）`];
+  lines.push(`- 失败原因: ${feedback.message}`);
+  if (feedback.kind === 'step_limit') {
+    lines.push(
+      '- 工作区保留了上次执行已写出的文件：先用 list_files / read_file 检查已有进度，从断点继续，不要重复已完成的工作',
+    );
+    lines.push('- 注意节省步数：合并操作、尽快产出本节点的 Artifact 文件并调用 finish');
+  } else {
+    lines.push('- 请先检查工作区当前状态，针对上述原因修复后重新完成本节点职责');
+    lines.push('- 若反馈指出产物不符合 schema，请按节点职责说明的结构要求重新生成对应文件');
+  }
+  return lines.join('\n');
 }

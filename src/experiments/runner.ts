@@ -2,7 +2,7 @@
  * 实验共享运行循环（src/experiments 公共代码）：
  *
  * - CLI 参数解析（--experiment-id / --tasks / --all / --limit / --mock /
- *   --token-budget / --max-steps / --overwriting）；
+ *   --token-budget / --max-steps / --overwriting / --concurrency）；
  * - 从 configs/benchmark.json 冻结子集读取任务（数据目录取 $AGENTIC_DATA_BENCH_DATA_DIR，
  *   入口启动时先 loadEnvFile 加载项目 .env）；
  * - 每个 task：准备工作区 → baseline（单次 PiAgentRunner）或 DAG（DagExecutor +
@@ -33,6 +33,7 @@ import { taskWorkflow } from '../dag/workflow.js';
 import { addTokenUsage, emptyTokenUsage } from '../tracing/recorder.js';
 import { RunRecorder } from '../tracing/recorder.js';
 import type { TokenUsage } from '../tracing/recorder.js';
+import { createTaskOutputGate } from '../validate/gate.js';
 import { baselineMockScript, dagMockScripts, NodeScriptedMockRunner } from './mock-scripts.js';
 
 /** 实验模式。 */
@@ -64,6 +65,8 @@ export interface ParsedExperimentArgs {
   tokenBudget: number;
   maxSteps: number;
   overwriting: boolean;
+  /** 任务级并发数（任务相互独立、工作区隔离；1 = 串行）。 */
+  concurrency: number;
 }
 
 /** runExperiment 的完整配置（CLI 参数 + 路径解析结果）。 */
@@ -124,6 +127,7 @@ export function usageText(): string {
     '  --token-budget <n>     run 级 token 预算（默认 2000000，超限中止并标记 failed）',
     '  --max-steps <n>        单节点 / 单次 ReAct 步数上限（默认 40）',
     '  --overwriting          忽略断点续跑记录，强制重跑已完成任务',
+    '  --concurrency <n>      任务级并发数（默认 1 = 串行；任务相互独立，可安全并行）',
     '  -h, --help             打印本帮助',
   ].join('\n');
 }
@@ -141,6 +145,7 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
   let tokenBudget = DEFAULT_TOKEN_BUDGET;
   let maxSteps = DEFAULT_MAX_STEPS;
   let overwriting = false;
+  let concurrency = 1;
 
   const readValue = (flag: string, rest: readonly string[]): string => {
     if (rest.length === 0) {
@@ -198,6 +203,10 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
       case '--overwriting':
         overwriting = true;
         break;
+      case '--concurrency':
+        concurrency = readInt(flag, rest);
+        i += 1;
+        break;
       default:
         throw new Error(`未知参数: ${flag}`);
     }
@@ -218,7 +227,7 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
     throw new Error('缺少任务选择参数：--tasks <id1,id2,...> 或 --all（二选一）');
   }
 
-  return { experimentId, taskIds, all, ...(limit !== undefined ? { limit } : {}), mock, tokenBudget, maxSteps, overwriting };
+  return { experimentId, taskIds, all, ...(limit !== undefined ? { limit } : {}), mock, tokenBudget, maxSteps, overwriting, concurrency };
 }
 
 /**
@@ -470,25 +479,41 @@ export async function runExperiment(config: ExperimentRunConfig): Promise<Experi
   );
   console.log(`[experiment] runDir=${runDir}`);
 
-  // 2. 逐任务执行（断点续跑：已完成任务跳过；--overwriting 强制重跑并清理现场）
+  // 2. 任务执行（断点续跑：已完成任务跳过；--overwriting 强制重跑并清理现场）。
+  //    任务相互独立且目录按 task.id 隔离，--concurrency N 时用 worker pool 并行（1 = 串行）。
   const records: TaskRunRecord[] = [];
-  for (const [index, task] of tasks.entries()) {
+  const total = tasks.length;
+  let done = 0;
+  const runOne = async (task: BenchmarkTask): Promise<TaskRunRecord> => {
     if (!config.overwriting && (await isTaskCompleted(runDir, task.id))) {
-      records.push({ taskId: task.id, status: 'skipped', tokenUsage: emptyTokenUsage(), outputs: [] });
-      console.log(`[${index + 1}/${tasks.length}] ${task.id}: skipped（已完成，--overwriting 可强制重跑）`);
-      continue;
+      done += 1;
+      console.log(`[${done}/${total}] ${task.id}: skipped（已完成，--overwriting 可强制重跑）`);
+      return { taskId: task.id, status: 'skipped', tokenUsage: emptyTokenUsage(), outputs: [] };
     }
     if (config.overwriting) {
       await resetTaskArtifacts(runDir, task.id);
     }
     const record = await runSingleTask(config, runDir, task);
-    records.push(record);
+    done += 1;
     const suffix = record.error !== undefined ? ` error=${record.error}` : '';
     console.log(
-      `[${index + 1}/${tasks.length}] ${task.id}: ${record.status} tokens=${record.tokenUsage.totalTokens}` +
+      `[${done}/${total}] ${task.id}: ${record.status} tokens=${record.tokenUsage.totalTokens}` +
         ` outputs=[${record.outputs.join(', ')}]${suffix}`,
     );
-  }
+    return record;
+  };
+  const queue = [...tasks];
+  const workerCount = Math.min(Math.max(config.concurrency, 1), tasks.length);
+  const workers = Array.from({ length: workerCount }, async () => {
+    for (;;) {
+      const task = queue.shift();
+      if (task === undefined) {
+        return;
+      }
+      records.push(await runOne(task));
+    }
+  });
+  await Promise.all(workers);
 
   // 3. run-summary.json
   const finishedAt = new Date().toISOString();
@@ -529,6 +554,7 @@ export async function runExperiment(config: ExperimentRunConfig): Promise<Experi
       maxSteps: config.maxSteps,
       tokenBudget: config.tokenBudget,
       overwriting: config.overwriting,
+      concurrency: config.concurrency,
     },
     totals: result.totals,
     tasks: result.records,
@@ -616,6 +642,9 @@ async function runSingleTask(
       const executor = new DagExecutor(taskWorkflow(task), runner, {
         maxStepsPerNode: config.maxSteps,
         tokenBudgetPerRun: config.tokenBudget,
+        // #2 Phase A：单节点失败重试 / 步数耗尽续跑（默认 2 次尝试）+
+        // execute 节点成功后的程序化验证门（任务输出文件存在性 / 非空 / 格式）
+        outputGate: createTaskOutputGate(task),
       });
       const outcome = await executor.runTask({
         taskId: task.id,
