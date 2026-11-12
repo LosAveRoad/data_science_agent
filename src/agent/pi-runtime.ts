@@ -147,8 +147,11 @@ function resolveRunnerConfig(options: PiAgentRunnerOptions): {
  * 构造 openai-completions 自定义 Model：任意 OpenAI 兼容 baseURL 均可接入。
  * reasoning=false 避免发送 developer 角色 / reasoning_effort 等
  * 非 OpenAI 兼容端点不认识的参数；DeepSeek 等已知端点由 pi-ai 按 URL 自动检测 compat。
+ *
+ * 默认 supportsStore=false：服务端会话存储对本项目无用，且部分端点（Mistral 及
+ * 本地代理网关）会对未知字段直接 422 拒绝。调用方显式传入的 compat 优先。
  */
-function buildModel(
+export function buildModel(
   config: { baseUrl: string; modelId: string },
   compat?: OpenAICompletionsCompat,
 ): Model<'openai-completions'> {
@@ -163,7 +166,7 @@ function buildModel(
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     contextWindow: 128_000,
     maxTokens: 8192,
-    ...(compat ? { compat } : {}),
+    compat: { supportsStore: false, ...(compat ?? {}) },
   };
 }
 
