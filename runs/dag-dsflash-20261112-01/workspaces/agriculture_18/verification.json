@@ -1,0 +1,421 @@
+{
+  "node": "verify",
+  "node_role": "检查 output1.csv / output2.csv / output.png 是否存在、格式正确、结果完整",
+  "status": "passed",
+  "verified_at_utc": "2026-11-11T18:50:35Z",
+  "task": "RandomForest(100 trees, random_state=42) 12 类作物推荐评估的产物校验",
+  "artifacts": {
+    "output1.csv": {
+      "exists": true,
+      "bytes": 553,
+      "sha256_16": "db04a11ed3029006",
+      "format": "CSV，列=class,precision,recall,f1-score,support；15 行 = 12 作物类 + accuracy + macro avg + micro avg",
+      "valid": true
+    },
+    "output2.csv": {
+      "exists": true,
+      "bytes": 991,
+      "sha256_16": "e6323c05407640ce",
+      "format": "CSV，12x12 归一化混淆矩阵；index='Actual'（12 类），columns='Predicted'（同序 12 类）；按行和为 1",
+      "valid": true
+    },
+    "output.png": {
+      "exists": true,
+      "bytes": 261712,
+      "sha256_16": "b61dad0f3d403390",
+      "format": "PNG 2675x2366（300 dpi），12x12 Blues 热图 + colorbar + 格内两位小数标注",
+      "title": "Normalized Confusion Matrix - Crop Recommendation",
+      "xlabel": "Predicted",
+      "ylabel": "Actual",
+      "valid": true
+    }
+  },
+  "check_summary": {
+    "total": 35,
+    "passed": 35,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "check": "exists_nonempty::output1.csv",
+      "passed": true,
+      "detail": "553 bytes"
+    },
+    {
+      "check": "exists_nonempty::output2.csv",
+      "passed": true,
+      "detail": "991 bytes"
+    },
+    {
+      "check": "exists_nonempty::output.png",
+      "passed": true,
+      "detail": "261712 bytes"
+    },
+    {
+      "check": "output1::columns",
+      "passed": true,
+      "detail": [
+        "class",
+        "precision",
+        "recall",
+        "f1-score",
+        "support"
+      ]
+    },
+    {
+      "check": "output1::row_labels_and_order",
+      "passed": true,
+      "detail": [
+        "Barley",
+        "Bean",
+        "Dagussa",
+        "Fallow",
+        "Maize",
+        "Niger seed",
+        "Pea",
+        "Potato",
+        "Red Pepper",
+        "Sorghum",
+        "Teff",
+        "Wheat",
+        "accuracy",
+        "macro avg",
+        "micro avg"
+      ]
+    },
+    {
+      "check": "output1::n_rows",
+      "passed": true,
+      "detail": "15 data rows (+1 header)"
+    },
+    {
+      "check": "output1::all_numeric_no_nan",
+      "passed": true,
+      "detail": "non-numeric in: none"
+    },
+    {
+      "check": "output1::metrics_in_[0,1]",
+      "passed": true,
+      "detail": "all class precision/recall/f1 within [0,1]"
+    },
+    {
+      "check": "output1::support_integers",
+      "passed": true,
+      "detail": {
+        "Teff": 252.0,
+        "Fallow": 5.0,
+        "accuracy": 774.0
+      }
+    },
+    {
+      "check": "output1::f1_is_harmonic_mean_of_p_r",
+      "passed": true,
+      "detail": "max abs diff = 7.84e-07"
+    },
+    {
+      "check": "output1::class_support_sum_eq_test_size",
+      "passed": true,
+      "detail": "sum(class support)=774, accuracy support=774"
+    },
+    {
+      "check": "output1::avg_rows_support_eq_test_size",
+      "passed": true,
+      "detail": "macro=774, micro=774"
+    },
+    {
+      "check": "output1::accuracy_row_consistent",
+      "passed": true,
+      "detail": "accuracy row = [0.503876, 0.503876, 0.503876]"
+    },
+    {
+      "check": "output1::micro_equals_accuracy",
+      "passed": true,
+      "detail": "micro avg = [0.503876, 0.503876, 0.503876], accuracy = 0.503876"
+    },
+    {
+      "check": "output1::macro_avg_precision_is_unweighted_mean",
+      "passed": true,
+      "detail": "recomputed mean=0.299062 vs file=0.299062"
+    },
+    {
+      "check": "output1::macro_avg_recall_is_unweighted_mean",
+      "passed": true,
+      "detail": "recomputed mean=0.242716 vs file=0.242716"
+    },
+    {
+      "check": "output1::macro_avg_f1-score_is_unweighted_mean",
+      "passed": true,
+      "detail": "recomputed mean=0.255083 vs file=0.255083"
+    },
+    {
+      "check": "output2::header_index_name",
+      "passed": true,
+      "detail": "first header cell = 'Actual'"
+    },
+    {
+      "check": "output2::column_labels",
+      "passed": true,
+      "detail": [
+        "Barley",
+        "Bean",
+        "Dagussa",
+        "Fallow",
+        "Maize",
+        "Niger seed",
+        "Pea",
+        "Potato",
+        "Red Pepper",
+        "Sorghum",
+        "Teff",
+        "Wheat"
+      ]
+    },
+    {
+      "check": "output2::shape_12x12",
+      "passed": true,
+      "detail": "12 rows x 12 cols"
+    },
+    {
+      "check": "output2::row_labels",
+      "passed": true,
+      "detail": [
+        "Barley",
+        "Bean",
+        "Dagussa",
+        "Fallow",
+        "Maize",
+        "Niger seed",
+        "Pea",
+        "Potato",
+        "Red Pepper",
+        "Sorghum",
+        "Teff",
+        "Wheat"
+      ]
+    },
+    {
+      "check": "output2::rows_sum_to_1",
+      "passed": true,
+      "detail": {
+        "Barley": 1.000001,
+        "Bean": 1.0,
+        "Dagussa": 1.0,
+        "Fallow": 1.0,
+        "Maize": 1.000001,
+        "Niger seed": 0.999999,
+        "Pea": 1.0,
+        "Potato": 1.0,
+        "Red Pepper": 1.000001,
+        "Sorghum": 1.000001,
+        "Teff": 1.0,
+        "Wheat": 0.999999
+      }
+    },
+    {
+      "check": "output2::values_in_[0,1]",
+      "passed": true,
+      "detail": "all cells within [0,1]"
+    },
+    {
+      "check": "output2::diagonal_equals_output1_recall",
+      "passed": true,
+      "detail": "max abs diff = 0.00e+00"
+    },
+    {
+      "check": "output2::rows_consistent_with_support_counts",
+      "passed": true,
+      "detail": "max deviation of value*support from integer = 1.24e-04"
+    },
+    {
+      "check": "output2::derived_accuracy_matches",
+      "passed": true,
+      "detail": "(1/n)390/774 = 0.503876 vs 0.503876"
+    },
+    {
+      "check": "output.png::size_gt_50KB",
+      "passed": true,
+      "detail": "261712 bytes"
+    },
+    {
+      "check": "output.png::valid_png_and_resolution",
+      "passed": true,
+      "detail": "2675x2366 px, bit depth 8, RGBA (300 dpi render)"
+    },
+    {
+      "check": "output.png::title_and_axis_labels_as_specified",
+      "passed": true,
+      "detail": "byte-identical to a fresh render of run_analysis.py, which sets title='Normalized Confusion Matrix - Crop Recommendation', xlabel='Predicted', ylabel='Actual'"
+    },
+    {
+      "check": "reproducibility::deterministic_rerun",
+      "passed": true,
+      "detail": "re-executing the modelling script in an isolated dir (RF n_estimators=100, random_state=42; stratified 80/20 split, seed 42) reproduced all three artifacts byte-for-byte"
+    },
+    {
+      "check": "reproducibility::seeds_verified_in_source",
+      "passed": true,
+      "detail": "run_analysis.py: SEED = 42 used for train_test_split and RandomForestClassifier"
+    },
+    {
+      "check": "dataset::shape_and_classes",
+      "passed": true,
+      "detail": "3867 rows x 29 cols, target 'label' with 12 classes"
+    },
+    {
+      "check": "dataset::test_supports_match_stratified_20pct",
+      "passed": true,
+      "detail": "per-class test support == round(0.2 * class count): Barley:101, Bean:51, Dagussa:14, Fallow:5, Maize:146, Niger seed:13, Pea:19, Potato:10, Red Pepper:6, Sorghum:14, Teff:252, Wheat:143"
+    },
+    {
+      "check": "dataset::test_size_is_20pct",
+      "passed": true,
+      "detail": "n_test = 774 of 3867 (20.0155%)"
+    },
+    {
+      "check": "metadata::summary_metrics_match_artifacts",
+      "passed": true,
+      "detail": "execute_summary.json 的 accuracy=0.503876 / macroF1=0.255083 / microF1=0.503876 与 output1.csv 完全一致"
+    }
+  ],
+  "metrics_from_output1_csv": {
+    "overall_accuracy": 0.503876,
+    "macro_f1": 0.255083,
+    "micro_f1": 0.503876,
+    "macro_precision": 0.299062,
+    "macro_recall": 0.242716,
+    "weighted_f1": 0.471205,
+    "n_test_samples": 774,
+    "n_train_samples": 3093,
+    "n_classes": 12
+  },
+  "per_class_metrics": [
+    {
+      "class": "Barley",
+      "precision": 0.438202,
+      "recall": 0.386139,
+      "f1": 0.410526,
+      "support": 101
+    },
+    {
+      "class": "Bean",
+      "precision": 0.1875,
+      "recall": 0.058824,
+      "f1": 0.089552,
+      "support": 51
+    },
+    {
+      "class": "Dagussa",
+      "precision": 0.285714,
+      "recall": 0.142857,
+      "f1": 0.190476,
+      "support": 14
+    },
+    {
+      "class": "Fallow",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 5
+    },
+    {
+      "class": "Maize",
+      "precision": 0.517045,
+      "recall": 0.623288,
+      "f1": 0.565217,
+      "support": 146
+    },
+    {
+      "class": "Niger seed",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 13
+    },
+    {
+      "class": "Pea",
+      "precision": 0.555556,
+      "recall": 0.263158,
+      "f1": 0.357143,
+      "support": 19
+    },
+    {
+      "class": "Potato",
+      "precision": 0.25,
+      "recall": 0.1,
+      "f1": 0.142857,
+      "support": 10
+    },
+    {
+      "class": "Red Pepper",
+      "precision": 0.333333,
+      "recall": 0.166667,
+      "f1": 0.222222,
+      "support": 6
+    },
+    {
+      "class": "Sorghum",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 14
+    },
+    {
+      "class": "Teff",
+      "precision": 0.555224,
+      "recall": 0.738095,
+      "f1": 0.633731,
+      "support": 252
+    },
+    {
+      "class": "Wheat",
+      "precision": 0.466165,
+      "recall": 0.433566,
+      "f1": 0.449275,
+      "support": 143
+    }
+  ],
+  "confusion_matrix_cross_checks": {
+    "row_sums_all_one": true,
+    "diag_equals_output1_recall": true,
+    "accuracy_rederived_from_diagonal_counts": 0.503876,
+    "never_predicted_classes": [
+      "Fallow",
+      "Sorghum"
+    ],
+    "never_predicted_support": {
+      "Fallow": 5,
+      "Sorghum": 14
+    },
+    "note": "Fallow(5) / Sorghum(14) 在测试集中从未被预测到，因此 recall=0（Niger seed 虽被预测 1 次但 0 命中，precision=0）。这是类别不平衡下的真实遗漏，不是格式错误。"
+  },
+  "reproducibility": {
+    "seed": 42,
+    "method": "在隔离临时目录中以 python3.13 重跑 run_analysis.py（脚本 copy，数据 symlink，cwd 为临时目录，未触碰工作区上游产物）",
+    "output1_identical": true,
+    "output2_identical": true,
+    "output_png_identical": true,
+    "environment": {
+      "python": "3.13.18",
+      "numpy": "2.5.4",
+      "pandas": "3.1.1",
+      "scikit-learn": "1.9.1",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "metadata_cross_check": {
+    "execute_summary.overall_accuracy": 0.503876,
+    "matched_accuracy": true,
+    "execute_summary.macro_f1": 0.255083,
+    "matched_macro_f1": true,
+    "execute_summary.micro_f1": 0.503876,
+    "matched_micro_f1": true,
+    "note": "execute_summary.json 的 macro_precision(0.299058) 与 _exec_log.json 的 macro_precision(0.255083) 不一致：_exec_log 中该字段实际写入的是 macro F1（run_analysis.py 中变量命名 bug），output1.csv 的 macro avg precision = 0.299062 才是正确值（与 12 类 precision 简单平均一致）。属上游元数据命名问题，不影响三个交付物。"
+  },
+  "warnings": [
+    "上游 execute_summary.json 的 macro_precision=0.299058 与 _exec_log.json 的 0.255083 不一致（后者实为 macro F1，run_analysis.py 字段命名 bug）；正确 macro precision = 0.299062（见 output1.csv），不影响交付物正确性，仅元数据需注意。",
+    "方法论局限（来自 analysis_plan）：21 个天气列仅有 16 种常量天气组合，随机分层划分会把同一天气区块同时放入训练/测试集，存在信息泄漏，指标可能偏乐观；严谨评估宜用 GroupKFold。",
+    "类别极不平衡：Fallow(5)/Red Pepper(6)/Potato(10)/Niger seed(13)/Sorghum(14)/Dagussa(14) 测试支撑极小，其 precision/recall/F1 方差大，宜与 macro F1 及 support 一并解读。",
+    "单次 80/20 划分、无交叉验证；训练集准确率 1.0（RF 全拟合），macro F1 0.255 与 micro F1(=accuracy) 0.504 的差距反映长尾小类严重拖累整体均衡性能。",
+    "运行环境依赖 /opt/homebrew/bin/python3.13（默认 python3 无 numpy/pandas/sklearn）；复现需同版本依赖。"
+  ]
+}

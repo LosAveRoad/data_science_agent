@@ -1,0 +1,113 @@
+{
+  "raw_rows": {
+    "Stroke": 5110,
+    "Diabetes": 2768,
+    "CKD": 400
+  },
+  "raw_total": 8278,
+  "filter_steps": {
+    "excluded_glucose_missing_or_zero": 62,
+    "excluded_age_missing": 8,
+    "excluded_age_out_of_range": 3744
+  },
+  "final_rows": 4464,
+  "final_counts": {
+    "Stroke": 2885,
+    "Diabetes": 1306,
+    "CKD": 273
+  },
+  "final_describe": {
+    "CKD": {
+      "n": 273,
+      "mean": 151.179,
+      "median": 123.0,
+      "std": 80.611,
+      "min": 70.0,
+      "max": 490.0
+    },
+    "Diabetes": {
+      "n": 1306,
+      "mean": 129.521,
+      "median": 125.0,
+      "std": 32.157,
+      "min": 44.0,
+      "max": 197.0
+    },
+    "Stroke": {
+      "n": 2885,
+      "mean": 107.899,
+      "median": 92.23,
+      "std": 46.964,
+      "min": 55.22,
+      "max": 271.74
+    }
+  },
+  "age_describe": {
+    "CKD": {
+      "n": 273,
+      "mean": 52.89,
+      "min": 30.0,
+      "max": 70.0
+    },
+    "Diabetes": {
+      "n": 1306,
+      "mean": 42.62,
+      "min": 30.0,
+      "max": 70.0
+    },
+    "Stroke": {
+      "n": 2885,
+      "mean": 49.72,
+      "min": 30.0,
+      "max": 70.0
+    }
+  },
+  "kruskal": {
+    "H": 628.1297472880678,
+    "p": 4.011976834982009e-137,
+    "groups": [
+      "Diabetes",
+      "Stroke",
+      "CKD"
+    ],
+    "medians": {
+      "Diabetes": 125.0,
+      "Stroke": 92.23,
+      "CKD": 123.0
+    }
+  },
+  "dunn_note": "Dunn z statistic with ties correction; p-values Bonferroni-adjusted (x3)",
+  "dunn_results": [
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Diabetes vs Stroke",
+      "statistic": 23.369292894117425,
+      "p_value": 2.632308557413407e-120,
+      "significant": true
+    },
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Diabetes vs CKD",
+      "statistic": -0.43762135560234433,
+      "p_value": 1.0,
+      "significant": false
+    },
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Stroke vs CKD",
+      "statistic": -12.768506131789152,
+      "p_value": 7.3748159242587045e-37,
+      "significant": true
+    }
+  ],
+  "files": {
+    "Healthcare-Diabetes.csv": "glucose=Glucose (mg/dL), age=Age",
+    "healthcare-dataset-stroke-data.csv": "glucose=avg_glucose_level (mg/dL), age=age",
+    "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff": "glucose=bgr (blood glucose random, mg/dL), age=age; missing=\"?\"; 3 malformed rows (extra comma) repaired; 400 rows (250 ckd / 150 notckd)"
+  },
+  "warnings": [
+    "Units assumed consistent (all mg/dL); no rescaling applied.",
+    "Dunn p-values computed via normal survival function then Bonferroni x3 (matches scikit-posthocs).",
+    "matplotlib/scipy/pandas installed via pip --user (isolated interpreter, path injected)."
+  ]
+}

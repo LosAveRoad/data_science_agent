@@ -1,0 +1,275 @@
+{
+  "datasets": {
+    "EbayPcLaptopsAndNetbooksUnclean.csv": {
+      "rows": 6620,
+      "columns": [
+        "Brand",
+        "Price",
+        "Rating",
+        "Ratings Count",
+        "Condition",
+        "Seller Note",
+        "Processor",
+        "Screen Size",
+        "Manufacturer Color",
+        "Color",
+        "Ram Size",
+        "SSD Capacity",
+        "GPU",
+        "Processor Speed",
+        "Type",
+        "Release Year",
+        "Maximum Resolution",
+        "Model",
+        "OS",
+        "Features",
+        "Hard Drive Capacity",
+        "Country Region Of Manufacture",
+        "Storage Type"
+      ],
+      "missing_pct": {
+        "Brand": 39.21,
+        "Price": 0.0,
+        "Rating": 95.68,
+        "Ratings Count": 95.68,
+        "Condition": 9.31,
+        "Seller Note": 78.22,
+        "Processor": 42.04,
+        "Screen Size": 41.24,
+        "Manufacturer Color": 97.21,
+        "Color": 67.54,
+        "Ram Size": 68.1,
+        "SSD Capacity": 58.01,
+        "GPU": 53.35,
+        "Processor Speed": 59.68,
+        "Type": 50.32,
+        "Release Year": 88.11,
+        "Maximum Resolution": 62.54,
+        "Model": 52.45,
+        "OS": 54.08,
+        "Features": 62.16,
+        "Hard Drive Capacity": 64.77,
+        "Country Region Of Manufacture": 96.93,
+        "Storage Type": 63.93
+      }
+    },
+    "olist_customers_dataset.csv": {
+      "rows": 99441,
+      "columns": [
+        "customer_id",
+        "customer_unique_id",
+        "customer_zip_code_prefix",
+        "customer_city",
+        "customer_state"
+      ],
+      "missing_pct": {
+        "customer_id": 0.0,
+        "customer_unique_id": 0.0,
+        "customer_zip_code_prefix": 0.0,
+        "customer_city": 0.0,
+        "customer_state": 0.0
+      }
+    },
+    "olist_geolocation_dataset.csv": {
+      "rows": 1000163,
+      "columns": [
+        "geolocation_zip_code_prefix",
+        "geolocation_lat",
+        "geolocation_lng",
+        "geolocation_city",
+        "geolocation_state"
+      ],
+      "missing_pct": {
+        "geolocation_zip_code_prefix": 0.0,
+        "geolocation_lat": 0.0,
+        "geolocation_lng": 0.0,
+        "geolocation_city": 0.0,
+        "geolocation_state": 0.0
+      }
+    },
+    "olist_order_items_dataset.csv": {
+      "rows": 112650,
+      "columns": [
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "shipping_limit_date",
+        "price",
+        "freight_value"
+      ],
+      "missing_pct": {
+        "order_id": 0.0,
+        "order_item_id": 0.0,
+        "product_id": 0.0,
+        "seller_id": 0.0,
+        "shipping_limit_date": 0.0,
+        "price": 0.0,
+        "freight_value": 0.0
+      }
+    },
+    "olist_order_reviews_dataset.csv": {
+      "rows": 99224,
+      "columns": [
+        "review_id",
+        "order_id",
+        "review_score",
+        "review_comment_title",
+        "review_comment_message",
+        "review_creation_date",
+        "review_answer_timestamp"
+      ],
+      "missing_pct": {
+        "review_id": 0.0,
+        "order_id": 0.0,
+        "review_score": 0.0,
+        "review_comment_title": 88.34,
+        "review_comment_message": 58.73,
+        "review_creation_date": 0.0,
+        "review_answer_timestamp": 0.0
+      }
+    },
+    "olist_orders_dataset.csv": {
+      "rows": 99441,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "order_status",
+        "order_purchase_timestamp",
+        "order_approved_at",
+        "order_delivered_carrier_date",
+        "order_delivered_customer_date",
+        "order_estimated_delivery_date"
+      ],
+      "missing_pct": {
+        "order_id": 0.0,
+        "customer_id": 0.0,
+        "order_status": 0.0,
+        "order_purchase_timestamp": 0.0,
+        "order_approved_at": 0.16,
+        "order_delivered_carrier_date": 1.79,
+        "order_delivered_customer_date": 2.98,
+        "order_estimated_delivery_date": 0.0
+      }
+    },
+    "olist_products_dataset.csv": {
+      "rows": 32951,
+      "columns": [
+        "product_id",
+        "product_category_name",
+        "product_name_lenght",
+        "product_description_lenght",
+        "product_photos_qty",
+        "product_weight_g",
+        "product_length_cm",
+        "product_height_cm",
+        "product_width_cm"
+      ],
+      "missing_pct": {
+        "product_id": 0.0,
+        "product_category_name": 1.85,
+        "product_name_lenght": 1.85,
+        "product_description_lenght": 1.85,
+        "product_photos_qty": 1.85,
+        "product_weight_g": 0.01,
+        "product_length_cm": 0.01,
+        "product_height_cm": 0.01,
+        "product_width_cm": 0.01
+      }
+    },
+    "olist_sellers_dataset.csv": {
+      "rows": 3095,
+      "columns": [
+        "seller_id",
+        "seller_zip_code_prefix",
+        "seller_city",
+        "seller_state"
+      ],
+      "missing_pct": {
+        "seller_id": 0.0,
+        "seller_zip_code_prefix": 0.0,
+        "seller_city": 0.0,
+        "seller_state": 0.0
+      }
+    },
+    "product_category_name_translation.csv": {
+      "rows": 71,
+      "columns": [
+        "product_category_name",
+        "product_category_name_english"
+      ],
+      "missing_pct": {
+        "product_category_name": 0.0,
+        "product_category_name_english": 0.0
+      }
+    }
+  },
+  "key_data_quality_notes": {
+    "EbayPcLaptopsAndNetbooksUnclean.csv": [
+      "Price 为字符串，含 '$' 前缀、尾部空格及 'A to B' 价格区间（117 条）；区间取两端中点。全部 6620 条均可解析。",
+      "Brand 有空值 2596 条（39.2%），另有大小写变体（Dell/DELL、HP/Hp）；已统一大小写后归并，空品牌不进入 output3。",
+      "Rating 仅 286 条有值（格式 '4.5 out of 5 stars'），用于 eBay 平均评分（4.5629），样本稀疏需谨慎解读。",
+      "Ram Size 空值 4508 条，SSD Capacity 空值 3840 条；数值已规范化（'8GB' -> '8 GB'，'2TB' -> '2 TB'），无效值（'Not Applicable'、'0'、'See Options' 等）不计入众数；无有效值时输出 'Unknown'。",
+      "SSD Capacity 列存在疑似错位数据（如 '16 GB'、'32 GB'、'64 GB'），按字段字面值统计，未做语义过滤。"
+    ],
+    "olist_*": [
+      "olist_geolocation_dataset.csv 为 zip_code_prefix 级别明细（1,000,163 行）：本节点按 zip_code_prefix 计算经纬度均值（19,015 个前缀）作为客户/卖家坐标；距离用 lat/lng 上的欧氏度数距离 sqrt(dlat^2+dlng^2)。",
+      "订单-商品明细 112,650 行；目标品类（telephony / computers_accessories / electronics）共 15,149 行商品明细。",
+      "review_comment_message 非空仅 40,950 条（占 99,224 条评论的 41.3%），且绝大多数为葡萄牙语，英文关键词规则命中率极低（预测 positive 9 条 / negative 208 条 / neutral 40,733 条），因此宏 F1 很低（0.05979）。",
+      "存在评论/订单一对多与订单多商品情况：品类统计按 (订单,商品) 行级聚合（等价于 items→products→orders→reviews 合并后按品类求均值）。"
+    ]
+  },
+  "methods": {
+    "ebay_avg_price_usd": "价格区间取中点；按清洗后的品牌求算术平均",
+    "ebay_most_common_ram_ssd": "规范化容量字符串后取众数（并列取字典序最小），忽略空值/无效值",
+    "olist_category_stats": "品类映射使用 product_category_name_translation 英文名；avg_review_score/avg_price_brl 为品类内商品行均值，avg_shipping_distance 为客户 zip 与卖家 zip 的经纬度均值点欧氏度数距离",
+    "delay_bin": "delay = 实际送达日期 - 预计送达日期（按日取整，floor，等价 pandas timedelta.days），96,476 单有双日期；众数区间 = -14 天（7,126 单）",
+    "sentiment": "评论正文小写后统计正/负关键词子串出现次数；真值由 review_score 映射（>=4 positive, <=2 negative, 3 neutral）；宏 F1 按 y_true∪y_pred = {negative, neutral, positive} 三类 F1 的算术平均（sklearn average='macro' 语义）",
+    "output1_olist_avg": "使用 electronics 品类数据（avg_review_score=4.0375, avg_price=57.9135 BRL）；eBay 行不适用的 sentiment/delay 记为 0"
+  },
+  "results": {
+    "output1_rows": [
+      {
+        "platform": "eBay",
+        "avg_review_score": "4.5629",
+        "avg_price": "310.0466",
+        "macro_f1_sentiment": "0.0",
+        "max_delay_bin": "0"
+      },
+      {
+        "platform": "Olist",
+        "avg_review_score": "4.0375",
+        "avg_price": "57.9135",
+        "macro_f1_sentiment": "0.05979",
+        "max_delay_bin": "-14"
+      }
+    ],
+    "output2_rows": [
+      {
+        "category": "telephony",
+        "avg_review_score": "3.9469",
+        "avg_price_brl": "71.214",
+        "avg_shipping_distance": "6.5024"
+      },
+      {
+        "category": "computers_accessories",
+        "avg_review_score": "3.9308",
+        "avg_price_brl": "116.5139",
+        "avg_shipping_distance": "6.2791"
+      },
+      {
+        "category": "electronics",
+        "avg_review_score": "4.0375",
+        "avg_price_brl": "57.9135",
+        "avg_shipping_distance": "5.8447"
+      }
+    ],
+    "output3_brand_count": 124,
+    "output_json": {
+      "macro_f1_score": 0.05979,
+      "max_frequency_delay_bin": -14,
+      "total_olist_electronics_orders": 2550,
+      "total_ebay_listings": 6620
+    }
+  }
+}

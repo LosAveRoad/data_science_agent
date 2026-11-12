@@ -1,0 +1,105 @@
+{
+  "rows_used": {
+    "1": 2915274,
+    "2": 2955858
+  },
+  "total_rows_used": 5871132,
+  "diagnostics": {
+    "1": {
+      "rows_read": 2964624,
+      "rows_after_filter": 2927114,
+      "dropped": 37510,
+      "dropped_pct": 1.265,
+      "unmapped_zone_trips": 1578,
+      "unknown_label_trips": 10262,
+      "rows_used": 2915274,
+      "out_of_month_pickups_kept": 17
+    },
+    "2": {
+      "rows_read": 3007526,
+      "rows_after_filter": 2966801,
+      "dropped": 40725,
+      "dropped_pct": 1.354,
+      "unmapped_zone_trips": 1368,
+      "unknown_label_trips": 9575,
+      "rows_used": 2955858,
+      "out_of_month_pickups_kept": 13
+    }
+  },
+  "increase_signed_by_borough": {
+    "Bronx": 0.8024,
+    "Brooklyn": -0.8078,
+    "EWR": -10.6509,
+    "Manhattan": 0.2862,
+    "Queens": 0.2541,
+    "Staten Island": -4.6718
+  },
+  "max_increase_borough": "Bronx",
+  "max_increase_value": 0.8024,
+  "magnitude_only_max": {
+    "borough": "EWR",
+    "value": -10.6509
+  },
+  "borough_month_stats": {
+    "Bronx|1": {
+      "avg_trip_distance": 6.5147,
+      "avg_total_fare": 35.6322,
+      "trip_count": 6845
+    },
+    "Bronx|2": {
+      "avg_trip_distance": 6.7729,
+      "avg_total_fare": 36.4347,
+      "trip_count": 6909
+    },
+    "Brooklyn|1": {
+      "avg_trip_distance": 5.4995,
+      "avg_total_fare": 33.604,
+      "trip_count": 24925
+    },
+    "Brooklyn|2": {
+      "avg_trip_distance": 5.3861,
+      "avg_total_fare": 32.7962,
+      "trip_count": 27623
+    },
+    "EWR|1": {
+      "avg_trip_distance": 1.0561,
+      "avg_total_fare": 111.0965,
+      "trip_count": 284
+    },
+    "EWR|2": {
+      "avg_trip_distance": 1.4321,
+      "avg_total_fare": 100.4456,
+      "trip_count": 279
+    },
+    "Manhattan|1": {
+      "avg_trip_distance": 2.2705,
+      "avg_total_fare": 22.8633,
+      "trip_count": 2616402
+    },
+    "Manhattan|2": {
+      "avg_trip_distance": 2.2896,
+      "avg_total_fare": 23.1495,
+      "trip_count": 2676800
+    },
+    "Queens|1": {
+      "avg_trip_distance": 12.3371,
+      "avg_total_fare": 70.9318,
+      "trip_count": 266750
+    },
+    "Queens|2": {
+      "avg_trip_distance": 12.2301,
+      "avg_total_fare": 71.1858,
+      "trip_count": 244193
+    },
+    "Staten Island|1": {
+      "avg_trip_distance": 6.7837,
+      "avg_total_fare": 59.2866,
+      "trip_count": 68
+    },
+    "Staten Island|2": {
+      "avg_trip_distance": 7.8481,
+      "avg_total_fare": 54.6148,
+      "trip_count": 54
+    }
+  }
+}

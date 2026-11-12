@@ -1,0 +1,419 @@
+{
+  "plan_version": "1.0",
+  "plan_id": "olist_spatiotemporal_delivery_analysis",
+  "objective": "Quantify how seller-state -> customer-state transportation performance (delivery delay, freight cost, distance) evolves by purchase month for the four target product categories, and forecast the per-state-pair monthly average delivery delay 12 months ahead with ARIMA(1,1,1); persist a historical summary, forecasts and state-pair aggregates to SQLite plus overall KPIs to JSON.",
+  "analysis_type": "descriptive spatiotemporal aggregation (3-way grain) + per-series univariate time-series forecasting + distributional summary",
+  "inputs": [
+    {
+      "file": "olist_order_items_dataset.csv",
+      "rows": 112650,
+      "role": "fact table: order_id, order_item_id, product_id, seller_id, freight_value",
+      "key_columns": [
+        "order_id",
+        "product_id",
+        "seller_id",
+        "freight_value"
+      ]
+    },
+    {
+      "file": "olist_products_dataset.csv",
+      "rows": 32951,
+      "role": "dimension: product_id -> product_category_name (Portuguese)",
+      "notes": "610 null categories; no products with null category will survive the category filter"
+    },
+    {
+      "file": "product_category_name_translation.csv",
+      "rows": 71,
+      "role": "dimension: Portuguese <-> English category mapping",
+      "notes": "header carries a UTF-8 BOM -> must read with encoding='utf-8-sig' and strip BOM from the first column name"
+    },
+    {
+      "file": "olist_orders_dataset.csv",
+      "rows": 99441,
+      "role": "order header: order_status, order_purchase_timestamp (month), order_delivered_customer_date, order_estimated_delivery_date",
+      "notes": "order_status delivered = 96478; 2965 null delivered dates, 0 null estimated dates"
+    },
+    {
+      "file": "olist_customers_dataset.csv",
+      "rows": 99441,
+      "role": "customer_id -> customer_zip_code_prefix, customer_state",
+      "notes": "customer_id is order-scoped (1 row per order), so it acts as the order->customer bridge"
+    },
+    {
+      "file": "olist_sellers_dataset.csv",
+      "rows": 3095,
+      "role": "seller_id -> seller_zip_code_prefix, seller_state"
+    },
+    {
+      "file": "olist_order_reviews_dataset.csv",
+      "rows": 99224,
+      "role": "order_id -> review_score",
+      "notes": "551 duplicated order_id values -> keep latest review per order by review_answer_timestamp"
+    },
+    {
+      "file": "olist_geolocation_dataset.csv",
+      "rows": 1000163,
+      "role": "zip_code_prefix -> raw geocoded points; must be collapsed to one centroid (mean lat, mean lng) per prefix",
+      "notes": "19015 distinct zip prefixes; up to hundreds of rows per prefix; zip prefixes are 5-char zero-padded strings"
+    },
+    {
+      "file": "data_profile.json",
+      "role": "upstream profiling artifact: schema, dtypes, nulls, key_facts used as expected-value reference"
+    },
+    {
+      "file": "output.db / output.json",
+      "role": "upstream artifacts already present in workspace; used only as a cross-check baseline for shapes and KPI magnitudes, never rewritten by inference"
+    }
+  ],
+  "environment": {
+    "python": "3.13 (run_python executes with python3 -I)",
+    "available": [
+      "csv",
+      "json",
+      "sqlite3",
+      "math",
+      "statistics",
+      "datetime"
+    ],
+    "unavailable": [
+      "pandas",
+      "numpy",
+      "scipy",
+      "statsmodels",
+      "sklearn"
+    ],
+    "implication": "The pipeline must be written in pure standard-library Python: csv.DictReader for IO, dict-based hash joins/grouping, statistics.mean for averages, math for haversine, sqlite3 for persistence. ARIMA(1,1,1) cannot be imported and must be implemented explicitly (CSS/LS estimation of phi, theta, constant by grid + local refinement), with the historical-mean/std fallback kept as hard requirement."
+  },
+  "data_quality_findings": [
+    {
+      "issue": "translation header BOM",
+      "impact": "naive 'product_category_name' lookup silently yields 0 matches",
+      "handling": "read with utf-8-sig / strip '\\ufeff'"
+    },
+    {
+      "issue": "geolocation has many rows per zip prefix",
+      "impact": "join without aggregation multiplies order rows",
+      "handling": "pre-aggregate to 19015 prefix centroids before joining; never join raw geolocation to facts"
+    },
+    {
+      "issue": "reviews duplicated per order (551)",
+      "impact": "inflates order-level review averages",
+      "handling": "dedupe: latest by review_answer_timestamp, tie-break review_id"
+    },
+    {
+      "issue": "2965 null delivered_customer_date, 160 null approved_at",
+      "impact": "delay undefined",
+      "handling": "require order_status == 'delivered' AND non-null delivered & estimated dates"
+    },
+    {
+      "issue": "orders whose status is delivered but with null delivered date",
+      "impact": "small (8 rows) inconsistency",
+      "handling": "documented via filter counts"
+    },
+    {
+      "issue": "zip prefixes missing from geolocation",
+      "impact": "haversine NaN",
+      "handling": "keep NaN, do not impute; count affected monthly groups"
+    },
+    {
+      "issue": "orders without any review",
+      "impact": "avg_review_score NaN at group level",
+      "handling": "keep NaN, count affected groups"
+    },
+    {
+      "issue": "sparse boundary months (2016-09/2016-10 and 2018-09+)",
+      "impact": "single-order groups produce noisy/noisy monthly series",
+      "handling": "keep them (grain is data-driven) but require >=6 monthly points per state pair for ARIMA; reference month span 2016-10..2018-08 = 21 months"
+    },
+    {
+      "issue": "multi-seller / multi-item orders",
+      "impact": "an order can belong to several seller states",
+      "handling": "grain is (seller_state, customer_state, month); an order row is counted once per pair, order-level metrics de-duplicated by order_id, item-level metrics (freight, distance) on the item grain"
+    }
+  ],
+  "join_chain": [
+    "order_items order_id,customer_id -> orders (order_status=='delivered', delivered & estimated dates non-null)",
+    "order_items product_id -> products (product_category_name) -> translation (english) -> keep ONLY {telephony, computers_accessories, electronics, consoles_games}",
+    "orders customer_id -> customers (customer_state, customer_zip_code_prefix)",
+    "order_items seller_id -> sellers (seller_state, seller_zip_code_prefix)",
+    "orders order_id -> reviews (dedup latest) -> review_score",
+    "customer/seller zip prefixes -> geolocation centroids (mean lat/lng per prefix)"
+  ],
+  "stages": [
+    {
+      "id": "S1",
+      "name": "load geolocation centroids",
+      "action": "single streaming pass over olist_geolocation_dataset.csv accumulating sum(lat), sum(lng), count per zip prefix -> centroid dict; load to SQLite temp table optional",
+      "output": "centroids: {prefix: (lat, lng)}, n=19015",
+      "guardrail": "streaming only, no full-file print"
+    },
+    {
+      "id": "S2",
+      "name": "category filter set",
+      "action": "translation (utf-8-sig) -> Portuguese category names for the 4 target English names (telefonia, informatica_acessorios, eletronicos, consoles_games); build set of matching product_ids from products.csv",
+      "output": "filtered_product_ids",
+      "expected": "~3607 products"
+    },
+    {
+      "id": "S3",
+      "name": "fact build / join",
+      "action": "stream order_items, keep rows whose product_id is in filtered set; join orders/customers/sellers/reviews/centroids; parse timestamps with datetime.strptime (format '%Y-%m-%d %H:%M:%S'); purchase_month = '%Y-%m'; delivery_delay_days = (delivered_customer_date.date() - estimated_delivery_date.date()).days; haversine per item",
+      "output": "item-level records with keys (seller_state, customer_state, purchase_month) and order-level de-dup view",
+      "expected": "~16276 filtered order items over ~14143 orders"
+    },
+    {
+      "id": "S4",
+      "name": "group aggregation",
+      "action": "aggregate per (seller_state, customer_state, purchase_month): avg delivery delay and avg review on de-duplicated order grain; total_orders = distinct order_id count; avg freight and avg haversine on item grain",
+      "output": "spatiotemporal_summary rows",
+      "expected": "~1844 rows"
+    },
+    {
+      "id": "S5",
+      "name": "state-pair aggregates",
+      "action": "re-aggregate the same records (or the summary) to (seller_state, customer_state) keeping columns avg_delivery_delay_days, avg_review_score, total_orders, avg_haversine_distance_km (freight dropped per spec)",
+      "output": "state_pair_stats rows",
+      "expected": "243 rows"
+    },
+    {
+      "id": "S6",
+      "name": "monthly series extraction",
+      "action": "per (seller_state, customer_state) collect the month->avg_delivery_delay_days series sorted chronologically; select pairs with >= 6 monthly points",
+      "expected": "121 of 243 pairs qualify"
+    },
+    {
+      "id": "S7",
+      "name": "ARIMA(1,1,1) per qualifying pair",
+      "action": "fit ARIMA(1,1,1) on the delay series (d=1 differencing, AR(1)+MA(1)+constant), forecast 12 steps; forecast_mean = mean of 12 forecast values, forecast_std = population std of the 12 forecast values; on any fit failure (non-finite, non-convergence, <6 points, degenerate variance) fall back to historical mean and population std of the series and flag it",
+      "output": "arima_forecast rows",
+      "expected": "121 rows"
+    },
+    {
+      "id": "S8",
+      "name": "persist artifacts",
+      "action": "drop+recreate the three SQLite tables with explicit column order/dtypes (TEXT/REAL/INTEGER), bulk insert with executemany, sort as specified before insert; write output.json with the 6 overall KPIs rounded to 4 decimals",
+      "output": "output.db, output.json"
+    },
+    {
+      "id": "S9",
+      "name": "validation",
+      "action": "run the checks listed in validation_checks; abort-with-report if any hard check fails",
+      "output": "validation report (console/stdout only)"
+    }
+  ],
+  "metric_definitions": {
+    "purchase_month": "order_purchase_timestamp formatted 'YYYY-MM'",
+    "delivery_delay_days": "(order_delivered_customer_date - order_estimated_delivery_date) in whole days; negative = delivered before the estimate; order-level metric",
+    "avg_delivery_delay_days": "mean delivery_delay_days over the distinct orders of the group",
+    "avg_review_score": "mean review_score over the distinct orders of the group that have a (deduped) review",
+    "total_orders": "count of distinct order_id in the group (not item rows)",
+    "avg_freight_value": "mean freight_value over order-item rows in the group (spec: not multiplied by quantity)",
+    "avg_haversine_distance_km": "mean over order-item rows of haversine(R=6371 km) between seller zip centroid and customer zip centroid; NaN when either prefix lacks a centroid",
+    "avg_delivery_delay_overall": "mean of delivery_delay_days over all in-scope distinct orders (order-level, not a mean of group means)",
+    "avg_review_score_overall": "mean review_score over all in-scope orders with a review",
+    "total_orders_overall": "count of distinct in-scope order_id",
+    "avg_haversine_distance_overall": "mean haversine over all in-scope order items with both centroids",
+    "total_state_pairs": "count of distinct (seller_state, customer_state) pairs in the historical summary",
+    "total_months": "count of distinct purchase_month values in the historical summary",
+    "haversine": "R=6371; phi=radians(lat), dlambda=radians(dlng), a=sin(dlat/2)^2+cos(phi1)cos(phi2)sin(dlng/2)^2, c=2*asin(sqrt(a)), d=R*c"
+  },
+  "sqlite_contract": {
+    "db": "output.db",
+    "tables": [
+      {
+        "name": "spatiotemporal_summary",
+        "columns": [
+          "seller_state TEXT",
+          "customer_state TEXT",
+          "purchase_month TEXT",
+          "avg_delivery_delay_days REAL",
+          "avg_review_score REAL",
+          "total_orders INTEGER",
+          "avg_freight_value REAL",
+          "avg_haversine_distance_km REAL"
+        ],
+        "order_by": [
+          "seller_state",
+          "customer_state",
+          "purchase_month"
+        ],
+        "expected_rows": 1844
+      },
+      {
+        "name": "arima_forecast",
+        "columns": [
+          "seller_state TEXT",
+          "customer_state TEXT",
+          "forecast_mean REAL",
+          "forecast_std REAL"
+        ],
+        "order_by": [
+          "seller_state",
+          "customer_state"
+        ],
+        "expected_rows": 121
+      },
+      {
+        "name": "state_pair_stats",
+        "columns": [
+          "seller_state TEXT",
+          "customer_state TEXT",
+          "avg_delivery_delay_days REAL",
+          "avg_review_score REAL",
+          "total_orders INTEGER",
+          "avg_haversine_distance_km REAL"
+        ],
+        "order_by": [
+          "seller_state",
+          "customer_state"
+        ],
+        "expected_rows": 243
+      }
+    ],
+    "notes": "NaN/None must be stored as SQL NULL; no unnamed index column; no extra tables other than the three specified"
+  },
+  "json_contract": {
+    "file": "output.json",
+    "keys": [
+      "total_state_pairs",
+      "total_months",
+      "avg_delivery_delay_overall",
+      "avg_review_score_overall",
+      "total_orders_overall",
+      "avg_haversine_distance_overall"
+    ],
+    "types": {
+      "total_state_pairs": "int",
+      "total_months": "int",
+      "total_orders_overall": "int",
+      "avg_delivery_delay_overall": "float rounded 4",
+      "avg_review_score_overall": "float rounded 4",
+      "avg_haversine_distance_overall": "float rounded 4"
+    }
+  },
+  "validation_checks": [
+    {
+      "id": "V1",
+      "check": "row counts: spatiotemporal_summary ~1844, state_pair_stats = number of distinct pairs in summary (243), arima_forecast = pairs with >=6 months (121)",
+      "severity": "hard"
+    },
+    {
+      "id": "V2",
+      "check": "no duplicate (seller_state, customer_state, purchase_month) in spatiotemporal_summary; no duplicate pair in arima_forecast / state_pair_stats",
+      "severity": "hard"
+    },
+    {
+      "id": "V3",
+      "check": "total_orders in summary sums to the overall distinct order count (14143) only if orders map to a single pair; otherwise >= that count -> verify sum(items-per-pair) consistency instead of naive equality",
+      "severity": "soft"
+    },
+    {
+      "id": "V4",
+      "check": "all four target categories represented; spot-check that a telephony-only order is included and a 'health_beauty' order is excluded",
+      "severity": "hard"
+    },
+    {
+      "id": "V5",
+      "check": "purchase_month values match ^\n\\d{4}-\\d{2}$ and lie within 2016-10..2018-08",
+      "severity": "hard"
+    },
+    {
+      "id": "V6",
+      "check": "haversine distances positive and mostly < 4000 km (Brazil extent); no negative or absurd values",
+      "severity": "hard"
+    },
+    {
+      "id": "V7",
+      "check": "avg_review_score within [1,5] where not null; avg_delivery_delay_days within a plausible [-120, 200] band; report count of NULLs in avg_review_score (ref 4) and avg_haversine (ref 9)",
+      "severity": "soft"
+    },
+    {
+      "id": "V8",
+      "check": "forecast_mean finite; forecast_std >= 0; count of ARIMA fallbacks reported (reference baseline: 0 fallbacks)",
+      "severity": "hard"
+    },
+    {
+      "id": "V9",
+      "check": "tables sorted exactly per spec when read back without ORDER BY; column names/order/types match contract",
+      "severity": "hard"
+    },
+    {
+      "id": "V10",
+      "check": "output.json contains exactly the 6 required keys with correct types",
+      "severity": "hard"
+    },
+    {
+      "id": "V11",
+      "check": "reconciliation: overall delay/review computed from raw order-level facts equals the KPI in output.json (weighted, not mean-of-means)",
+      "severity": "hard"
+    },
+    {
+      "id": "V12",
+      "check": "cross-check magnitudes against upstream baseline (output.json: 243 pairs, 21 months, -11.77 days, 4.08 score, 14143 orders, 677.31 km) - same order of magnitude expected, differences must be explainable",
+      "severity": "soft"
+    }
+  ],
+  "reference_expectations_from_profile": {
+    "filtered_products": 3607,
+    "filtered_order_items": 16276,
+    "filtered_orders": 14143,
+    "purchase_months": 21,
+    "month_range": [
+      "2016-10",
+      "2018-08"
+    ],
+    "state_pairs": 243,
+    "state_pairs_ge_6_months": 121,
+    "geo_zip_centroids": 19015,
+    "upstream_output_json": {
+      "total_state_pairs": 243,
+      "total_months": 21,
+      "avg_delivery_delay_overall": -11.7726,
+      "avg_review_score_overall": 4.0823,
+      "total_orders_overall": 14143,
+      "avg_haversine_distance_overall": 677.3147
+    }
+  },
+  "risks_and_mitigations": [
+    {
+      "risk": "no pandas/numpy/statsmodels in the runtime",
+      "mitigation": "stdlib-only implementation; hand-rolled ARIMA(1,1,1) (CSS with grid search over phi/theta then coordinate refinement), fallback to historical mean/std on failure"
+    },
+    {
+      "risk": "geolocation join fan-out blows up memory/time",
+      "mitigation": "aggregate to 19015 centroids in one streaming pass first; stream facts and never materialise raw geolocation twice"
+    },
+    {
+      "risk": "ARIMA on 6-7 point series can diverge or produce extreme forecasts",
+      "mitigation": "bounded parameter search, finite-value guards, clip explosive forecasts, and the mandated mean/std fallback"
+    },
+    {
+      "risk": "order counted in multiple seller_state pairs",
+      "mitigation": "de-duplicate order-level metrics within each group; document that total_orders per group is pair-scoped"
+    },
+    {
+      "risk": "BOM in translation file",
+      "mitigation": "utf-8-sig and explicit column-name sanitisation"
+    },
+    {
+      "risk": "type drift in SQLite (ints stored as float, NaN stored as string)",
+      "mitigation": "explicit schema DDL, int() casts for total_orders, None for NaN, read-back type assertions"
+    },
+    {
+      "risk": "hard-coded order of rows not guaranteed by SQLite",
+      "mitigation": "insert in final sorted order and verify read-back order in V9"
+    }
+  ],
+  "downstream_handoff": {
+    "implementation_notes": "Execute stages S1..S9 in order; S1-S3 can be one script that caches an intermediate JSONL of in-scope records (order grain + item grain) so S4-S8 rerun cheaply within the 120 s tool limit.",
+    "intermediate_artifacts_recommended": [
+      "work_facts.jsonl (in-scope order/item records)",
+      "work_summary.json (group aggregates)",
+      "work_series.json (per-pair monthly series)"
+    ],
+    "final_artifacts": [
+      "output.db",
+      "output.json"
+    ]
+  }
+}

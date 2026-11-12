@@ -1,0 +1,188 @@
+{
+  "generated_at": "2026-11-12T03:36:30",
+  "node": "plan / analysis_plan",
+  "objective": "Plan a cross-cohort analysis that (1) fits a Bayesian hierarchical logistic regression estimating global log-odds-ratio effects of 4 standardized risk factors (age, BMI, blood pressure, glucose) on 6 binary disease endpoints across 8 dataset|endpoint groups with weak-information priors and group-specific intercepts, and (2) validates calibration of a stroke prediction model using RandomForestClassifier and LogisticRegression with fixed hyperparameters.",
+  "inputs": {
+    "workspace_data": [
+      "Healthcare-Diabetes.csv (2768 raw rows -> 778 unique patients; Outcome = diabetes)",
+      "chronic_kidney_disease_full.arff (400 rows; class = ckd, cad, htn)",
+      "healthcare-dataset-stroke-data.csv (5110 rows; stroke, hypertension, heart_disease)",
+      "heart_disease_uci.csv (920 rows; num>0 = heart_disease)",
+      "ckd_clean.pkl (400 x 25 cleaned CKD frame)",
+      "long_preview.pkl (18228 x 7 pooled long frame: dataset, age, bmi, bp, glucose, endpoint, y)",
+      "data_profile.json (profiling + harmonization rules)"
+    ],
+    "preferred_model_frame": "long_preview.pkl (already verified to match data_profile harmonization: 18228 rows, 8 groups, y in {0,1}, no zero sentinels left in age/bmi/bp/glucose). Recommend reuse, and rebuild only as a reproducibility cross-check from the documented rules.",
+    "verified_facts_for_planning": {
+      "rows": 18228,
+      "groups": 8,
+      "group_ids_and_positive_rates": {
+        "CKD|cad": 0.085,
+        "CKD|ckd": 0.625,
+        "CKD|hypertension": 0.3675,
+        "Diabetes|diabetes": 0.3496,
+        "HeartUCI|heart_disease": 0.5533,
+        "Stroke|heart_disease": 0.054,
+        "Stroke|hypertension": 0.0975,
+        "Stroke|stroke": 0.0487
+      },
+      "missing_rate_on_long_frame": {"age": 0.0015, "bmi": 0.15, "bp": 0.8483, "glucose": 0.058},
+      "structural_missingness": {
+        "bmi_absent_in": ["CKD", "HeartUCI"],
+        "bp_absent_in": ["Stroke"],
+        "glucose_absent_in": ["HeartUCI"]
+      },
+      "within_dataset_sd": {
+        "CKD": {"age": 17.16, "bmi": null, "bp": 13.67, "glucose": 79.21},
+        "Diabetes": {"age": 11.79, "bmi": 7.31, "bp": 12.46, "glucose": 30.57},
+        "HeartUCI": {"age": 9.42, "bmi": null, "bp": 18.54, "glucose": null},
+        "Stroke": {"age": 22.61, "bmi": 7.85, "bp": null, "glucose": 45.28}
+      },
+      "stroke_dataset": {
+        "rows": 5110,
+        "positive_rate": 0.0487,
+        "missing_bmi": 201,
+        "categorical_levels": {
+          "gender": ["Female", "Male", "Other(n=1)"],
+          "ever_married": ["No", "Yes"],
+          "work_type": ["Govt_job", "Never_worked(n=22)", "Private", "Self-employed", "children"],
+          "Residence_type": ["Rural", "Urban"],
+          "smoking_status": ["Unknown(n=1544)", "formerly smoked", "never smoked", "smokes"]
+        }
+      },
+      "tooling": "pymc/numpyro/stan/statsmodels NOT installed; only numpy/scipy/pandas/sklearn available -> Bayesian inference must be hand-implemented (NumPy Newton MAP + Laplace approximation and/or custom random-walk Metropolis MCMC)."
+    }
+  },
+  "workflow": [
+    {
+      "step": 1,
+      "id": "build_model_frame",
+      "purpose": "Materialise the pooled long frame used by the Bayesian model with an explicit group_id.",
+      "actions": [
+        "Load long_preview.pkl (fallback: rebuild from the 4 raw files using data_profile.harmonization_plan; de-duplicate Diabetes on all columns except Id -> 778 unique patients).",
+        "Create group_id = dataset + '|' + endpoint; assert 8 groups and 18228 rows.",
+        "Assert y in {0,1}; assert no zero sentinels remain in age/bmi/bp/glucose.",
+        "Within-dataset z-standardisation: for each source dataset d and risk factor k, z = (x - mean_d,k) / sd_d,k using OBSERVED values only (bmi in CKD/HeartUCI and bp in Stroke remain all-NaN).",
+        "Impute remaining NaN z-values with 0.0 (cohort mean) and create missing indicators m_k in {0,1} for bmi, bp, glucose, age.",
+        "Persist model_frame.pkl with columns [group_id, dataset, endpoint, y, z_age, z_bmi, z_bp, z_glucose, m_age, m_bmi, m_bp, m_glucose]."
+      ],
+      "checks": ["18228 rows", "8 groups", "no NaN in z_*", "standardised SD ~ 1 within dataset for observed cells"]
+    },
+    {
+      "step": 2,
+      "id": "bayesian_hierarchical_logistic",
+      "purpose": "Fit the primary model and obtain global posterior estimates for the 4 standardized risk factors.",
+      "model_spec": {
+        "likelihood": "y_i ~ Bernoulli(p_i), logit(p_i) = alpha_{g(i)} + b_age*z_age_i + b_bmi*z_bmi_i + b_bp*z_bp_i + b_glucose*z_glucose_i",
+        "hierarchy": "alpha_g ~ Normal(mu_alpha, sigma_alpha), g = 1..8 (dataset|endpoint specific intercepts)",
+        "hyperpriors_weakly_informative": {
+          "mu_alpha": "Normal(0, 2.5)",
+          "sigma_alpha": "HalfNormal(1)",
+          "b_k": "Normal(0, 2.5) iid for k in {age, bmi, bp, glucose}"
+        },
+        "parameter_count": 14,
+        "notes": "Weakly informative priors centre global effects on no-association on the log-odds scale and regularise the 8 rare-event groups (stroke 4.9%, cad 8.5%)."
+      },
+      "estimation_strategy": [
+        "PRIMARY: hand-written random-walk Metropolis (or Metropolis-within-Gibbs for alpha_g via Laplace proposals) with 4 chains, 25000 iterations, 5000 burn-in, thinning to ~2000 retained draws/chain; parameterise sigma_alpha on log scale for unconstrained sampling; adapt proposal scale during burn-in to target ~0.25 acceptance.",
+        "CROSS-CHECK: MAP via scipy.optimize.minimize (L-BFGS-B on the negative log-posterior, treating alpha_g as free parameters) + Laplace approximation at the mode -> multivariate normal; report delta-method-free marginal SDs. If MAP-Mean and MCMC mean agree within Monte-Carlo error, results are considered stable.",
+        "Fallback if MCMC is slow (>120 s/step): collapse the hierarchy analytically by profiling alpha_g given (mu_alpha, sigma_alpha) or use Laplace draws instead of MCMC; document the substitution."
+      ],
+      "postprocessing": [
+        "For each beta, compute posterior mean and 2.5/97.5 percentiles across pooled draws.",
+        "Emit DataFrame with EXACT columns ['risk_factor','posterior_mean','ci_lower_2.5%','ci_upper_97.5%'] and 4 rows ordered age, bmi, bp, glucose.",
+        "Map internal names to output labels: age->'age', bmi->'bmi', bp->'bp', glucose->'glucose' (optionally add a separate human-readable label column in the JSON, but the deliverable CSV keeps the 4 required columns only)."
+      ],
+      "diagnostics": ["R-hat < 1.05", "ESS > 400 per parameter", "acceptance rate 0.15-0.5", "trace/autocorrelation plots saved", "posterior predictive sanity check of fitted positive rates by group"]
+    },
+    {
+      "step": 3,
+      "id": "bayesian_sensitivity",
+      "purpose": "Quantify the impact of the documented structural missingness and stroke-cohort dominance (84.1% of rows).",
+      "variants": [
+        "S1 primary (within-dataset z, NaN->0, missing indicators excluded from the mean model but kept as columns).",
+        "S2 complete-case BP: refit with z_bp + m_bp only on rows where bp was observed (6978 rows: CKD 1164 + Diabetes 742 + HeartUCI 860) to test attenuation of the BP coefficient.",
+        "S3 add missing indicators m_bmi, m_bp, m_glucose as extra covariates (measure whether imputation is informative).",
+        "S4 equal weighting: weight rows so each of the 8 groups contributes equal total weight (corrects stroke dominance); compare beta signs and CIs.",
+        "S5 leave-one-cohort-out (drop Stroke / drop CKD / drop Diabetes / drop HeartUCI) to report coefficient stability."
+      ],
+      "acceptance": "Primary estimates reported regardless; every variant summarised in a side-by-side sensitivity table with a flag if 95% CI crosses 0 in the primary but not in variants (or vice versa)."
+    },
+    {
+      "step": 4,
+      "id": "stroke_model_preprocessing",
+      "purpose": "Deterministic preprocessing for the stroke calibration validation.",
+      "actions": [
+        "Load healthcare-dataset-stroke-data.csv (5110 x 12); drop 'id'.",
+        "Features: age, avg_glucose_level, hypertension, heart_disease, bmi.",
+        "bmi: median imputation (fit on the training split only) + binary missing indicator bmi_missing (n=201).",
+        "One-hot encode gender, ever_married, work_type, Residence_type, smoking_status (OneHotEncoder handle_unknown='ignore', drop=None to keep 'Unknown' level); 'Other' gender (n=1) retained.",
+        "StandardScaler on continuous numerics (age, avg_glucose_level, bmi) - required for LogisticRegression; the same fitted scaler applied to test.",
+        "Stratified train/test split 80/20, random_state=42, stratify=y (test ~1022 rows, ~50 stroke cases)."
+      ],
+      "checks": ["no NaN in model matrix", "train/test positive rates ~0.0487 each", "identical columns between train and test"]
+    },
+    {
+      "step": 5,
+      "id": "stroke_model_fit_and_calibration",
+      "purpose": "Fit both models with the exact requested hyperparameters and validate calibration.",
+      "models": {
+        "RandomForestClassifier": {"n_estimators": 50, "max_depth": 5, "min_samples_split": 10, "min_samples_leaf": 5, "class_weight": "balanced", "random_state": 42},
+        "LogisticRegression": {"C": 0.1, "penalty": "l2", "max_iter": 1000, "class_weight": "balanced"}
+      },
+      "protocol": [
+        "Fit both on the training split; predict_proba on the held-out test split (use predict_proba[:,1]).",
+        "Discrimination: ROC-AUC, PR-AUC (average_precision), positive-rate threshold analysis.",
+        "Calibration: Brier score, log loss, Expected Calibration Error with 10 equal-width probability bins, calibration curve (mean predicted vs observed fraction per bin) for RF and LR on the same axes.",
+        "Calibration intercept+slope via logistic regression of y on logit(p) on the test set (slope ~1 and intercept ~0 = well calibrated); report Hosmer-Lemeshow chi-square with 10 deciles.",
+        "Because class_weight='balanced' inflates probabilities by construction, ALSO report a prior-corrected variant: p_cal = p / (p + (1-p)*w) with w = (1-prior)/prior correction, or re-fit on unweighted data as a reference; explicitly state that weighted-model probabilities are not expected to match the 4.87% base rate before correction.",
+        "Report test-set predicted-probability summary (min/median/max, share >0.5) to show ranking-only behaviour of the RF under imbalance."
+      ],
+      "outputs": ["stroke_model_validation.json (metrics + bin table + config)", "figures/calibration_curve.png and figures/roc_pr_curve.png", "stroke_model_predictions.pkl (test y, p_rf, p_lr) for downstream reuse"]
+    },
+    {
+      "step": 6,
+      "id": "assemble_deliverables",
+      "purpose": "Produce the final tables and narrative-ready artifacts.",
+      "outputs": [
+        "risk_coefficients.csv - the required 4-row DataFrame with columns ['risk_factor','posterior_mean','ci_lower_2.5%','ci_upper_97.5%']",
+        "risk_coefficients.json - same numbers plus per-group intercepts, hyperparameters (mu_alpha, sigma_alpha), diagnostics and sensitivity table",
+        "stroke_model_validation.json - metrics as above",
+        "analysis_plan.json - this plan",
+        "figures/forest_plot.png - posterior means with 95% credible intervals for the 4 risk factors",
+        "sensitivity_coefficients.csv - S1..S5 side-by-side"
+      ]
+    }
+  ],
+  "output_contract": {
+    "primary_dataframe": {
+      "columns": ["risk_factor", "posterior_mean", "ci_lower_2.5%", "ci_upper_97.5%"],
+      "rows": 4,
+      "row_values": ["age", "bmi", "bp", "glucose"],
+      "interpretation": "posterior_mean = expected change in log-odds of the binary disease outcome per 1 within-cohort SD increase in the risk factor, averaged over the 8 dataset|endpoint groups (global coefficient).",
+      "dtype_rules": "posterior_mean/CI numeric float, rounded to 4 decimals; ci_lower < posterior_mean < ci_upper strictly; no NaN"
+    },
+    "expected_signs": "All four posterior means are expected to be POSITIVE (profile correlations with endpoints 0.04-0.49). A negative BP or BMI mean must be reported but flagged as driven by imputation/heterogeneity, with the S2/S4 sensitivity results cited."
+  },
+  "validation_gates": [
+    "Model frame asserts pass (rows=18228, groups=8, no residual sentinels, no NaN after imputation).",
+    "MCMC R-hat < 1.05 and ESS > 400 for all 4 betas; otherwise increase draws/increase thinning and re-run.",
+    "MCMC posterior means agree with Laplace MAP estimates within 1 posterior SD.",
+    "Stroke model metrics reproducible with random_state=42; both models fitted without convergence warnings (LR max_iter=1000, check n_iter_).",
+    "Every number in the final report traceable to a saved artifact file."
+  ],
+  "risks_and_mitigations": [
+    {"risk": "BP 84.8% missing (entirely absent in Stroke)", "mitigation": "within-dataset z + NaN->0 + missing indicator; S2 complete-case BP sensitivity; flag BP CI as widest."},
+    {"risk": "BMI entirely absent in CKD (1200 rows) and HeartUCI (920 rows); glucose absent in HeartUCI", "mitigation": "same z-imputation scheme + missing indicators (S3); report coverage per coefficient."},
+    {"risk": "Cohort dominance: Stroke contributes 84.1% of rows, so global betas mostly reflect stroke", "mitigation": "S4 equal-group weighting and S5 leave-one-cohort-out sensitivity; state explicitly in the report."},
+    {"risk": "Heterogeneous BP semantics (diastolic in Diabetes/CKD vs systolic trestbps in HeartUCI)", "mitigation": "within-dataset standardisation (already planned); do not interpret per-mmHg; label as 'per 1 SD'."},
+    {"risk": "No PyMC/Stan; hand-rolled sampler bugs or slow convergence", "mitigation": "MAP+Laplace cross-check, R-hat/ESS gates, small-parameter-count simplification, runtime split across steps."},
+    {"risk": "Stroke class imbalance (4.87%) + class_weight='balanced' makes probabilities miscalibrated by construction", "mitigation": "report Brier/ECE before and after prior correction; compare RF vs LR on identical test rows."},
+    {"risk": "Diabetes duplicates (2768 -> 778) would over-weight that cohort 3.6x", "mitigation": "use de-duplicated rows (as in long_preview.pkl); assert 778 Diabetes rows."}
+  ],
+  "reproducibility": {
+    "random_seeds": {"mcmc": [11, 22, 33, 44], "split_and_models": 42},
+    "deterministic_preprocessing": "All imputers/scalers/encoders fit on the training split only.",
+    "runtime_budget": "Keep each step under 120 s; if MCMC is slow, vectorise the log-posterior with numpy and store draws to disk per chain."
+  }
+}

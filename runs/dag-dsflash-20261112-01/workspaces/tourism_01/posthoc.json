@@ -1,0 +1,32 @@
+{
+  "accommodation vs indoor_attraction": {
+    "t": 20.599359426506577,
+    "p": 1.0960557501086453e-87,
+    "cohens_d": 0.9125431882501949
+  },
+  "accommodation vs outdoor_attraction": {
+    "t": 17.949132363116046,
+    "p": 1.5619868321437836e-68,
+    "cohens_d": 0.4307351831741971
+  },
+  "accommodation vs destination": {
+    "t": 20.841726459086093,
+    "p": 2.5718908211966358e-96,
+    "cohens_d": 0.10228827123859922
+  },
+  "indoor_attraction vs outdoor_attraction": {
+    "t": -10.116278012870263,
+    "p": 9.001100067076514e-24,
+    "cohens_d": -0.27735604748376513
+  },
+  "indoor_attraction vs destination": {
+    "t": -18.583220796519182,
+    "p": 1.2279363048409013e-72,
+    "cohens_d": -0.9606228465203083
+  },
+  "outdoor_attraction vs destination": {
+    "t": -14.036020798422918,
+    "p": 2.0815074525005625e-43,
+    "cohens_d": -0.4290503889356829
+  }
+}

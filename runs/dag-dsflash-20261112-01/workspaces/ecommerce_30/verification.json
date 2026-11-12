@@ -1,0 +1,212 @@
+{
+  "node": "verify",
+  "status": "pass",
+  "summary": "全部 4 个产物文件存在、格式/列名/dtype 合规、无缺失值；独立重算的核心指标（eBay 品牌价格与规格众数、Olist 三品类统计、配送延迟众数、情感宏 F1、计数）与产物一致，跨文件（output1/output2/output.json）一致性校验全部通过。",
+  "files": {
+    "output1.csv": {
+      "exists": true,
+      "rows": 2,
+      "cols": [
+        "platform",
+        "avg_review_score",
+        "avg_price",
+        "macro_f1_sentiment",
+        "max_delay_bin"
+      ],
+      "dtypes": {
+        "platform": "str",
+        "avg_review_score": "float64",
+        "avg_price": "float64",
+        "macro_f1_sentiment": "float64",
+        "max_delay_bin": "int64"
+      },
+      "missing_values": 0,
+      "column_match_spec": true
+    },
+    "output2.csv": {
+      "exists": true,
+      "rows": 3,
+      "cols": [
+        "category",
+        "avg_review_score",
+        "avg_price_brl",
+        "avg_shipping_distance"
+      ],
+      "dtypes": {
+        "category": "str",
+        "avg_review_score": "float64",
+        "avg_price_brl": "float64",
+        "avg_shipping_distance": "float64"
+      },
+      "missing_values": 0,
+      "column_match_spec": true
+    },
+    "output3.csv": {
+      "exists": true,
+      "rows": 121,
+      "cols": [
+        "brand",
+        "avg_price_usd",
+        "most_common_ram",
+        "most_common_ssd"
+      ],
+      "dtypes": {
+        "brand": "str",
+        "avg_price_usd": "float64",
+        "most_common_ram": "str",
+        "most_common_ssd": "str"
+      },
+      "missing_values": 0,
+      "column_match_spec": true
+    },
+    "output.json": {
+      "exists": true,
+      "keys": [
+        "macro_f1_score",
+        "max_frequency_delay_bin",
+        "total_olist_electronics_orders",
+        "total_ebay_listings"
+      ],
+      "key_match_spec": true,
+      "types": {
+        "macro_f1_score": "float",
+        "max_frequency_delay_bin": "int",
+        "total_olist_electronics_orders": "int",
+        "total_ebay_listings": "int"
+      }
+    }
+  },
+  "recomputation": {
+    "ebay_brand_stats_output3": {
+      "method": "独立重算：Price 去 '$'/逗号后解析（'a to b' 区间取中点），Ram/SSD 归一为 'X GB/TB/MB' 并过滤非法值，Brand strip+upper 归并，按品牌求 Price 均值与众数（并列取容量升序最小）",
+      "brands_reported": 121,
+      "brands_recomputed": 121,
+      "rows_compared": 121,
+      "value_mismatches": 0,
+      "match_avg_price": true,
+      "match_most_common_ram": true,
+      "match_most_common_ssd": true,
+      "ebay_listings_total": 6620,
+      "price_parse_failures": 0,
+      "price_min_usd": 4.735,
+      "price_max_usd": 3901.0,
+      "price_mean_usd": 310.0466
+    },
+    "olist_category_stats_output2": {
+      "method": "独立重算：products×translation 筛选 telephony/computers_accessories/electronics -> order_items 行级；geolocation 按 zip 前缀聚合均值坐标，距离=sqrt(dlat^2+dlng^2) 度；reviews 关联取 review_score",
+      "item_rows": 15139,
+      "avg_price_brl": {
+        "match": true,
+        "recomputed": {
+          "telephony": 71.214,
+          "computers_accessories": 116.5139,
+          "electronics": 57.9135
+        }
+      },
+      "avg_shipping_distance": {
+        "match": true,
+        "recomputed": {
+          "telephony": 6.5024,
+          "computers_accessories": 6.2791,
+          "electronics": 5.8447
+        },
+        "valid_coord_rows": 14992
+      },
+      "avg_review_score": {
+        "match": true,
+        "recomputed_with_same_row_level_merge": {
+          "telephony": 3.9469,
+          "computers_accessories": 3.9308,
+          "electronics": 4.0375
+        }
+      },
+      "sensitivity_note": "若先把 reviews 按 order_id 聚合成订单均值再合并（避免一对多放大），结果为 telephony 3.9459 / computers_accessories 3.9326 / electronics 4.0371，与产物差异 <=0.002，不影响结论；产物采用的是与执行节点完全一致的行级直连口径。"
+    },
+    "delay_mode_output_json": {
+      "valid_orders": 96476,
+      "recomputed_mode": -14,
+      "reported": -14,
+      "match": true,
+      "mode_count": 7126,
+      "mode_share_pct": 7.39,
+      "ties_at_max": 1,
+      "top5_bins": {
+        "-14": 7126,
+        "-13": 5963,
+        "-15": 5345,
+        "-7": 4837,
+        "-8": 4828
+      }
+    },
+    "sentiment_macro_f1": {
+      "non_empty_comments": 40977,
+      "pred_distribution": {
+        "neutral": 40760,
+        "negative": 208,
+        "positive": 9
+      },
+      "true_distribution": {
+        "positive": 26530,
+        "negative": 10890,
+        "neutral": 3557
+      },
+      "recomputed_macro_f1": 0.059771,
+      "reported": 0.05977,
+      "match": true,
+      "abs_diff": 1e-06,
+      "per_class_f1": {
+        "negative": 0.02,
+        "neutral": 0.16,
+        "positive": 0.0
+      },
+      "interpretation": "评论以葡语为主，英文关键词规则命中率极低（99.5% 判为 neutral），宏 F1 接近 0 属方法固有局限，非数据/实现错误。"
+    },
+    "counts": {
+      "total_ebay_listings": {
+        "reported": 6620,
+        "recomputed": 6620,
+        "match": true
+      },
+      "total_olist_electronics_orders": {
+        "reported": 2550,
+        "recomputed": 2550,
+        "definition": "electronics 品类 order_id 去重数（item 行数 2767）",
+        "match": true
+      }
+    }
+  },
+  "cross_file_consistency": [
+    {
+      "check": "output1[Olist].avg_review_score == output2[electronics].avg_review_score",
+      "pass": true
+    },
+    {
+      "check": "output1[Olist].avg_price == output2[electronics].avg_price_brl",
+      "pass": true
+    },
+    {
+      "check": "output1[Olist].macro_f1_sentiment == output.json.macro_f1_score",
+      "pass": true
+    },
+    {
+      "check": "output1[Olist].max_delay_bin == output.json.max_frequency_delay_bin",
+      "pass": true
+    },
+    {
+      "check": "output1[eBay].avg_price == 原始 6620 条 listing 价格均值 310.0466",
+      "pass": true
+    },
+    {
+      "check": "output.json.total_ebay_listings == eBay 原始行数 6620",
+      "pass": true
+    }
+  ],
+  "warnings": [
+    "eBay avg_review_score=4.5629 仅基于 286/6620 条有效 Rating（4.3% 覆盖），代表性弱。",
+    "eBay 行的 macro_f1_sentiment=0.0 与 max_delay_bin=0 为不适用占位值（Olist 专属指标），已在 execute_summary 中声明。",
+    "两平台价格币种不同（eBay USD / Olist BRL），output1 中 avg_price 不可直接横向比较购买力。",
+    "output3 保留了非品牌噪声值（Not Applicable、Does Not Apply、Different、?、See Title/Description、Claa156wa13a 等面板型号串），符合计划中“仅剔除空品牌”的口径，但会稀释品牌表质量；78/121 个品牌 RAM 或 SSD 为 Unknown。",
+    "eBay SSD 列存在疑似错位值（16/32/64 GB 等），按字面统计，已在 execute_summary 声明。",
+    "output.json.macro_f1_score 保留 5 位小数（0.05977 vs 精确值 0.059771），差 1e-6，在容差内。"
+  ]
+}

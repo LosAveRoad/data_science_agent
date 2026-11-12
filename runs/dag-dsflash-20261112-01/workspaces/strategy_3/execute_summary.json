@@ -1,0 +1,96 @@
+{
+  "artifact": "execute_summary.json",
+  "generated_by": "execute_node",
+  "task": "按 score 分段（0.001 宽度）统计外呼/接通/发送/点击/查看/申请/转化的漏斗计数，输出 output.csv",
+  "input": {
+    "path": "data_1.csv",
+    "rows": 477049,
+    "columns": 11
+  },
+  "upstream_spec_followed": [
+    "analysis_plan.json",
+    "data_profile.json"
+  ],
+  "method": {
+    "load": "pandas.read_csv，显式 dtype（time 列为 string，if_call_suc/dt 为 int64，score 为 float64，type/score_bucket/id_bucket 为 string）",
+    "binning": "score.round(3) 映射到固定标签：0.99~0.998 各自 [x,x+0.001)，最高档 [0.999,1]（右闭，吸收 0.999 与 1.0）；边界用 %g 格式化；共 10 档，按下界升序",
+    "metric_rules": {
+      "total": "该档行数（call + sms 记录数）",
+      "oncall": "type == 'call' 的记录数（外呼尝试数）",
+      "cnt_send": "send_time.notna().sum()",
+      "cnt_click": "click_time.notna().sum()",
+      "cnt_check": "check_time.notna().sum()",
+      "cnt_apply": "apply_time.notna().sum()",
+      "cnt_upgrade": "upgrade_time.notna().sum()"
+    },
+    "code": "df.groupby('bucket').agg(size + 各布尔掩码 sum)，reindex 到固定 10 档标签，fillna(0).astype('int64')，to_csv(index=False)"
+  },
+  "key_results": {
+    "output_rows": 10,
+    "column_sums": {
+      "total": 477049,
+      "oncall": 225356,
+      "cnt_send": 261517,
+      "cnt_click": 3866,
+      "cnt_check": 182,
+      "cnt_apply": 182,
+      "cnt_upgrade": 182
+    },
+    "per_bucket_total": {
+      "[0.99,0.991)": 21336,
+      "[0.991,0.992)": 42367,
+      "[0.992,0.993)": 49432,
+      "[0.993,0.994)": 48075,
+      "[0.994,0.995)": 50724,
+      "[0.995,0.996)": 48333,
+      "[0.996,0.997)": 47915,
+      "[0.997,0.998)": 50767,
+      "[0.998,0.999)": 46828,
+      "[0.999,1]": 71272
+    },
+    "highest_bucket": {
+      "label": "[0.999,1]",
+      "total": 71272,
+      "oncall": 35723,
+      "cnt_send": 36829,
+      "cnt_click": 368,
+      "cnt_check": 14,
+      "cnt_apply": 14,
+      "cnt_upgrade": 14
+    },
+    "trend_observation": "各档点击率(cnt_click/total)大体在 0.6%~1.0%，最高档 [0.999,1] 反而相对偏低（368/71272≈0.52%），check/apply/upgrade 每档均为个位数，最高档 14；转化绝对量最大档位是 [0.992,0.993)（check/apply/upgrade 均 30）"
+  },
+  "validation": {
+    "rows_is_10": true,
+    "column_sum_checks_vs_expected_output_contract": "全部一致 (total 477049 / send 261517 / click 3866 / check 182 / apply 182 / upgrade 182)",
+    "per_bucket_total_vs_profile_binning_spec": "全部一致 (21336,42367,49432,48075,50724,48333,47915,50767,46828,71272)",
+    "cross_check_with_existing_score_bucket_column": "新分箱与原 score_bucket 列 477049/477049 行 100% 一致（crosstab 对角）",
+    "top_bin_label": "[0.999,1]，右闭，符合要求",
+    "funnel_monotonicity": "cnt_click<=cnt_send、cnt_check<=cnt_click、cnt_upgrade<=cnt_apply 全部成立",
+    "unmapped_rows": 0,
+    "no_rows_below_0.99": true
+  },
+  "notes_and_caliber": {
+    "AMB-total-oncall": "任务文字把 'number of outbound calls' 与 'calls connected' 并列，存在两种口径。本节点按上游 analysis_plan/data_profile 的决定采用：total=该档全部记录数(call+sms)，oncall=外呼尝试数(type=='call')。若下游需要口径 B（total=外呼数、oncall=接通数），可直接替换这两列：total_B 即当前 oncall 列，oncall_B 见 connected_by_bucket。",
+    "connected_by_bucket_reference": {
+      "[0.99,0.991)": 2098,
+      "[0.991,0.992)": 4184,
+      "[0.992,0.993)": 3412,
+      "[0.993,0.994)": 3448,
+      "[0.994,0.995)": 3467,
+      "[0.995,0.996)": 3444,
+      "[0.996,0.997)": 3303,
+      "[0.997,0.998)": 3416,
+      "[0.998,0.999)": 3407,
+      "[0.999,1]": 4630
+    },
+    "connected_total_reference": 34809,
+    "cnt_send_semantics": "send_time 非空即计入；90,837 条 call 记录也带 send_time，故 cnt_send(261517) > sms 记录数(251693)",
+    "cnt_check_equals_apply_equals_upgrade": "三者均为 182 行且完全同一批记录，属数据事实而非计算错误",
+    "known_data_anomaly": "87 行 type=='sms' 但 if_call_suc==1（时间戳全空），按 type 口径不计入 oncall，也不计入 cnt_send"
+  },
+  "produced_files": [
+    "output.csv",
+    "execute_summary.json"
+  ]
+}

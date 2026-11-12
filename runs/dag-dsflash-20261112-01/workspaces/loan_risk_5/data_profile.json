@@ -1,0 +1,198 @@
+{
+  "dataset": {
+    "task_id": "loan_risk_5",
+    "domain": "loan_risk",
+    "source_path": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed/datasets/loan_risk/loan_risk_5/input.csv",
+    "workspace_copy": "input.csv",
+    "file_size_bytes": 169058,
+    "n_rows": 10000,
+    "n_cols": 3,
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "has_header": true,
+    "expected_outputs": [
+      "output_1.csv",
+      "output_2.csv"
+    ]
+  },
+  "schema": [
+    {
+      "name": "group_id",
+      "dtype": "int64",
+      "role": "dimension (分组标识)",
+      "description": "组标识，取值 1-10，共 10 个唯一值，无缺失"
+    },
+    {
+      "name": "score",
+      "dtype": "float64",
+      "role": "measure (行为分)",
+      "format": "两位小数的数值",
+      "description": "行为分，范围 [0.01, 99.99]，无缺失，无负值"
+    },
+    {
+      "name": "apply_date",
+      "dtype": "int64",
+      "role": "time dimension",
+      "format": "YYYYMMDD 整数/8 位数字字符串",
+      "description": "申请日期，20230101 - 20231231，全部 8 位且可解析，跨 12 个月"
+    }
+  ],
+  "column_stats": {
+    "group_id": {
+      "n_unique": 10,
+      "min": 1,
+      "max": 10,
+      "nulls": 0,
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "row_counts": {
+        "1": 1053,
+        "2": 985,
+        "3": 996,
+        "4": 971,
+        "5": 962,
+        "6": 1021,
+        "7": 1017,
+        "8": 967,
+        "9": 994,
+        "10": 1034
+      }
+    },
+    "score": {
+      "nulls": 0,
+      "n_unique": 6334,
+      "min": 0.01,
+      "max": 99.99,
+      "mean": 50.0286,
+      "median": 49.965,
+      "std": 28.7931,
+      "all_two_decimals": true,
+      "negative_values": 0
+    },
+    "apply_date": {
+      "nulls": 0,
+      "min": 20230101,
+      "max": 20231231,
+      "all_8_digits": true,
+      "unparseable_dates": 0,
+      "n_distinct_dates": 365,
+      "months": [
+        "202301",
+        "202302",
+        "202303",
+        "202304",
+        "202305",
+        "202306",
+        "202307",
+        "202308",
+        "202309",
+        "202310",
+        "202311",
+        "202312"
+      ]
+    }
+  },
+  "data_quality": {
+    "missing_values": {
+      "group_id": 0,
+      "score": 0,
+      "apply_date": 0
+    },
+    "empty_strings": 0,
+    "duplicate_full_rows": 1,
+    "invalid_dates": 0,
+    "out_of_range_scores": 0,
+    "score_sentinel_or_placeholder": "未发现（无 -1/9999 等异常占位值，负值 0 条）",
+    "verdict": "数据干净，可直接用于分组统计；仅存在 1 条完全重复行，是否去重不影响分组聚合口径（按行计数保留）"
+  },
+  "grouping_structure": {
+    "overall": {
+      "n_groups": 10,
+      "rows_per_group_min": 962,
+      "rows_per_group_max": 1053
+    },
+    "monthly": {
+      "n_group_month_cells": 120,
+      "expected_cells": 120,
+      "rows_per_cell_min": 53,
+      "rows_per_cell_max": 104,
+      "cells_with_n_lt_2": 0
+    },
+    "month_derivation": "apply_month = apply_date // 100（等价于取 YYYYMMDD 前 6 位），得到 202301…202312 共 12 个月"
+  },
+  "metric_computation_notes": {
+    "metrics": [
+      "cnt",
+      "max_score",
+      "min_score",
+      "mode_score",
+      "mean_score",
+      "median_score",
+      "std_score"
+    ],
+    "mode_rule": "每组内 score 出现次数最多的取值；若存在并列众数取最小值",
+    "std_rule": "样本标准差 (ddof=1)；样本量 < 2 时标准差填 0",
+    "cnt_type": "count 需转换为 float（如 1017.0）",
+    "overall_month_label": "整体分布内部标记 apply_month='overall'，但 output_1.csv 不输出该列",
+    "output_1_columns": [
+      "group_id",
+      "cnt",
+      "max_score",
+      "min_score",
+      "mode_score",
+      "mean_score",
+      "median_score",
+      "std_score"
+    ],
+    "output_2_columns": [
+      "group_id",
+      "apply_month",
+      "cnt",
+      "max_score",
+      "min_score",
+      "mode_score",
+      "mean_score",
+      "median_score",
+      "std_score"
+    ],
+    "expected_row_counts": {
+      "output_1.csv": 10,
+      "output_2.csv": 120
+    }
+  },
+  "risks_and_edge_cases": {
+    "mode_ties_overall": {
+      "groups_with_multiple_modes": 9,
+      "detail_n_modes_per_group": {
+        "1": 2,
+        "2": 42,
+        "3": 39,
+        "4": 36,
+        "5": 2,
+        "6": 62,
+        "7": 1,
+        "8": 2,
+        "9": 2,
+        "10": 2
+      },
+      "impact": "众数并列很常见（10 组中 9 组并列），必须实现『并列取最小值』，否则结果不一致"
+    },
+    "mode_ties_monthly": {
+      "cells_with_multiple_modes": 96,
+      "total_cells": 120
+    },
+    "small_sample_cells": "无（最小单元格 53 行），std 均可计算；仍建议代码中保留 n<2 填 0 的兜底分支",
+    "score_precision": "score 均为两位小数，众数比较用原始 float 值即可（避免四舍五入造成伪并列，除非要求先 round）",
+    "duplicate_rows": "1 条完全重复行，本任务按行统计（不要求去重）；如需去重应在报告中说明"
+  }
+}

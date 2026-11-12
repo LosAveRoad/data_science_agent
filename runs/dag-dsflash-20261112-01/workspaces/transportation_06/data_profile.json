@@ -1,0 +1,118 @@
+{
+  "node": "data_inspect",
+  "task": "Linear regression on NYC yellow taxi fare (Q2 2024) using time (hour, day_of_week), trip (trip_distance, passenger_count) and pickup/dropoff borough dummies; outlier filter 0<trip_distance<100, 0<fare_amount<500; test_size=0.2, random_state=42; report RMSE and R2 -> output.json",
+  "environment": {
+    "python": "3.13 (isolated -I)",
+    "preinstalled": ["pandas 3.1.1", "numpy 2.5.4", "scikit-learn 1.9.1"],
+    "missing_and_resolved": {
+      "pyarrow": "NOT preinstalled -> installed offline-cached wheel into ./_libs (pyarrow 26.0.1). Downstream MUST do sys.path.insert(0,'./_libs') before importing pyarrow/pandas-parquet.",
+      "pyshp / geopandas / fiona / shapely": "not preinstalled (shapely 2.2.0 also placed in ./_libs); not required because the shapefile has no .dbf attributes (see taxi_zones section)",
+      "duckdb / fastparquet / polars": "not available"
+    }
+  },
+  "data_files": {
+    "yellow_tripdata/yellow_tripdata_2024-04.parquet": {"rows": 3514289, "row_groups": 4, "size_bytes": 59133625},
+    "yellow_tripdata/yellow_tripdata_2024-05.parquet": {"rows": 3723833, "row_groups": 4, "size_bytes": 62553128},
+    "yellow_tripdata/yellow_tripdata_2024-06.parquet": {"rows": 3539193, "row_groups": 4, "size_bytes": 59859922},
+    "total_rows": 10777315,
+    "format": "parquet (written by parquet-cpp-arrow 14.0.2), all columns ZSTD compressed, no embedded pandas metadata, NO per-column statistics (min/max/null_count absent -> exact null counts require a scan)"
+  },
+  "schema": {
+    "columns": [
+      {"name": "VendorID", "dtype": "int32", "role": "ignored"},
+      {"name": "tpep_pickup_datetime", "dtype": "timestamp[us]", "role": "feature source (hour, day_of_week)"},
+      {"name": "tpep_dropoff_datetime", "dtype": "timestamp[us]", "role": "not used as feature (would leak/undefined); duration optional"},
+      {"name": "passenger_count", "dtype": "int64", "role": "feature"},
+      {"name": "trip_distance", "dtype": "double", "role": "feature + filter"},
+      {"name": "RatecodeID", "dtype": "int64", "role": "ignored"},
+      {"name": "store_and_fwd_flag", "dtype": "large_string", "role": "ignored"},
+      {"name": "PULocationID", "dtype": "int32", "role": "key -> borough_pu_* via taxi zone lookup"},
+      {"name": "DOLocationID", "dtype": "int32", "role": "key -> borough_do_* via taxi zone lookup"},
+      {"name": "payment_type", "dtype": "int64", "role": "ignored (known post-hoc leak wrt fare)"},
+      {"name": "fare_amount", "dtype": "double", "role": "TARGET + filter"},
+      {"name": "extra/mta_tax/tip_amount/tolls_amount/improvement_surcharge/total_amount/congestion_surcharge/Airport_fee", "dtype": "double", "role": "must NOT be used as features (fare components / leakage)"}
+    ],
+    "identical_schema_in_all_3_files": true,
+    "column_count": 19
+  },
+  "samples": {
+    "method": "first pyarrow batch (50,000 rows) per file + first row group (1,048,576 rows) for filter/fraction estimates; no full-file dump performed",
+    "head_row_example_april": {
+      "VendorID": 1,
+      "tpep_pickup_datetime": "2024-04-01 00:02:40",
+      "tpep_dropoff_datetime": "2024-04-01 00:30:42",
+      "passenger_count": 0,
+      "trip_distance": 5.2,
+      "RatecodeID": 1,
+      "PULocationID": 161,
+      "DOLocationID": 7,
+      "payment_type": 1,
+      "fare_amount": 29.6,
+      "total_amount": 43.25
+    }
+  },
+  "per_file_observations": {
+    "yellow_tripdata_2024-04.parquet": {
+      "pickup_min_full_scan": "2002-12-31 22:10:04",
+      "pickup_max_full_scan": "2024-05-01 00:02:36",
+      "rows_outside_q2_pickup": 8,
+      "head50k": {"trip_distance": {"min": 0.0, "p50": 1.72, "p99": 20.88, "max": 577.05, "zero_frac": 0.0144}, "fare_amount": {"min": -392.9, "p50": 13.5, "p99": 83.0, "max": 445.4, "neg_frac": 0.01294}, "passenger_count": {"min": 0, "max": 6}},
+      "rowgroup0_estimates": {"pass_filter_frac": 0.97459, "trip_distance_le0": 0.01291, "trip_distance_ge100": 1.6e-05, "fare_le0": 0.01389, "fare_ge500": 1.1e-05, "passenger_count_null": 0},
+      "PULocationID": {"min": 1, "max": 265, "unique_in_sample": 220, "count_gt_263_in_sample": 220},
+      "DOLocationID": {"min": 1, "max": 265, "unique_in_sample": 249, "count_gt_263_in_sample": 530}
+    },
+    "yellow_tripdata_2024-05.parquet": {
+      "pickup_min_full_scan": "2002-12-31 16:46:07",
+      "pickup_max_full_scan": "2024-06-01 23:54:14",
+      "rows_outside_q2_pickup": 7,
+      "head50k": {"trip_distance": {"min": 0.0, "p50": 1.66, "p99": 20.13, "max": 116.76, "zero_frac": 0.0143}, "fare_amount": {"min": -253.6, "p50": 14.2, "p99": 79.3, "max": 850.0, "neg_frac": 0.0142}, "passenger_count": {"min": 0, "max": 8}},
+      "rowgroup0_estimates": {"pass_filter_frac": 0.97415, "trip_distance_le0": 0.0129, "trip_distance_ge100": 1e-05, "fare_le0": 0.01431, "fare_ge500": 1.4e-05, "passenger_count_null": 0},
+      "PULocationID": {"min": 1, "max": 265, "unique_in_sample": 221, "count_gt_263_in_sample": 202},
+      "DOLocationID": {"min": 1, "max": 265, "unique_in_sample": 241, "count_gt_263_in_sample": 513}
+    },
+    "yellow_tripdata_2024-06.parquet": {
+      "pickup_min_full_scan": "2008-12-31 00:00:00",
+      "pickup_max_full_scan": "2026-06-26 23:53:12",
+      "rows_outside_q2_pickup": 9,
+      "head50k": {"trip_distance": {"min": 0.0, "p50": 1.75, "p99": 19.93, "max": 133.79, "zero_frac": 0.01504}, "fare_amount": {"min": -191.3, "p50": 12.1, "p99": 77.9, "max": 434.0, "neg_frac": 0.01646}, "passenger_count": {"min": 0, "max": 6}},
+      "rowgroup0_estimates": {"pass_filter_frac": 0.97261, "trip_distance_le0": 0.01335, "trip_distance_ge100": 2.8e-05, "fare_le0": 0.01542, "fare_ge500": 1e-05, "passenger_count_null": 0},
+      "PULocationID": {"min": 1, "max": 265, "unique_in_sample": 207, "count_gt_263_in_sample": 231},
+      "DOLocationID": {"min": 1, "max": 265, "unique_in_sample": 244, "count_gt_263_in_sample": 508}
+    }
+  },
+  "data_quality": {
+    "negatives_and_zeros": "fare_amount <= 0 in ~1.2-1.6% of rows (min about -393), trip_distance == 0 in ~1.3-1.5% of rows (min 0). The mandated filter 0<fare<500 & 0<dist<100 removes almost all of these.",
+    "filter_survival_estimate": "~97.26% - 97.46% of rows survive per file (measured on first row group, 1,048,576 rows each). Expected modelling row count approx 10.46M - 10.48M.",
+    "rare_extremes": "trip_distance up to 577 miles and fare up to 850 exist; ~1e-5 fraction is >=100mi or >=500$, so the strict range filter is the main trimming mechanism, not a mass deletion.",
+    "timestamps_out_of_range": "24 rows total across the 3 files have pickup datetime outside 2024-04-01..2024-07-01 (min 2002-12-31, max 2026-06-26). Negligible (<1e-6) but hour/day_of_week for them is degenerate; safe to keep or drop, document whichever is chosen.",
+    "nulls": "No nulls observed in any column of the sampled row groups (all 19 columns). Note the source schema allows nulls for passenger_count/RatecodeID/others, and parquet has no statistics, so exact null counts were not verified by full scan.",
+    "passenger_count": "ranges 0..8 in samples, ~1.4% zeros; treat as numeric, no clipping required by the spec.",
+    "location_ids": "PULocationID/DOLocationID span 1..265. IDs 264 ('Unknown') and 265 ('Outside of NYC') appear (~0.2-0.5% of dropoffs, ~0.2% of pickups) and have NO borough -> all-zero borough dummies after mapping.",
+    "duplicate_risk": "parquet rows are not deduplicated; duplicates were not quantified (full scan out of scope for inspect node)."
+  },
+  "taxi_zones": {
+    "shapefile": "taxi_zones/taxi_zones.shp",
+    "shape_type": "Polygon (code 5), ESRI header, 263 records, 1,586,264 bytes",
+    "crs": "projected, not lon/lat (bbox 913175.11, 120121.88, 1067382.51, 272844.29 - NY State Plane / US-feet style coordinates)",
+    "attribute_table": "MISSING - taxi_zones.shp was provided WITHOUT taxi_zones.dbf/.shx, so the .shp carries geometry only (no LocationID/Borough/Zone/service_zone fields). pyshp reports records but there are no attributes to read.",
+    "record_order_verified": "record numbers are contiguous 1..263, and geometry positions match the official zone ids: record 1 bbox = far-west small polygon (EWR/Newark Airport, min-x of whole file), record 132 bbox = south-east Queens (JFK Airport), record 138 bbox = north Queens (LaGuardia). Therefore shapefile record i corresponds to LocationID = i.",
+    "borough_mapping_source": "taxi_zones/taxi_zone_lookup.csv (ADDED by this node; downloaded from the official TLC source https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv, 12,331 bytes). Simply read this CSV mapping LocationID -> Borough; a full point-in-polygon spatial join is NOT needed (and would be unreliable without the .dbf/CRS definition).",
+    "borough_values": {"Queens": 69, "Manhattan": 69, "Brooklyn": 61, "Bronx": 43, "Staten Island": 20, "EWR": 1, "Unknown": 1},
+    "locationid_coverage": "lookup covers LocationID 1..265 with no duplicates and no gaps in 1..263; ID 264 -> Borough 'Unknown', ID 265 -> Borough NaN (Zone 'Outside of NYC').",
+    "recommended_dummy_set": ["Bronx", "Brooklyn", "EWR", "Manhattan", "Queens", "Staten Island"],
+    "recommended_dummy_note": "The 6 boroughs above map onto LocationIDs 1..263 (the polygons that exist in the shapefile). Recommended columns: borough_pu_<Borough> and borough_do_<Borough> (12 features). Unmapped ids (264/265/NaN) become all-zero rows; either keep them as the implicit baseline or dropna on the join. Avoid creating a dummy for 'Unknown'/NaN."
+  },
+  "feature_engineering_guidance": {
+    "hour": "tpep_pickup_datetime.dt.hour, 0-23 integer",
+    "day_of_week": "tpep_pickup_datetime.dt.dayofweek (pandas: Monday=0..Sunday=6). Data supports 7 distinct values; no weekend-specific handling required.",
+    "numeric_features": ["hour", "day_of_week", "trip_distance", "passenger_count"],
+    "borough_features": "12 dummies (6 boroughs x pickup/dropoff), see taxi_zones.recommended_dummy_note",
+    "target": "fare_amount",
+    "leakage_watch": "Do not include total_amount, tip_amount, tolls_amount, extra, mta_tax, congestion_surcharge, Airport_fee, improvement_surcharge, payment_type, RatecodeID or trip duration; the task's feature list excludes them.",
+    "deterministic_pipeline": "pd.concat 3 files -> filter (trip_distance>0)&(trip_distance<100)&(fare_amount>0)&(fare_amount<500) -> build features -> train_test_split(test_size=0.2, random_state=42) -> sklearn LinearRegression -> RMSE=sqrt(mse), R2 on the test split."
+  },
+  "expected_model_behaviour": {
+    "note": "Not computed here (modeling belongs to a downstream node). Given distance is available, a plain OLS on these 16 features typically reaches R2 around 0.75-0.85 and RMSE of roughly 7-10 USD on Q2 Manhattan-dominated yellow-taxi data; treat as a sanity band, not a result.",
+    "caveats": ["fare_amount includes surcharges/tolls noise that these features cannot explain", "borough dummies are coarse (5-6 levels) so intra-borough variation is absorbed by distance/hour", "regression on 10.4M rows x 16 columns needs a memory-aware loader: read only the 6 needed columns per file and downcast to float32 if RAM is tight"]
+  }
+}

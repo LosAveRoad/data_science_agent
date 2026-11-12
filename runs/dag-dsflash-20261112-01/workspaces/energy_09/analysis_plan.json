@@ -1,0 +1,242 @@
+{
+  "task": "Calculate fossil fuel dependency index per US state (50 states + DC) for 2017 and write output.csv",
+  "formula": "fossil_dependency_index = fossil_generation_MWh_2017 / solar_potential_MWh_2017 * industrial_price_cents_per_kWh_2017",
+  "environment": {
+    "python_modules_available": "pandas NOT installed (ModuleNotFoundError) -> use stdlib csv module only",
+    "encoding": "read source CSVs with encoding='utf-8-sig' (BOM present in headers)",
+    "runtime_budget_seconds": 120
+  },
+  "inputs": [
+    {
+      "source": "solar",
+      "path": "Google Project Sunroof/project-sunroof-state-09082017.csv",
+      "rows": 52,
+      "use": "state_name (full name key) + yearly_sunlight_kwh_total (kWh, 2017 vintage file dated 2017-09-08)",
+      "transform": "solar_potential_MWh_2017 = float(yearly_sunlight_kwh_total) / 1000",
+      "clean": [
+        "drop the single row with state_name == 'NULL' (a non-geographic aggregate row) -> 51 rows left",
+        "no blank/missing yearly_sunlight_kwh_total values (min ~1.24e4 kWh, max ~1.98e11 kWh)"
+      ],
+      "role": "roof solar theoretical potential (total sunlight electricity) per state"
+    },
+    {
+      "source": "generation",
+      "path": "US_Energy_Generation_2001-2022.csv",
+      "rows": 496774,
+      "usecols": [
+        "MONTH",
+        "STATE",
+        "TYPE OF PRODUCER",
+        "ENERGY SOURCE",
+        "GENERATION (Megawatthours)"
+      ],
+      "filters": {
+        "YEAR": "2017",
+        "TYPE OF PRODUCER": "Total Electric Power Industry",
+        "ENERGY SOURCE in": [
+          "Coal",
+          "Natural Gas",
+          "Petroleum"
+        ]
+      },
+      "transform": "sum GENERATION (Megawatthours) over 12 months x 3 fossil sources per state; value already MWh, keep as float",
+      "clean": [
+        "TYPE OF PRODUCER has 6 values; only the aggregate 'Total Electric Power Industry' may be used, otherwise sub-categories (electric utilities / IPP / CHP) double count",
+        "do NOT include the 'Total' ENERGY SOURCE row (use it only as a cross-check; fossil sum should be <= Total and Total ~= sum of all sources, diff < 5 MWh)",
+        "STATE is a 2-letter abbreviation; map via 51-entry ABB dict; drop 'US-TOTAL'",
+        "12 months present for every state in 2017, no missing generation values"
+      ],
+      "role": "fossil fuel electricity generation"
+    },
+    {
+      "source": "price",
+      "path": "U.S._Electricity_Prices.csv",
+      "rows": 85870,
+      "filters": {
+        "year": "2017",
+        "sectorName": "industrial"
+      },
+      "transform": "industrial_price_cents_per_kWh_2017 = simple mean of the 12 monthly 'price' values (already cents/kWh)",
+      "clean": [
+        "2017 industrial has 62 entities: 51 states/DC + 11 aggregates -> exclude ['U.S. Total','New England','Middle Atlantic','East North Central','West North Central','South Atlantic','East South Central','West South Central','Mountain','Pacific Contiguous','Pacific Noncontiguous']",
+        "all 51 state entities have exactly 12 monthly values and no blank price",
+        "alternative revenue/sales-weighted annual price differs <0.5% for most states (max ~4%, Idaho); simple mean chosen"
+      ],
+      "role": "industrial electricity price"
+    }
+  ],
+  "join": {
+    "key": "full state_name string (already consistent across the roof-solar file and the price file; generation file needs the ABB mapping)",
+    "expected_coverage": "51/51 entities (50 states + District of Columbia) present in all three sources, zero missing",
+    "duplicates": "none expected; assert one row per state_name before writing",
+    "expected_state_names_51": [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Delaware",
+      "District of Columbia",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "Rhode Island",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming"
+    ],
+    "abbreviation_to_full_name": {
+      "AL": "Alabama",
+      "AK": "Alaska",
+      "AZ": "Arizona",
+      "AR": "Arkansas",
+      "CA": "California",
+      "CO": "Colorado",
+      "CT": "Connecticut",
+      "DE": "Delaware",
+      "DC": "District of Columbia",
+      "FL": "Florida",
+      "GA": "Georgia",
+      "HI": "Hawaii",
+      "ID": "Idaho",
+      "IL": "Illinois",
+      "IN": "Indiana",
+      "IA": "Iowa",
+      "KS": "Kansas",
+      "KY": "Kentucky",
+      "LA": "Louisiana",
+      "ME": "Maine",
+      "MD": "Maryland",
+      "MA": "Massachusetts",
+      "MI": "Michigan",
+      "MN": "Minnesota",
+      "MS": "Mississippi",
+      "MO": "Missouri",
+      "MT": "Montana",
+      "NE": "Nebraska",
+      "NV": "Nevada",
+      "NH": "New Hampshire",
+      "NJ": "New Jersey",
+      "NM": "New Mexico",
+      "NY": "New York",
+      "NC": "North Carolina",
+      "ND": "North Dakota",
+      "OH": "Ohio",
+      "OK": "Oklahoma",
+      "OR": "Oregon",
+      "PA": "Pennsylvania",
+      "RI": "Rhode Island",
+      "SC": "South Carolina",
+      "SD": "South Dakota",
+      "TN": "Tennessee",
+      "TX": "Texas",
+      "UT": "Utah",
+      "VT": "Vermont",
+      "VA": "Virginia",
+      "WA": "Washington",
+      "WV": "West Virginia",
+      "WI": "Wisconsin",
+      "WY": "Wyoming"
+    },
+    "price_aggregate_rows_to_exclude": [
+      "U.S. Total",
+      "New England",
+      "Middle Atlantic",
+      "East North Central",
+      "West North Central",
+      "South Atlantic",
+      "East South Central",
+      "West South Central",
+      "Mountain",
+      "Pacific Contiguous",
+      "Pacific Noncontiguous"
+    ]
+  },
+  "steps": [
+    "1. Load solar file with csv.DictReader; drop state_name=='NULL'; build {state_name: yearly_sunlight_kwh_total/1000}.",
+    "2. Stream generation file; keep rows YEAR=='2017', TYPE OF PRODUCER=='Total Electric Power Industry', ENERGY SOURCE in {Coal, Natural Gas, Petroleum}; accumulate fossil MWh per STATE abbreviation; convert to full names with ABB.",
+    "3. Stream price file; keep year=='2017' and sectorName=='industrial' and stateDescription in state name set; average monthly prices per state.",
+    "4. Inner-join the three dicts on full state name; verify set == the 51 expected names (report any extras/missing).",
+    "5. Compute fossil_dependency_index = fossil_generation_MWh_2017 / solar_potential_MWh_2017 * industrial_price_cents_per_kWh_2017 (no rounding of inputs; keep float precision).",
+    "6. Sort rows alphabetically by state_name; write output.csv with exactly the 5 required columns in the required order and float formatting.",
+    "7. Validate: 51 data rows + header; no NaN/inf; all values > 0; spot-check a few states by recomputing the formula independently; compare ranges with data_profile.json quick_stats (fossil gen min ~8,940 MWh DC, max ~339,324,066 MWh TX; solar potential min ~420,338 MWh, max ~198,016,349 MWh; price 4.60-22.94 c/kWh; index 0.171-255.18)."
+  ],
+  "outputs": {
+    "path": "output.csv",
+    "columns": [
+      {
+        "name": "state_name",
+        "type": "string",
+        "note": "full state name, e.g. 'District of Columbia'"
+      },
+      {
+        "name": "fossil_generation_MWh_2017",
+        "type": "float",
+        "note": "coal+natural gas+petroleum, Total Electric Power Industry, 12 months of 2017"
+      },
+      {
+        "name": "solar_potential_MWh_2017",
+        "type": "float",
+        "note": "yearly_sunlight_kwh_total / 1000"
+      },
+      {
+        "name": "industrial_price_cents_per_kWh_2017",
+        "type": "float",
+        "note": "mean of 12 monthly 2017 industrial prices"
+      },
+      {
+        "name": "fossil_dependency_index",
+        "type": "float",
+        "note": "formula above"
+      }
+    ],
+    "rows": 51,
+    "sort": "state_name ascending"
+  },
+  "known_pitfalls": [
+    "pandas unavailable -> must use csv module (no df.groupby shortcuts)",
+    "forgetting the 'NULL' row in the roof solar file adds a bogus entity",
+    "summing all TYPE OF PRODUCER values inflates fossil generation by ~4x",
+    "including census-division / U.S. Total rows in the price file inflates the row count to 62",
+    "mixing kWh and MWh (solar file is kWh, generation file is already MWh)",
+    "matching generation abbreviations to full names requires an explicit 51-entry map"
+  ],
+  "existing_artifacts_note": "output.csv and data_profile.json already exist in the workspace as upstream artifacts; the plan's validation step compares the newly computed values against data_profile.json quick_stats for consistency."
+}

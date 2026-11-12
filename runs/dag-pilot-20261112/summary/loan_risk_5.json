@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-pilot-20261112",
+  "system": "dag-prototype",
+  "taskId": "loan_risk_5",
+  "startedAt": "2026-11-11T18:36:26.311Z",
+  "finishedAt": "2026-11-11T18:38:19.907Z",
+  "status": "failed",
+  "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+  "result": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+  "totalSteps": 98,
+  "tokenUsage": {
+    "inputTokens": 13321,
+    "outputTokens": 20023,
+    "totalTokens": 33344
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:36:26.314Z",
+      "finishedAt": "2026-11-11T18:36:47.055Z",
+      "elapsedMs": 20741,
+      "error": null,
+      "steps": 24,
+      "tokenUsage": {
+        "inputTokens": 2514,
+        "outputTokens": 2937,
+        "totalTokens": 5451
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:36:47.056Z",
+      "finishedAt": "2026-11-11T18:37:40.714Z",
+      "elapsedMs": 53658,
+      "error": null,
+      "steps": 31,
+      "tokenUsage": {
+        "inputTokens": 3776,
+        "outputTokens": 9333,
+        "totalTokens": 13109
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:37:40.717Z",
+      "finishedAt": "2026-11-11T18:38:19.902Z",
+      "elapsedMs": 39185,
+      "error": null,
+      "steps": 43,
+      "tokenUsage": {
+        "inputTokens": 7031,
+        "outputTokens": 7753,
+        "totalTokens": 14784
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "failed",
+      "startedAt": "2026-11-11T18:38:19.905Z",
+      "finishedAt": "2026-11-11T18:38:19.905Z",
+      "elapsedMs": 0,
+      "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+      "steps": 0,
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

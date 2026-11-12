@@ -1,0 +1,338 @@
+{
+  "artifact": "output.csv",
+  "status": "pass",
+  "task": "Fossil fuel dependency index per US state (50 states + DC), 2017",
+  "verified_at_step": "inspect/verify node",
+  "file_format": {
+    "exists": true,
+    "delimiter": ",",
+    "encoding": "UTF-8 (BOM tolerated)",
+    "header": [
+      "state_name",
+      "fossil_generation_MWh_2017",
+      "solar_potential_MWh_2017",
+      "industrial_price_cents_per_kWh_2017",
+      "fossil_dependency_index"
+    ],
+    "columns_expected": [
+      "state_name",
+      "fossil_generation_MWh_2017",
+      "solar_potential_MWh_2017",
+      "industrial_price_cents_per_kWh_2017",
+      "fossil_dependency_index"
+    ],
+    "data_rows": 51,
+    "expected_rows": 51,
+    "duplicate_state_names": 0,
+    "sorted_alphabetically": true
+  },
+  "checks": [
+    {
+      "check": "output.csv exists and is readable",
+      "status": "pass",
+      "detail": "52 lines (1 header + 51 data rows), UTF-8, trailing newline present"
+    },
+    {
+      "check": "column names and order",
+      "status": "pass",
+      "detail": "state_name, fossil_generation_MWh_2017, solar_potential_MWh_2017, industrial_price_cents_per_kWh_2017, fossil_dependency_index"
+    },
+    {
+      "check": "row count = 50 states + DC",
+      "status": "pass",
+      "detail": "51 rows, 51 unique state_name values, no duplicates, sorted alphabetically"
+    },
+    {
+      "check": "state_name values are full names",
+      "status": "pass",
+      "detail": "all 51 full names (incl. 'District of Columbia'), no abbreviations, no leading/trailing/double whitespace"
+    },
+    {
+      "check": "numeric columns parse as float, no NaN/inf/blank",
+      "status": "pass",
+      "detail": "51 x 4 numeric cells all parse; 0 non-finite; no empty cells"
+    },
+    {
+      "check": "all values positive / physically valid",
+      "status": "pass",
+      "detail": "fossil_generation_MWh_2017 > 0, solar_potential_MWh_2017 > 0, industrial price > 0 for all 51 rows"
+    },
+    {
+      "check": "formula recomputation internal consistency",
+      "status": "pass",
+      "detail": "fossil/solar*price reproduces fossil_dependency_index for all 51 rows (max rel. err 0)"
+    },
+    {
+      "check": "independent recomputation from raw sources",
+      "status": "pass",
+      "detail": "solar = Sunroof yearly_sunlight_kwh_total/1000 (NULL row dropped, 51 states); generation = 2017 'Total Electric Power Industry' Coal+Natural Gas+Petroleum summed over 12 months, 2-letter->full name map, US-TOTAL excluded; price = 2017 industrial monthly mean. All 51 rows x 4 columns match output.csv BIT-EXACTLY (0 mismatches)"
+    },
+    {
+      "check": "generation aggregation avoids double counting",
+      "status": "pass",
+      "detail": "'Total Electric Power Industry' == sum of the 5 sub-producer categories within 17 MWh out of 4.03e9 MWh (rounding), so the aggregate is complete and non-overlapping"
+    },
+    {
+      "check": "coverage of all three sources",
+      "status": "pass",
+      "detail": "51/51 entities present in Sunroof (52 rows - 1 NULL), generation (52 = 51 + US-TOTAL), and 2017 industrial price (62 entities - 11 aggregates); inner join yields 51 rows, zero missing"
+    },
+    {
+      "check": "monthly completeness",
+      "status": "pass",
+      "detail": "every state has 12 months of generation data for 2017 and exactly 12 monthly industrial prices; no blank price values in the whole 2017 industrial slice"
+    },
+    {
+      "check": "fossil_generation <= total all-source generation",
+      "status": "pass",
+      "detail": "holds for all 51 states (Total ENERGY SOURCE row used only as cross-check)"
+    },
+    {
+      "check": "plausibility of results",
+      "status": "pass",
+      "detail": "index range 0.1713 (District of Columbia) to 255.18 (Wyoming); fossil-heavy states (Wyoming, West Virginia, Alaska, North Dakota) rank highest and low-fossil / high-solar states (DC, Vermont, Idaho, Washington) lowest, consistent with expectations"
+    }
+  ],
+  "checks_passed": 13,
+  "checks_failed": 0,
+  "summary_statistics": {
+    "fossil_generation_MWh_2017": {
+      "min": {
+        "state": "Vermont",
+        "value": 8940.0
+      },
+      "max": {
+        "state": "Texas",
+        "value": 339324066.0
+      },
+      "top5": [
+        {
+          "state": "Texas",
+          "value": 339324066.0
+        },
+        {
+          "state": "Florida",
+          "value": 200080232.0
+        },
+        {
+          "state": "Pennsylvania",
+          "value": 120493135.0
+        },
+        {
+          "state": "Ohio",
+          "value": 98384251.0
+        },
+        {
+          "state": "Indiana",
+          "value": 90486195.0
+        }
+      ],
+      "bottom3": [
+        {
+          "state": "Vermont",
+          "value": 8940.0
+        },
+        {
+          "state": "District of Columbia",
+          "value": 19704.0
+        },
+        {
+          "state": "Maine",
+          "value": 2437394.0
+        }
+      ]
+    },
+    "solar_potential_MWh_2017": {
+      "min": {
+        "state": "Vermont",
+        "value": 420338.38681933575
+      },
+      "max": {
+        "state": "California",
+        "value": 198016349.09015596
+      },
+      "top5": [
+        {
+          "state": "California",
+          "value": 198016349.09015596
+        },
+        {
+          "state": "Texas",
+          "value": 117155158.43536454
+        },
+        {
+          "state": "Florida",
+          "value": 105062661.1998296
+        },
+        {
+          "state": "Arizona",
+          "value": 46393288.25368094
+        },
+        {
+          "state": "New York",
+          "value": 34926132.118292466
+        }
+      ],
+      "bottom3": [
+        {
+          "state": "Vermont",
+          "value": 420338.38681933575
+        },
+        {
+          "state": "Alaska",
+          "value": 466492.66416556283
+        },
+        {
+          "state": "Delaware",
+          "value": 606866.0479016295
+        }
+      ]
+    },
+    "industrial_price_cents_per_kWh_2017": {
+      "min": {
+        "state": "Washington",
+        "value": 4.600833333333333
+      },
+      "max": {
+        "state": "Hawaii",
+        "value": 22.944166666666664
+      },
+      "top5": [
+        {
+          "state": "Hawaii",
+          "value": 22.944166666666664
+        },
+        {
+          "state": "Alaska",
+          "value": 16.335
+        },
+        {
+          "state": "Rhode Island",
+          "value": 14.571666666666667
+        },
+        {
+          "state": "Massachusetts",
+          "value": 13.875833333333333
+        },
+        {
+          "state": "Connecticut",
+          "value": 13.094999999999999
+        }
+      ],
+      "bottom3": [
+        {
+          "state": "Washington",
+          "value": 4.600833333333333
+        },
+        {
+          "state": "Montana",
+          "value": 5.233333333333333
+        },
+        {
+          "state": "Texas",
+          "value": 5.3525
+        }
+      ]
+    },
+    "fossil_dependency_index": {
+      "min": {
+        "state": "District of Columbia",
+        "value": 0.171328961895518
+      },
+      "max": {
+        "state": "Wyoming",
+        "value": 255.18350274574388
+      },
+      "top5": [
+        {
+          "state": "Wyoming",
+          "value": 255.18350274574388
+        },
+        {
+          "state": "West Virginia",
+          "value": 250.5024155340976
+        },
+        {
+          "state": "Alaska",
+          "value": 163.5717378353427
+        },
+        {
+          "state": "North Dakota",
+          "value": 101.31690558449505
+        },
+        {
+          "state": "Delaware",
+          "value": 91.2239841665582
+        }
+      ],
+      "bottom3": [
+        {
+          "state": "District of Columbia",
+          "value": 0.171328961895518
+        },
+        {
+          "state": "Vermont",
+          "value": 0.2172230823144983
+        },
+        {
+          "state": "Idaho",
+          "value": 3.329780344786807
+        }
+      ]
+    }
+  },
+  "index_ranking": {
+    "top5": [
+      {
+        "state": "Wyoming",
+        "value": 255.18350274574388
+      },
+      {
+        "state": "West Virginia",
+        "value": 250.5024155340976
+      },
+      {
+        "state": "Alaska",
+        "value": 163.5717378353427
+      },
+      {
+        "state": "North Dakota",
+        "value": 101.31690558449505
+      },
+      {
+        "state": "Delaware",
+        "value": 91.2239841665582
+      }
+    ],
+    "bottom5": [
+      {
+        "state": "California",
+        "value": 5.61787542007545
+      },
+      {
+        "state": "Washington",
+        "value": 3.645067052299207
+      },
+      {
+        "state": "Idaho",
+        "value": 3.329780344786807
+      },
+      {
+        "state": "Vermont",
+        "value": 0.2172230823144983
+      },
+      {
+        "state": "District of Columbia",
+        "value": 0.171328961895518
+      }
+    ]
+  },
+  "notes": [
+    "DC and Vermont have no coal generation in 2017, so they contribute 24 fossil source-month rows instead of 36; totals are still correct.",
+    "Industrial price = simple mean of the 12 monthly 2017 prices. A sales-weighted (revenue/sales) annual price would differ by a median 0.07% and at most 4.2% (Idaho, 6.395 -> 6.661); the simple mean is documented in execute_summary.json and is a defensible choice. Note revenue/sales in the source is scaled by 100 relative to price (units thousands of $ vs million kWh).",
+    "Solar 'roof solar theoretical potential' uses yearly_sunlight_kwh_total (total sunlight electricity for qualified roofs), matching the task wording 'total sunlight electricity'.",
+    "Index inherits the units of the stated formula (MWh/MWh*cents/kWh), i.e. a dimensionless ratio scaled by price; absolute magnitudes are not normalized, comparisons are relative."
+  ],
+  "upstream_consistency": "execute_summary.json claims cross-checked against this independent recomputation: entity count 51, all ranges (solar 420338.39-198016349.09, fossil 8940.0-339324066.0, price 4.6008-22.9442, index 0.17133-255.1835) and the reported top/bottom rankings are reproduced exactly.",
+  "conclusion": "output.csv is complete, correctly formatted, and every value is reproducible from the raw sources; no fixes required."
+}

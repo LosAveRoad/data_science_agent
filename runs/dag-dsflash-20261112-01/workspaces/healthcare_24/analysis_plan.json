@@ -1,0 +1,272 @@
+{
+  "artifact": "analysis_plan.json",
+  "node": "analysis_planner",
+  "generated_at": "2026-11-12T03:43:25",
+  "task": "Meta-analysis of metabolic biomarkers (Glucose, BMI, BloodPressure) vs chronic diseases (Diabetes, Stroke, HeartDisease) across 3 healthcare datasets",
+  "depends_on": [
+    "data_profile.json"
+  ],
+  "data_inputs": [
+    {
+      "file": "Healthcare-Diabetes.csv",
+      "rows": 2768,
+      "role": "Diabetes outcome; continuous Glucose / BloodPressure(diastolic) / BMI"
+    },
+    {
+      "file": "healthcare-dataset-stroke-data.csv",
+      "rows": 5110,
+      "role": "Stroke and HeartDisease outcomes; continuous avg_glucose_level / bmi (BP only binary -> unusable)"
+    },
+    {
+      "file": "heart_disease_uci.csv",
+      "rows": 920,
+      "role": "HeartDisease outcome (num>0); continuous trestbps (systolic BP) with a site column 'dataset' enabling 4 sub-studies"
+    }
+  ],
+  "analysis_unit": {
+    "definition": "One row of the final results = one (condition, biomarker) association. 8 associations in total (3 conditions x 3 biomarkers, minus Stroke-BloodPressure which has no continuous BP).",
+    "n_associations_expected": 8,
+    "n_multi_study": 1,
+    "n_single_study": 7,
+    "rationale": "No (biomarker, disease) pair is measured in more than one dataset, except BloodPressure-HeartDisease which can be split into 4 UCI site sub-studies; therefore only that pair supports a true inverse-variance weighted pooling, all others are single-study meta-analyses of one estimate."
+  },
+  "associations": [
+    {
+      "id": "DIA_GLU",
+      "condition": "Diabetes",
+      "biomarker": "Glucose",
+      "file": "Healthcare-Diabetes.csv",
+      "biomarker_column": "Glucose",
+      "outcome_rule": "Outcome == 1 (cases) vs Outcome == 0 (controls)",
+      "study_unit": "whole file (1 study)"
+    },
+    {
+      "id": "DIA_BMI",
+      "condition": "Diabetes",
+      "biomarker": "BMI",
+      "file": "Healthcare-Diabetes.csv",
+      "biomarker_column": "BMI",
+      "outcome_rule": "Outcome == 1 vs Outcome == 0",
+      "study_unit": "whole file (1 study)"
+    },
+    {
+      "id": "DIA_BP",
+      "condition": "Diabetes",
+      "biomarker": "BloodPressure",
+      "file": "Healthcare-Diabetes.csv",
+      "biomarker_column": "BloodPressure",
+      "outcome_rule": "Outcome == 1 vs Outcome == 0",
+      "study_unit": "whole file (1 study)",
+      "note": "DIASTOLIC BP (mmHg) - never pooled with systolic trestbps"
+    },
+    {
+      "id": "STR_GLU",
+      "condition": "Stroke",
+      "biomarker": "Glucose",
+      "file": "healthcare-dataset-stroke-data.csv",
+      "biomarker_column": "avg_glucose_level",
+      "outcome_rule": "stroke == 1 vs stroke == 0",
+      "study_unit": "whole file (1 study)"
+    },
+    {
+      "id": "STR_BMI",
+      "condition": "Stroke",
+      "biomarker": "BMI",
+      "file": "healthcare-dataset-stroke-data.csv",
+      "biomarker_column": "bmi",
+      "outcome_rule": "stroke == 1 vs stroke == 0",
+      "study_unit": "whole file (1 study)"
+    },
+    {
+      "id": "HDF_GLU",
+      "condition": "HeartDisease",
+      "biomarker": "Glucose",
+      "file": "healthcare-dataset-stroke-data.csv",
+      "biomarker_column": "avg_glucose_level",
+      "outcome_rule": "heart_disease == 1 vs heart_disease == 0",
+      "study_unit": "whole file (1 study)",
+      "note": "UCI heart dataset has only the binary 'fbs' flag -> must NOT be substituted"
+    },
+    {
+      "id": "HDF_BMI",
+      "condition": "HeartDisease",
+      "biomarker": "BMI",
+      "file": "healthcare-dataset-stroke-data.csv",
+      "biomarker_column": "bmi",
+      "outcome_rule": "heart_disease == 1 vs heart_disease == 0",
+      "study_unit": "whole file (1 study)",
+      "note": "UCI heart dataset has no BMI column"
+    },
+    {
+      "id": "HDF_BP",
+      "condition": "HeartDisease",
+      "biomarker": "BloodPressure",
+      "file": "heart_disease_uci.csv",
+      "biomarker_column": "trestbps",
+      "outcome_rule": "num > 0 (severity 1-4) vs num == 0",
+      "study_unit": "per site, groupby 'dataset' -> 4 sub-studies (Cleveland, Hungary, Switzerland, VA Long Beach)",
+      "note": "SYSTOLIC resting BP. Only multi-study pair -> IVW fixed-effect meta-analysis."
+    }
+  ],
+  "cleaning_rules": {
+    "general": "All cleaning is PER-ASSOCIATION (pairwise deletion): drop rows with missing biomarker AND missing outcome only within the current pair; never listwise-delete across biomarkers.",
+    "Healthcare-Diabetes.csv": [
+      "Replace physiologically impossible 0 with NaN in Glucose, BloodPressure, BMI (0 = missing-code, not a real measurement).",
+      "Do not touch SkinThickness/Insulin (unused). Keep rows with valid biomarker; no upper-bound trimming.",
+      "Do not impute."
+    ],
+    "healthcare-dataset-stroke-data.csv": [
+      "bmi = pd.to_numeric(bmi, errors='coerce') to convert the 201 literal 'N/A' strings to NaN.",
+      "avg_glucose_level already numeric; coerce defensively.",
+      "Keep implausible extremes (bmi>60: 13, bmi<12: 3, age<1: 43) in the primary analysis; flag them as sensitivity-only items and report a sensitivity re-run excluding bmi>60 and age<1, but DO NOT silently drop in the primary results."
+    ],
+    "heart_disease_uci.csv": [
+      "trestbps = pd.to_numeric(errors='coerce'); replace 0 with NaN (59 nulls + 1 zero).",
+      "HeartDisease outcome = (num > 0).astype(int).",
+      "Site = 'dataset' column; site sub-studies formed by groupby('dataset').",
+      "Drop site sub-study if n_cases < 5 or n_controls < 5 (guard; Switzerland has 8 controls so it is retained but heavily down-weighted by IVW)."
+    ]
+  },
+  "effect_size": {
+    "measure": "Cohen's d, cases vs controls",
+    "direction_convention": "d = (mean_cases - mean_controls) / pooled_sd; positive d = biomarker HIGHER in diseased group. All 8 pairs expected positive.",
+    "formulas": {
+      "pooled_sd": "sqrt(((n1-1)*s1^2 + (n0-1)*s0^2) / (n1+n0-2))",
+      "d": "(m1 - m0) / pooled_sd",
+      "var_d": "(n1+n0)/(n1*n0) + d^2/(2*(n1+n0))",
+      "se_d": "sqrt(var_d)"
+    },
+    "guards": [
+      "If pooled_sd == 0 or n1<2 or n0<2 -> drop that study and log it (should not happen).",
+      "s1/s0 computed with ddof=1 (pandas .std())."
+    ],
+    "optional_sensitivity": "Also record Hedges' g = d * (1 - 3/(4*(n1+n0)-9)); report only as sensitivity, not in the deliverable columns."
+  },
+  "meta_analysis": {
+    "method": "Inverse-variance weighted fixed-effect meta-analysis",
+    "formulas": {
+      "w_i": "1 / var_d_i",
+      "meta_effect_size": "sum(w_i * d_i) / sum(w_i)",
+      "se_meta": "sqrt(1 / sum(w_i))",
+      "z": "meta_effect_size / se_meta",
+      "meta_p_value": "2 * (1 - Phi(|z|)), i.e. two-tailed standard normal (scipy.stats.norm.sf(abs(z))*2)"
+    },
+    "single_study_pairs": "With one study the formulas collapse to meta_effect_size = d_1, se = se_d_1; the p-value is still computed from the z-score with a two-tailed normal test (N(0,1)), NOT a t-distribution — per task specification.",
+    "multi_study_pair_HDF_BP": "Pool the 4 UCI site-level d_i with the weights above (fixed effect). Expected: all sites positive d, small heterogeneity; optionally report I^2/Q as a note but fixed-effect estimate is the deliverable.",
+    "heterogeneity_optional": [
+      "Cochran's Q = sum(w_i*(d_i-meta)^2), df=k-1",
+      "I^2 = max(0, (Q-df)/Q)",
+      "Report in a supplementary key only; do not switch to random effects."
+    ],
+    "p_value_underflow": "Compute in float64; if p underflows to exactly 0, floor it at 1e-300 before FDR so that -log10() and BH remain finite (the +1e-10 in the score already prevents log(0))."
+  },
+  "multiple_testing": {
+    "method": "Benjamini-Hochberg FDR",
+    "family": "All 8 (condition, biomarker) associations from the primary analysis, corrected together as a single family.",
+    "procedure": [
+      "Order the 8 raw p-values ascending: p_(1) <= ... <= p_(m), m = 8.",
+      "q_(i) = p_(i) * m / i.",
+      "Enforce monotonicity from the largest i down: q_(i) = min(q_(i), q_(i-1)) applied as cumulative minimum from the top.",
+      "Cap at 1.0; map back to the original association order."
+    ],
+    "note": "Apply BH on unrounded p-values; only round the reported fdr_corrected_p to 6 dp afterwards."
+  },
+  "clinical_significance": {
+    "score": "score = |meta_effect_size| * (-log10(fdr_corrected_p + 1e-10))",
+    "computation_detail": "Use UNROUNDED |meta_effect_size| and UNROUNDED fdr_corrected_p for the score; only the final score-based ranking is reported.",
+    "rank": "clinical_significance_rank = 1 for the largest score, ascending to N=8 (rank 1 = most clinically significant).",
+    "tie_breaking": [
+      "1) smaller fdr_corrected_p first",
+      "2) larger |meta_effect_size| first",
+      "3) alphabetical condition (Diabetes, HeartDisease, Stroke)",
+      "4) biomarker order Glucose, BMI, BloodPressure"
+    ]
+  },
+  "confidence_classification": {
+    "rules_ordered": [
+      "high: fdr_corrected_p < 0.01 AND |meta_effect_size| > 0.5",
+      "medium: fdr_corrected_p < 0.05 AND |meta_effect_size| > 0.3",
+      "low: otherwise"
+    ],
+    "evaluation_detail": "Evaluate with UNROUNDED fdr_corrected_p and UNROUNDED |meta_effect_size|; the thresholds are strict inequalities. Apply 'high' check first, then 'medium', else 'low'."
+  },
+  "outputs": {
+    "primary": {
+      "file": "meta_analysis_results.csv",
+      "columns_in_order": [
+        "condition",
+        "biomarker",
+        "meta_effect_size",
+        "meta_p_value",
+        "fdr_corrected_p",
+        "confidence_level",
+        "clinical_significance_rank"
+      ],
+      "rounding": {
+        "meta_effect_size": 4,
+        "meta_p_value": 6,
+        "fdr_corrected_p": 6,
+        "clinical_significance_rank": "integer"
+      },
+      "sort": "clinical_significance_rank ascending (rank 1 first)",
+      "empty_value_policy": "No blank cells; every association row must be emitted even if labelled 'low'."
+    },
+    "expected_value_convention": [
+      "condition values: 'Diabetes', 'Stroke', 'HeartDisease'",
+      "biomarker values: 'Glucose', 'BMI', 'BloodPressure'",
+      "confidence_level values: 'high' | 'medium' | 'low'"
+    ],
+    "summary_statistics": {
+      "file": "meta_analysis_summary.json",
+      "fields": [
+        "total_associations_analyzed",
+        "confidence_level_distribution {high, medium, low}",
+        "n_multi_study_pairs",
+        "n_single_study_pairs",
+        "total_participants_contributing (sum of pair-wise n)",
+        "per_condition_rank_of_top_biomarker",
+        "strongest_association (condition, biomarker, score)",
+        "weakest/nonsignificant associations",
+        "method notes: fixed-effect IVW, two-tailed normal p, BH-FDR over 8 tests, unrounded values used for scoring/classification"
+      ]
+    },
+    "optional_supplementary": "meta_analysis_per_study_effects.csv with one row per (association, study/site) holding n_cases, n_controls, mean/sd per group, d, se, weight — for auditability. Recommended but not required."
+  },
+  "validation_checkpoints": {
+    "row_count": "meta_analysis_results.csv must have exactly 8 data rows.",
+    "direction": "All 8 meta_effect_size values must be > 0 (biomarker higher in cases).",
+    "reproduce_profile_descriptives": "Group n / mean / sd must match data_profile.json feasibility_matrix within tolerance 1e-3 (e.g. DIA_GLU: n_cases 944 mean 142.6801 sd 29.3355; n_controls 1806 mean 111.031 sd 25.1496).",
+    "magnitude_expectation": "Glucose-Diabetes ~1.2 (largest); Glucose-Stroke and Glucose-HeartDisease ~0.6-0.7; BloodPressure-HeartDisease ~0.25 (smallest). Large deviations (>30%) indicate a wrong group definition or unit mix-up.",
+    "fdr_sanity": "fdr_corrected_p >= meta_p_value for every row; min fdr_corrected_p == min p * 8/rank_min (BH with i=1 gives 8*p_min unless capped).",
+    "rank_sanity": "clinical_significance_rank is a permutation of 1..8 with no duplicates or gaps.",
+    "confidence_sanity": "Every 'high' row satisfies p_fdr<0.01 and |d|>0.5 on unrounded values; recompute from the reported (unrounded) internals if possible."
+  },
+  "negative_constraints": [
+    "Do NOT use binary indicators as biomarker substitutes: stroke 'hypertension' -> not BloodPressure; UCI 'fbs' -> not Glucose.",
+    "Do NOT pool BloodPressure across datasets/diseases (diastolic Pima vs systolic UCI are different units/constructs); the BP-Diabetes and BP-HeartDisease estimates stay separate.",
+    "Do NOT pool Glucose across diseases (fasting Pima vs avg_glucose_level stroke cohort have different sampling); pairs stay separate.",
+    "Do NOT add Cholesterol/other biomarkers; only Glucose, BMI, BloodPressure.",
+    "Do NOT include a Stroke-BloodPressure row (no continuous BP available).",
+    "Do NOT re-derive or overwrite data_profile.json.",
+    "Do NOT use imputation or listwise deletion across biomarkers."
+  ],
+  "risks_and_limitations": [
+    "7 of 8 associations are single-study, so 'meta-analysis' reduces to one estimate; pooled p-values reflect within-study precision only (no between-study generalisation).",
+    "The only true pooling (BP-HeartDisease) rests on 4 UCI sites with very different case/control ratios (Switzerland 113 vs 8); IVW down-weights it but site heterogeneity limits inference.",
+    "BloodPressure mixes diastolic (Diabetes pair) and systolic (HeartDisease pair) constructs -> results are not comparable across the two BP rows.",
+    "Observational data: association, not causation; no adjustment for age/sex/medication confounding.",
+    "Implausible BMI extremes and pediatric rows retained in the primary analysis (sensitivity analysis recommended).",
+    "Cohen's d with strongly unequal group sizes (e.g. Stroke 249 vs 4861) is dominated by control-group SD; small absolute mean differences can still yield modest d."
+  ],
+  "execution_steps_for_downstream_node": [
+    "1. Load the three CSVs (pandas); apply cleaning_rules per file.",
+    "2. Build the 8 association datasets per 'associations'; for HDF_BP split heart_disease_uci by 'dataset' into 4 site studies.",
+    "3. For each association compute per-study n1,m1,s1,n0,m0,s0 -> d, var_d, se_d (unrounded).",
+    "4. Pool with IVW (single-study associations pass through unchanged); compute z and two-tailed normal p.",
+    "5. Apply BH-FDR across the 8 raw p-values.",
+    "6. Compute score = |meta_d| * (-log10(p_fdr + 1e-10)), assign ranks with tie-breakers, assign confidence levels (all on unrounded values).",
+    "7. Round for reporting (4 dp effect, 6 dp p-values), sort by rank, write meta_analysis_results.csv.",
+    "8. Write meta_analysis_summary.json and (recommended) meta_analysis_per_study_effects.csv.",
+    "9. Run validation_checkpoints; if any fails, fix before finishing."
+  ]
+}

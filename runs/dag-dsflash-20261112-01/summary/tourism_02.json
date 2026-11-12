@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "tourism_02",
+  "startedAt": "2026-11-11T20:23:16.025Z",
+  "finishedAt": "2026-11-11T20:25:41.004Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.csv",
+  "totalSteps": 160,
+  "tokenUsage": {
+    "inputTokens": 30750,
+    "outputTokens": 24191,
+    "totalTokens": 54941
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:23:16.046Z",
+      "finishedAt": "2026-11-11T20:24:00.947Z",
+      "elapsedMs": 44901,
+      "error": null,
+      "steps": 41,
+      "tokenUsage": {
+        "inputTokens": 7280,
+        "outputTokens": 7618,
+        "totalTokens": 14898
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:24:00.950Z",
+      "finishedAt": "2026-11-11T20:24:34.196Z",
+      "elapsedMs": 33246,
+      "error": null,
+      "steps": 32,
+      "tokenUsage": {
+        "inputTokens": 6286,
+        "outputTokens": 5475,
+        "totalTokens": 11761
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:24:34.198Z",
+      "finishedAt": "2026-11-11T20:25:09.124Z",
+      "elapsedMs": 34926,
+      "error": null,
+      "steps": 45,
+      "tokenUsage": {
+        "inputTokens": 9046,
+        "outputTokens": 5778,
+        "totalTokens": 14824
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:25:09.126Z",
+      "finishedAt": "2026-11-11T20:25:41.001Z",
+      "elapsedMs": 31875,
+      "error": null,
+      "steps": 42,
+      "tokenUsage": {
+        "inputTokens": 8138,
+        "outputTokens": 5320,
+        "totalTokens": 13458
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "node": "execute",
+  "task_id": "loan_risk_5",
+  "input_file": null,
+  "input_kind": null,
+  "discovery": {
+    "explicit_path": null,
+    "reason": "no data file containing [apply_date, score, group_id] found in workspace (0 files scanned: none)"
+  },
+  "status": "data_blocked",
+  "rows_read": 0,
+  "valid_rows": 0,
+  "invalid_date_rows": 0,
+  "invalid_score_rows": 0,
+  "invalid_group_rows": 0,
+  "groups": [],
+  "months": [],
+  "rows_written": {
+    "output_1.csv": 0,
+    "output_2.csv": 0
+  },
+  "message": "Required source data (apply_date, score, group_id) not present in workspace; header-only outputs emitted, no metric values fabricated.",
+  "self_validation": {
+    "method": "analyze.py was exercised on a temporary fixture in /tmp (NOT in the workspace, to avoid introducing mock data)",
+    "fixture_checks_passed": [
+      "mode tie between values with equal frequency resolves to the MINIMUM tied value (10 vs 5, both freq 2 -> 5)",
+      "sample std (ddof=1) verified against statistics.stdev; n=1 and n=2-equal-value cells -> std 0.0",
+      "median for even n = average of the two middle values",
+      "cnt always emitted as a float literal (e.g. 6.0)",
+      "date variants '20240105', '2024-02-03 10:00:00', '2024/02/20', '20240301.0' all normalise to YYYYMM",
+      "invalid date / month 13 / non-numeric score / empty score / empty group_id rows excluded and counted separately",
+      "thousands separator in score ('1,234' -> 1234.0)",
+      "output_1 drops the internal 'overall' month tag; output_2 keeps 6-char apply_month"
+    ],
+    "note": "The pipeline is verified but was NOT run on real data: no source dataset exists in this workspace."
+  },
+  "workspace_data_search": {
+    "cwd": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/dag-pilot-20261112/workspaces/loan_risk_5",
+    "files_present": [
+      "analysis_plan.json",
+      "data_profile.json",
+      "analyze.py",
+      "output_1.csv",
+      "output_2.csv",
+      "analysis_results.json"
+    ],
+    "sibling_task_files_checked_and_rejected": {
+      "healthcare_05/glucose_long.csv": [
+        "source",
+        "glucose",
+        "age"
+      ],
+      "healthcare_05/output.csv": [
+        "test",
+        "comparison",
+        "statistic",
+        "p_value",
+        "significant"
+      ],
+      "healthcare_05/healthcare-dataset-stroke-data.csv": [
+        "id",
+        "gender",
+        "age",
+        "hypertension",
+        "..."
+      ],
+      "healthcare_05/Healthcare-Diabetes.csv": [
+        "Id",
+        "Pregnancies",
+        "Glucose",
+        "..."
+      ]
+    },
+    "conclusion": "No file anywhere in this task's workspace contains apply_date / score / group_id, so no statistic can be computed for loan_risk_5."
+  }
+}

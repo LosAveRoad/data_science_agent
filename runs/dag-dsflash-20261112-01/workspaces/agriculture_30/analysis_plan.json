@@ -1,0 +1,277 @@
+{
+  "node": "analysis_plan",
+  "task": {
+    "objective": "用 degree-2 多项式回归（PolynomialFeatures + LinearRegression）以 avg_temp / rainfall / pesticide_value 解释并预测 crop yield（hg/ha），在拟合数据上计算 R²（保留 4 位小数）。",
+    "deliverables": [
+      "output.csv",
+      "output.txt"
+    ],
+    "success_criteria": [
+      "output.csv 行数 = 建模样本行数，列顺序严格为 country, year, crop_item, actual_yield, predicted_yield, pesticide_value, rainfall, avg_temp",
+      "output.txt 内容为单行 'Polynomial Regression R2 Score: {value}'，value 为 4 位小数字符串",
+      "R² 基于同一拟合数据集（in-sample），非留出集"
+    ]
+  },
+  "environment": {
+    "python": "3.13.18",
+    "pandas": "3.1.1",
+    "sklearn": "1.9.1",
+    "critical_note": "run_python 以 'python3 -I' 执行，隔离模式会排除 user site-packages，直接 import pandas/sklearn 会报 ModuleNotFoundError。每个脚本首部必须加：import sys, site; sys.path.insert(0, site.getusersitepackages())"
+  },
+  "inputs": {
+    "yield.csv": {
+      "role": "target + 维度键",
+      "rows": 56717,
+      "key_cols": {
+        "country": "Area",
+        "crop_item": "Item",
+        "year": "Year",
+        "target": "Value"
+      },
+      "notes": "仅 'Yield' 单一 Element，单位 hg/ha，无缺失"
+    },
+    "pesticides.csv": {
+      "role": "特征 pesticide_value",
+      "rows": 4349,
+      "key_cols": {
+        "country": "Area",
+        "year": "Year",
+        "value": "Value"
+      },
+      "notes": "国家级总量（吨有效成分），需广播到 10 个 crop_item；强右偏（中位 1137，最大 1.8e6）"
+    },
+    "rainfall.csv": {
+      "role": "特征 rainfall",
+      "rows": 6727,
+      "key_cols": {
+        "country": "' Area'（含 BOM/前导空格）",
+        "year": "Year",
+        "value": "average_rain_fall_mm_per_year"
+      },
+      "notes": "object dtype，含 '..' 占位（6 行）与空值（774），必须数值化清洗"
+    },
+    "temp.csv": {
+      "role": "特征 avg_temp",
+      "rows": 71311,
+      "key_cols": {
+        "country": "country",
+        "year": "year",
+        "value": "avg_temp"
+      },
+      "notes": "国家名短名；存在大量重复 country-year（冲突值），必须按 (country, year) 聚合为均值"
+    }
+  },
+  "schema_verified_in_this_node": {
+    "yield.csv": {
+      "columns_raw": [
+        "Domain Code",
+        "Domain",
+        "Area Code",
+        "Area",
+        "Element Code",
+        "Element",
+        "Item Code",
+        "Item",
+        "Year Code",
+        "Year",
+        "Unit",
+        "Value"
+      ],
+      "dtypes_head": {
+        "Domain Code": "str",
+        "Domain": "str",
+        "Area Code": "int64",
+        "Area": "str",
+        "Element Code": "int64",
+        "Element": "str",
+        "Item Code": "int64",
+        "Item": "str",
+        "Year Code": "int64",
+        "Year": "int64",
+        "Unit": "str",
+        "Value": "int64"
+      }
+    },
+    "pesticides.csv": {
+      "columns_raw": [
+        "Domain",
+        "Area",
+        "Element",
+        "Item",
+        "Year",
+        "Unit",
+        "Value"
+      ],
+      "dtypes_head": {
+        "Domain": "str",
+        "Area": "str",
+        "Element": "str",
+        "Item": "str",
+        "Year": "int64",
+        "Unit": "str",
+        "Value": "int64"
+      }
+    },
+    "rainfall.csv": {
+      "columns_raw": [
+        " Area",
+        "Year",
+        "average_rain_fall_mm_per_year"
+      ],
+      "dtypes_head": {
+        " Area": "str",
+        "Year": "int64",
+        "average_rain_fall_mm_per_year": "int64"
+      }
+    },
+    "temp.csv": {
+      "columns_raw": [
+        "year",
+        "country",
+        "avg_temp"
+      ],
+      "dtypes_head": {
+        "year": "int64",
+        "country": "str",
+        "avg_temp": "float64"
+      }
+    }
+  },
+  "cleaning_steps": [
+    {
+      "target": "rainfall.csv",
+      "steps": [
+        "columns = [c.strip().replace('\\ufeff','') for c in df.columns]  # ' Area' -> 'Area'",
+        "df = df.rename(columns={'Area':'country','Year':'year','average_rain_fall_mm_per_year':'rainfall'})",
+        "df['country'] = df['country'].astype(str).str.strip()",
+        "df['rainfall'] = pd.to_numeric(df['rainfall'], errors='coerce')  # '..' 与空值变 NaN",
+        "df = df.dropna(subset=['rainfall'])  # 预期保留 ~5947 行"
+      ]
+    },
+    {
+      "target": "temp.csv",
+      "steps": [
+        "df = df.rename(columns={'country':'country','year':'year','avg_temp':'avg_temp'})",
+        "df['country'] = df['country'].astype(str).str.strip()",
+        "df = df.groupby(['country','year'], as_index=False)['avg_temp'].mean()  # 消除 42797 条重复国家-年记录",
+        "df = df.dropna(subset=['avg_temp'])"
+      ]
+    },
+    {
+      "target": "pesticides.csv",
+      "steps": [
+        "df = df.rename(columns={'Area':'country','Year':'year','Value':'pesticide_value'})",
+        "df['country'] = df['country'].astype(str).str.strip()",
+        "保留 Value 为 0 的真实记录（不清零、不置 NaN）；df = df[['country','year','pesticide_value']]"
+      ]
+    },
+    {
+      "target": "yield.csv",
+      "steps": [
+        "df = df[df['Element'] == 'Yield']  # 数据仅 Yield，仍显式过滤以保证幂等",
+        "df = df.rename(columns={'Area':'country','Item':'crop_item','Year':'year','Value':'actual_yield'})",
+        "df['country'] = df['country'].astype(str).str.strip()",
+        "df = df[['country','year','crop_item','actual_yield']]"
+      ]
+    }
+  ],
+  "join_plan": {
+    "steps": [
+      "m1 = yield.merge(pesticides, on=['country','year'], how='inner')  # 特征按国家-年广播到各 crop_item",
+      "m2 = m1.merge(rainfall, on=['country','year'], how='inner')",
+      "m3 = m2.merge(temp, on=['country','year'], how='inner')",
+      "model_df = m3.dropna(subset=['avg_temp','rainfall','pesticide_value','actual_yield'])"
+    ],
+    "country_name_policy": "采用精确名称匹配（不做别名映射），因为 data_profile 已实测该口径下得到 13130 行 / 101 国家 / 1990-2013 年，可确定性复现；别名映射（Bolivia、Iran、Russian Federation 等）列为可选增强，不纳入本轮以保持结果可复现与可审计。",
+    "expected_rows_from_profile": 13130,
+    "expected_countries_from_profile": 101,
+    "expected_year_range": [
+      1990,
+      2013
+    ],
+    "tolerance_note": "若实际行数与 13130 不一致，需在报告中如实记录差异原因（如 pandas 版本/名称清理差异），不得强行对齐。"
+  },
+  "feature_pipeline": {
+    "feature_columns_order": [
+      "avg_temp",
+      "rainfall",
+      "pesticide_value"
+    ],
+    "target_column": "actual_yield",
+    "transformer": "sklearn.preprocessing.PolynomialFeatures(degree=2, include_bias=False)",
+    "expected_output_features": 9,
+    "expected_feature_names": [
+      "avg_temp",
+      "rainfall",
+      "pesticide_value",
+      "avg_temp^2",
+      "avg_temp rainfall",
+      "avg_temp pesticide_value",
+      "rainfall^2",
+      "rainfall pesticide_value",
+      "pesticide_value^2"
+    ],
+    "scaling": "不做标准化/目标变换（任务要求直接预测 yield，且系数大小不进入交付物；仅作风险记录）"
+  },
+  "model_spec": {
+    "estimator": "sklearn.linear_model.LinearRegression()  # 默认 fit_intercept=True",
+    "fit": "model.fit(X_poly, y)",
+    "predict": "pred = model.predict(X_poly)  # 同一批拟合数据（in-sample）",
+    "metric": "R2 = sklearn.metrics.r2_score(y, pred)",
+    "rounding": "r2_rounded = round(float(R2), 4)"
+  },
+  "output_spec": {
+    "output.csv": {
+      "columns_exact_order": [
+        "country",
+        "year",
+        "crop_item",
+        "actual_yield",
+        "predicted_yield",
+        "pesticide_value",
+        "rainfall",
+        "avg_temp"
+      ],
+      "index": false,
+      "encoding": "utf-8",
+      "rows": "== len(model_df)",
+      "dtypes_note": "year 为整数；actual_yield 保留原始 hg/ha 整数；predicted_yield 为浮点（保留完整精度或 6 位小数）"
+    },
+    "output.txt": {
+      "content": "Polynomial Regression R2 Score: {r2_rounded}",
+      "lines": 1,
+      "example_format": "Polynomial Regression R2 Score: 0.1234"
+    }
+  },
+  "validation_checks": [
+    "清洗后 rainfall 行数 ≈ 5947（'..' 与空值已移除），无 object dtype 残留",
+    "temp 聚合后 (country, year) 唯一，无重复键",
+    "model_df 中 4 个建模列均无 NaN 且 country 无前后空格",
+    "X_poly.shape == (n_rows, 9)，且 n_rows 与 output.csv 行数一致",
+    "predicted_yield 均值量级应与 actual_yield 同数量级（1e4-1e5 hg/ha）；R² 可能偏低（甚至接近 0），需如实报告，不得调参美化",
+    "output.txt 与 output.csv 中的 R² 一致（同一 r2_rounded 变量）",
+    "output.csv 列名与顺序逐字匹配 output_spec"
+  ],
+  "risks": [
+    "精确名称 join 丢弃约 50% 潜在覆盖（temp.csv 仅 137 国短名），样本集中于 1990-2013；别名映射可提升覆盖但会改变结果口径",
+    "pesticide_value 未做 crop 级拆分且强右偏，量级支配多项式项，二阶项易共线（condition number 高），R² 偏低属数据特性",
+    "temp.csv 原始重复冲突值若忘记聚合会导致 yield 目标被重复计数（28242 行、目标重复）——已列为强制步骤",
+    "yield 目标右偏（中位 36744，最大 1e6 hg/ha），in-sample R² 对极端值敏感"
+  ],
+  "execution_plan_next_node": {
+    "script": "run_model.py",
+    "outputs": [
+      "output.csv",
+      "output.txt"
+    ],
+    "steps": [
+      "1) sys.path 注入 user site-packages；import pandas/sklearn",
+      "2) 按下 cleaning_steps 清洗四表",
+      "3) 按 join_plan 逐步 inner join + dropna，打印 join waterfall 行数",
+      "4) 构造 X（固定特征顺序）、y；PolynomialFeatures(2, include_bias=False) fit_transform",
+      "5) LinearRegression 拟合，in-sample predict，r2_score 并 round 4 位",
+      "6) 写出 output.csv（列顺序按 output_spec，index=False，encoding='utf-8'）与 output.txt",
+      "7) 打通 validation_checks，将行数/国家数/年份区间/R² 记录到运行日志"
+    ]
+  }
+}

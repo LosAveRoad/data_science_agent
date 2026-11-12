@@ -1,0 +1,166 @@
+{
+ "task": "相关性过滤(>0.8)后保留代表特征，按时序70/30切分，训练XGBoost并输出 remaining_feature_count / train_auc / test_auc",
+ "inputs": {
+  "features.csv": {
+   "rows": 49910,
+   "cols": 100,
+   "id_cols": [
+    "time",
+    "bizcode"
+   ],
+   "feature_count": 98
+  },
+  "label.csv": {
+   "rows": 49910,
+   "cols": [
+    "label",
+    "time",
+    "bizcode"
+   ],
+   "positive_rate": 0.0932
+  },
+  "join": "features ⋈ label ON (time, bizcode)，1:1，无重复键，merged_rows=49910"
+ },
+ "steps": [
+  {
+   "id": "S1",
+   "name": "数据装载与校验",
+   "actions": [
+    "pandas 读取 features.csv / label.csv（仅取 head 做 schema 概览，全量在脚本中读取）",
+    "校验 dtype、缺失值(0)、常量列(无)、重复键(0)、标签分布(正例 9.32%)"
+   ],
+   "output": "内存中 merged DataFrame (49910 x 101)"
+  },
+  {
+   "id": "S2",
+   "name": "全特征 Pearson 相关矩阵",
+   "actions": [
+    "对 98 个数值特征计算 Pearson |r| 矩阵",
+    "统计 |r|>0.8 的 off-diagonal 对数、最大/中位 |r|"
+   ],
+   "observed": {
+    "pairs_above_0.8": 133,
+    "max_abs_offdiag": 0.9993,
+    "median_abs_offdiag": 0.0972
+   },
+   "output": "corr_matrix.csv (98x98)"
+  },
+  {
+   "id": "S3",
+   "name": "高相关特征剔除（保留组内代表）",
+   "actions": [
+    "按原始列顺序贪心扫描：若候选特征与任一已保留特征的 |r| > 0.8 则丢弃，否则保留（keep-first 代表元）",
+    "记录每个被丢弃特征与其代表特征的对应关系及 |r|",
+    "同时用连通分量法给出参考分组数（仅作敏感性说明，不改变主口径）"
+   ],
+   "decision": {
+    "threshold": 0.8,
+    "criterion": "abs(pearson_r) > 0.8",
+    "rule": "greedy keep-first, column order",
+    "why": "确定性、可复现；阈值严格大于 0.8；keep-first 保证组内代表为原始列序最靠前者，避免用未来信息挑选特征",
+    "kept_features": 56,
+    "dropped_features": 42,
+    "reference_component_based_count": 46
+   },
+   "output": "corr_filter_result.json"
+  },
+  {
+   "id": "S4",
+   "name": "时序切分 70/30",
+   "actions": [
+    "time 为 int YYYYMMDD，共 153 个日快照，每日多行 → 按时间点（而非行）切分，避免同日泄漏",
+    "取最早 70% 的日期（unique time points*0.7）作为 train，其余 30% 为 test",
+    "校验切点 cut_time 两侧行占比≈70/30、两侧正例率"
+   ],
+   "decision": {
+    "split": "time-ordered, first 70% unique dates -> train, last 30% -> test",
+    "leakage_guard": "同一 time 的所有行只出现在一侧"
+   },
+   "output": "train_meta.json (cut_time, rows, pos_rate)"
+  },
+  {
+   "id": "S5",
+   "name": "XGBoost 训练与 AUC 评估",
+   "actions": [
+    "XGBClassifier(hist, binary:logistic, eval_metric=auc)，正则化偏保守以抑制过拟合",
+    "轮数由 train 内部再按时序切出的尾段 15% 作为验证集 + early stopping 选定（不做 test 调参）",
+    "在 train/test 上分别计算 ROC-AUC"
+   ],
+   "output": "output.json"
+  },
+  {
+   "id": "S6",
+   "name": "自检",
+   "actions": [
+    "剩余特征数 <= 98 且组内无 |r|>0.8 残留（抽查）",
+    "train_auc >= test_auc（时序外推一般会下降，检查幅度是否异常）",
+    "output.json 仅含 3 个必填字段，数值为 float/int"
+   ]
+  }
+ ],
+ "model_config": {
+  "algorithm": "xgboost.XGBClassifier",
+  "tree_method": "hist",
+  "objective": "binary:logistic",
+  "eval_metric": "auc",
+  "learning_rate": 0.05,
+  "max_depth": 3,
+  "subsample": 0.8,
+  "colsample_bytree": 0.8,
+  "min_child_weight": 20,
+  "reg_lambda": 5.0,
+  "n_estimators": "由 inner time-based validation (last 15% train time points) + early_stopping_rounds=50 选定",
+  "random_state": 42
+ },
+ "metrics": {
+  "primary": [
+   "train_auc",
+   "test_auc"
+  ],
+  "reported": [
+   "remaining_feature_count"
+  ],
+  "sanity": [
+   "正例率低(9%) → AUC 为唯一主指标",
+   "train-test AUC gap 视为过拟合的诊断"
+  ]
+ },
+ "outputs": {
+  "output.json": {
+   "remaining_feature_count": "int",
+   "train_auc": "float",
+   "test_auc": "float"
+  },
+  "supporting": [
+   "corr_matrix.csv",
+   "corr_filter_result.json",
+   "train_meta.json",
+   "analysis_plan.json"
+  ]
+ },
+ "risks": [
+  "阈值 0.8 + keep-first 的结果依赖列顺序；连通分量法可得 46 个特征，故 remaining_feature_count 存在口径敏感性（主口径 56）。",
+  "日快照数据存在日内聚集，时序切分后 test 期正例率与 train 不同，指标有分布漂移风险。",
+  "强相关特征组内代表未必是预测力最强的一个，可能损失少量信息 → 用 train_auc/test_auc gap 观察。"
+ ],
+ "plan_step_s2_observed": "133 pairs with |r|>0.8; max 0.9993, median 0.0972 (98 features)",
+ "split_decision_detail": "70/30 by time: cut_time = 70th percentile of the time field = 20231024. train = time < 20231024 -> 34591 rows (69.31%, 20230701-20231023), test = time >= 20231024 -> 15319 rows (30.69%, 20231024-20231130). Date-level boundary => the same date never appears on both sides (no same-day leakage); row share is slightly below 70% because daily row counts are uneven (326 rows/day on average).",
+ "executed_results": {
+  "remaining_feature_count": 56,
+  "dropped_feature_count": 42,
+  "cut_time": 20231024,
+  "train_rows": 34591,
+  "test_rows": 15319,
+  "best_rounds": 121,
+  "inner_val_auc": 0.644496,
+  "train_auc": 0.685984,
+  "test_auc": 0.632384,
+  "train_test_gap": 0.0536,
+  "verification": "post-filter max |r| among kept features = 0.7990 (no pair exceeds 0.8)",
+  "reproducible_via": "run_analysis.py (deterministic, random_state=42)"
+ },
+ "sensitivity": {
+  "corr_rule": "connected-component grouping instead of greedy keep-first would keep 46 features (13 multi-member groups collapsed); greedy keep-first keeps 56. Main pipeline uses 56.",
+  "round_selection": "inner validation on last 15% of train dates -> 121 rounds (train_auc 0.6860 / test_auc 0.6324); if the inner validation were taken as the last 15% of train rows by time, 172 rounds would be selected (train_auc 0.7016 / test_auc 0.6334). Test AUC is stable in 0.629-0.635 across seeds 42/7/2024 and 121/167/250 rounds, so the ranking conclusion is not sensitive to this choice."
+ }
+}

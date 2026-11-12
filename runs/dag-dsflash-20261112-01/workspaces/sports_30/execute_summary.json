@@ -1,0 +1,33 @@
+{
+  "node": "execute",
+  "status": "success",
+  "method": {
+    "olympic_side": "athlete_events.csv filtered to Year 1980-2016 with non-null Medal (21926 athlete-event medalist records, Summer+Winter). Country keyed via noc_regions.csv NOC->region (8 rows with unmapped NOC 'SGP' dropped -> 21918). Missing Olympic heights (383) imputed with sport-level median of the same 1980-2016 medalist subset (global median 178.0 as unused fallback); imputed values span 161-193 cm.",
+    "nba_side": "team.csv filtered to year_founded > 1970 -> 13 teams (Cleveland Cavaliers, LA Clippers, Portland Trail Blazers at exactly 1970 are excluded). Inner join on team.csv.id == common_player_info.team_id -> 911 players; heights parsed from feet-inches as (ft*12+in)*2.54 (0 nulls in the filter, position-group median imputation was a no-op); 1 player with null country excluded from the country set.",
+    "country_standardization": "Whitespace strip + alias map NBA->Olympic vocabulary: Antigua and Barbuda->Antigua, Cabo Verde->Cape Verde, Congo->Republic of Congo, DRC->Democratic Republic of the Congo, St. Vincent & Grenadines->Saint Vincent, Trinidad and Tobago->Trinidad, US Virgin Islands->Virgin Islands, US, United Kingdom->UK. Unmatched NBA labels (no 1980-2016 Olympic medalist rows): Belize, Bosnia and Herzegovina, Republic of Congo, Saint Lucia, Scotland.",
+    "probability_rule": "shared_countries = 42; NBA median height over the 905 qualifying NBA players from shared countries = 200.66 cm (same as over all 911); denominator = 16243 Olympic medalist records from shared countries; numerator = 460 records with height > 200.66 cm; probability = 460/16243 = 0.028319 -> 0.0283"
+  },
+  "key_intermediate_results": {
+    "olympic_medalist_records_1980_2016": 21926,
+    "olympic_missing_height_rows_imputed": 383,
+    "olympic_medalist_records_with_mapped_country": 21918,
+    "nba_teams_founded_gt_1970": 13,
+    "nba_players_on_qualifying_teams": 911,
+    "nba_players_from_shared_countries": 905,
+    "nba_median_height_cm": 200.66,
+    "shared_countries_count": 42,
+    "olympic_records_from_shared_countries": 16243,
+    "numerator_rows_above_median": 460,
+    "rows_exactly_at_median_ties": 0,
+    "probability": 0.0283
+  },
+  "sensitivity_checks": {
+    "drop_null_olympic_heights_instead_of_imputation": "den 16050, num 460, p 0.0287",
+    "global_median_imputation_instead_of_sport_median": "num 460, p 0.0283",
+    "median_over_all_qualified_nba_players": "200.66 cm, p 0.0283 (unchanged)",
+    "tie_inclusion": "0 ties, probability unchanged",
+    "manual_SGP_mapping": "no effect (Singapore has no qualifying NBA players)"
+  },
+  "artifacts": ["output.json", "analysis_details.json", "execute_summary.json"],
+  "notes": "All reported figures reconcile with the reference checkpoints in analysis_plan.json. Result is robust to the height-imputation choice because all imputed Olympic heights (<=193 cm) fall below the 200.66 cm threshold."
+}

@@ -1,0 +1,271 @@
+{
+  "dataset": "TripAdvisor Indonesia Tourism (attraction reviews) + country macro + Henley passport index",
+  "grain_and_keys": {
+    "Transaction": "1 row = 1 visitor review; keys: TransactionId; FK UserId->User, AttractionId->Item",
+    "Item": "1 row = 1 attraction; keys: AttractionId; FK AttractionTypeId->Type, AttractionCityId",
+    "Type": "attraction type lookup (AttractionTypeId -> AttractionType)",
+    "User": "1 row = 1 reviewer; keys: UserId; FK ContenentId->Continent (note original spelling 'Contenent')",
+    "Continent": "continent lookup (ContenentId -> Contenent), id 0 = '-' (unused)",
+    "countries of the world.csv": "1 row = 1 country with macro indicators incl. 'GDP ($ per capita)' (string-stripped column names)",
+    "henley_passport_index_2025_new.csv": "1 row = 1 country with Rank and Visa_Free_Score"
+  },
+  "shapes": {
+    "Transaction": [
+      52930,
+      7
+    ],
+    "Item": [
+      30,
+      5
+    ],
+    "Type": [
+      17,
+      2
+    ],
+    "User": [
+      33530,
+      5
+    ],
+    "Continent": [
+      6,
+      2
+    ]
+  },
+  "schemas": {
+    "Transaction": {
+      "TransactionId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 52930
+      },
+      "UserId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 33530
+      },
+      "VisitYear": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 10
+      },
+      "VisitMonth": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 12
+      },
+      "VisitMode": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 5
+      },
+      "AttractionId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 30
+      },
+      "Rating": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 5
+      }
+    },
+    "Item": {
+      "AttractionId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 30
+      },
+      "AttractionCityId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 3
+      },
+      "AttractionTypeId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 17
+      },
+      "Attraction": {
+        "dtype": "str",
+        "nulls": 0,
+        "n_unique": 30
+      },
+      "AttractionAddress": {
+        "dtype": "str",
+        "nulls": 0,
+        "n_unique": 25
+      }
+    },
+    "Type": {
+      "AttractionTypeId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 17
+      },
+      "AttractionType": {
+        "dtype": "str",
+        "nulls": 0,
+        "n_unique": 17
+      }
+    },
+    "User": {
+      "UserId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 33530
+      },
+      "ContenentId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 5
+      },
+      "RegionId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 22
+      },
+      "CountryId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 153
+      },
+      "CityId": {
+        "dtype": "object",
+        "nulls": 0,
+        "n_unique": 5546
+      }
+    },
+    "Continent": {
+      "ContenentId": {
+        "dtype": "int64",
+        "nulls": 0,
+        "n_unique": 6
+      },
+      "Contenent": {
+        "dtype": "str",
+        "nulls": 0,
+        "n_unique": 6
+      }
+    }
+  },
+  "quality_checks": {
+    "Transaction nulls_total": 0,
+    "Duplicate TransactionId": 0,
+    "Duplicate UserId in User": 0,
+    "Rating distribution": {
+      "1": 1263,
+      "2": 2035,
+      "3": 7730,
+      "4": 17966,
+      "5": 23936
+    },
+    "Rating mean": 4.1577,
+    "Rating out_of_range_1_5": 0,
+    "User ContinentId counts": {
+      "1": 593,
+      "2": 5018,
+      "3": 9822,
+      "4": 9837,
+      "5": 8260
+    },
+    "users_with_continent_0_dash": 0,
+    "missing Continent.xlsx rows beyond first 6 (preview limit)": "Continent.xlsx read fully by parser; ids 0-5, only id 0 is '-'"
+  },
+  "join_coverage": {
+    "tx_rows": 52930,
+    "tx_attraction_not_in_item": 0,
+    "item_type_not_in_Type": 0,
+    "tx_user_not_in_User": 0,
+    "user_continent_not_in_Continent": 0,
+    "final_joined_rows": 52930,
+    "join_loss_pct": 0.0
+  },
+  "macro_lookup": {
+    "destination_country": "Indonesia",
+    "Country_GDP_per_Capita": 3200.0,
+    "Country_GDP_per_Capita_source": "countries of the world.csv, column 'GDP ($ per capita)' (World Bank ~2006 USD per capita snapshot)",
+    "Visa_Free_Score": 74,
+    "Visa_Free_Score_source": "henley_passport_index_2025_new.csv, Indonesia -> Rank 66, Visa_Free_Score 74",
+    "note": "Single destination country => both macro columns are constant across all output rows; they enable macro-level interpretation, not per-row variation. The Henley score measures Indonesian passport holders' outbound visa-free access (demand-side proxy: outbound mobility/purchasing context), not visa-free entry into Indonesia."
+  },
+  "output_artifact": {
+    "path": "output.csv",
+    "columns": [
+      "AttractionType",
+      "Continent",
+      "Avg_Rating",
+      "Country_GDP_per_Capita",
+      "Visa_Free_Score"
+    ],
+    "rows": 78,
+    "grouping": "mean of Transaction.Rating by (Type.AttractionType, Continent.Contenent)",
+    "Avg_Rating_rounding": 4,
+    "possible_combos_17_types_x_5_continents": 85,
+    "missing_combos_no_transactions": [
+      [
+        "Caverns & Caves",
+        "Africa"
+      ],
+      [
+        "Flea & Street Markets",
+        "Africa"
+      ],
+      [
+        "Historic Sites",
+        "Africa"
+      ],
+      [
+        "Neighborhoods",
+        "Africa"
+      ],
+      [
+        "Spas",
+        "Africa"
+      ],
+      [
+        "Spas",
+        "America"
+      ],
+      [
+        "Speciality Museums",
+        "Africa"
+      ]
+    ],
+    "n_transactions_per_group_min": 1,
+    "n_transactions_per_group_max": 4159,
+    "groups_with_n_lt_5": 8,
+    "Avg_Rating_range": [
+      3.3333,
+      5.0
+    ],
+    "weighted_overall_mean": 4.1577,
+    "continent_means_weighted": {
+      "Africa": 4.088,
+      "America": 4.1634,
+      "Asia": 4.1557,
+      "Australia & Oceania": 4.2124,
+      "Europe": 4.1001
+    },
+    "attraction_type_means_weighted_top": {
+      "Water Parks": 4.6466,
+      "Spas": 4.5714,
+      "Caverns & Caves": 4.5037,
+      "National Parks": 4.4168,
+      "Neighborhoods": 4.3182
+    },
+    "attraction_type_means_weighted_bottom": {
+      "Historic Sites": 3.5388,
+      "Beaches": 3.8458,
+      "Flea & Street Markets": 3.8694,
+      "Waterfalls": 3.8971,
+      "Speciality Museums": 4.0323
+    },
+    "sort_order": "AttractionType asc, Continent asc"
+  },
+  "caveats": [
+    "Africa is severely underrepresented (593 of 33,530 users; 7 type-continent cells empty, several cells have n<5) so Africa averages are unstable.",
+    "Attraction sample is small (30 attractions, 17 types), so type-level averages rest on a handful of attractions.",
+    "Macro columns are constant for the single destination country; they support interpretation of the rating pattern against Indonesia's low GDP per capita (3200) and mid-low passport strength (74), not group-level variation.",
+    "countries-of-the-world GDP is a ~2006 USD per-capita snapshot; review data covers VisitYear 2015-2022 era, so it is only an order-of-magnitude proxy."
+  ]
+}

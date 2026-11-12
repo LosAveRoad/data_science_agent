@@ -1,0 +1,20 @@
+{
+  "A_base": {
+    "best_rounds": 62,
+    "inner_val_auc": 0.6429930899978751,
+    "train_auc": 0.7344884245827166,
+    "test_auc": 0.633622421701534
+  },
+  "B_shallow": {
+    "best_rounds": 167,
+    "inner_val_auc": 0.6443708377226098,
+    "train_auc": 0.7026063658540476,
+    "test_auc": 0.63657125756697
+  },
+  "C_vshallow": {
+    "best_rounds": 267,
+    "inner_val_auc": 0.6428479189178192,
+    "train_auc": 0.6618524735312906,
+    "test_auc": 0.6320285071785862
+  }
+}

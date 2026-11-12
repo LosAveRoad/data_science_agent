@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "strategy_2",
+  "startedAt": "2026-11-11T19:26:59.610Z",
+  "finishedAt": "2026-11-11T19:27:17.807Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.csv",
+  "totalSteps": 20,
+  "tokenUsage": {
+    "inputTokens": 4007,
+    "outputTokens": 3017,
+    "totalTokens": 7024
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:26:59.621Z",
+      "finishedAt": "2026-11-11T19:27:17.806Z",
+      "elapsedMs": 18185,
+      "error": null,
+      "steps": 20,
+      "tokenUsage": {
+        "inputTokens": 4007,
+        "outputTokens": 3017,
+        "totalTokens": 7024
+      }
+    }
+  ]
+}

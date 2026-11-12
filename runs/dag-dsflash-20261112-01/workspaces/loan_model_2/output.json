@@ -1,0 +1,5 @@
+{
+  "remaining_feature_count": 56,
+  "train_auc": 0.685984,
+  "test_auc": 0.632384
+}

@@ -1,0 +1,186 @@
+{
+  "plan_version": "1.0",
+  "created_by": "plan_node",
+  "task_objective": "对 12 类作物推荐任务训练 RandomForestClassifier(n_estimators=100, random_state=42)，产出 (1) 分类报告 output1.csv、(2) 归一化混淆矩阵 output2.csv、(3) 混淆矩阵可视化 output.png，并给出 overall accuracy、macro F1、micro F1。",
+  "inputs": {
+    "data_file": "Crop Recommendation using Soil Properties and Weather Prediction.csv",
+    "data_profile": "data_profile.json",
+    "n_rows": 3867,
+    "n_columns": 29,
+    "target_column": "label",
+    "n_classes": 12,
+    "feature_columns": {
+      "numeric_soil": [
+        "Ph",
+        "K",
+        "P",
+        "N",
+        "Zn",
+        "S"
+      ],
+      "numeric_weather_climate": [
+        "QV2M-W",
+        "QV2M-Sp",
+        "QV2M-Su",
+        "QV2M-Au",
+        "T2M_MAX-W",
+        "T2M_MAX-Sp",
+        "T2M_MAX-Su",
+        "T2M_MAX-Au",
+        "T2M_MIN-W",
+        "T2M_MIN-Sp",
+        "T2M_MIN-Su",
+        "T2M_MIN-Au",
+        "PRECTOTCORR-W",
+        "PRECTOTCORR-Sp",
+        "PRECTOTCORR-Su",
+        "PRECTOTCORR-Au",
+        "WD10M",
+        "GWETTOP",
+        "CLOUD_AMT",
+        "WS2M_RANGE",
+        "PS"
+      ],
+      "categorical_text": [
+        "Soilcolor"
+      ]
+    }
+  },
+  "data_findings_carried_from_profile": [
+    "无缺失值（0 missing）、无完全重复行，无需 imputation。",
+    "类别高度不平衡：Teff 1260 (32.58%) 最多，Fallow 26 (0.67%)、Red Pepper 29、Potato 48 最少，majority/minority = 48.5；测试集中小类样本可能仅 5~6 条，其 precision/recall/F1 波动较大。",
+    "Soilcolor 为自由文本：45 个原始取值（规范化后 33 个），含大小写/拼写不一致、注释文本（如 'red;luvisols'）与 20+ 个单例类别，直接 One-Hot 会产生大量稀疏列。",
+    "21 个天气列在全表只有 16 种取值组合（16 个'天气区块'，每区块 8~693 行），随机划分会让同一区块同时出现在训练/测试集，存在信息泄漏、指标偏乐观；本任务按要求使用常规分层随机划分，但需在报告中提示该局限。",
+    "长尾/离群特征：P（最大 782）、K（2119）、Zn、WS2M_RANGE、WD10M（角度，存在 0~360 环绕）；树模型对单调变换不敏感，不做标准化。"
+  ],
+  "environment": {
+    "python_executable": "/opt/homebrew/bin/python3.13",
+    "reason": "默认 python3(/usr/bin/python3 3.9) 缺少 pandas/sklearn/matplotlib；python3.13 具备全部依赖。run_python 默认解释器为 -I 隔离模式，缺少 numpy，因此统一以 subprocess 调用该解释器执行分析脚本。",
+    "versions": {
+      "python": "3.13.18",
+      "numpy": "2.5.4",
+      "pandas": "3.1.1",
+      "scikit-learn": "1.9.1",
+      "matplotlib": "3.11.2"
+    },
+    "matplotlib_backend": "Agg（非交互，仅 savefig）"
+  },
+  "pipeline_steps": [
+    {
+      "step": 1,
+      "name": "load_data",
+      "detail": "pd.read_csv(path)，校验 shape=(3867,29)、label 无缺失、12 个类别；不做全量打印。"
+    },
+    {
+      "step": 2,
+      "name": "clean_soilcolor",
+      "detail": "对 Soilcolor 做规范化：转小写、去首尾空白、按 ';' 取首段、合并常见拼写变体（如 redish broown→reddish brown、darkbrown→dark brown）；把出现次数 < 20 的级别统一映射为 'other'。剩余类别用 OneHotEncoder(handle_unknown='ignore', sparse_output=False) 编码（在训练集 fit，避免泄漏）。"
+    },
+    {
+      "step": 3,
+      "name": "build_features",
+      "detail": "数值列原样使用（27 列 float64），不做标准化/对数变换（RF 对单调变换不敏感）；最终特征矩阵 = 27 数值列 + Soilcolor one-hot 列。"
+    },
+    {
+      "step": 4,
+      "name": "train_test_split",
+      "detail": "train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)；记录 n_train≈3093、n_test≈774。"
+    },
+    {
+      "step": 5,
+      "name": "fit_model",
+      "detail": "RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)，在训练集 fit，predict 测试集；可选记录训练集准确率作为对照。"
+    },
+    {
+      "step": 6,
+      "name": "metrics",
+      "detail": "class_order = sorted(unique(label)) = ['Barley','Bean','Dagussa','Fallow','Maize','Niger seed','Pea','Potato','Red Pepper','Sorghum','Teff','Wheat']；classification_report(y_test, y_pred, labels=class_order, zero_division=0, output_dict=True)；overall accuracy = accuracy_score；macro F1 = f1_score(average='macro')；micro F1 = f1_score(average='micro')（多分类单标签下 = accuracy）。micro avg 行由计划手工补齐（sklearn 报告默认不含该行）。"
+    },
+    {
+      "step": 7,
+      "name": "confusion_matrix",
+      "detail": "confusion_matrix(y_test, y_pred, labels=class_order, normalize='true')，每行和为 1（测试集中 support=0 的类整行为 0，需 zero_division 保护）；以 6 位小数写入 CSV。"
+    },
+    {
+      "step": 8,
+      "name": "plot",
+      "detail": "matplotlib Agg；fig,ax=plt.subplots(figsize=(10,8))；imshow(cm, cmap='Blues', vmin=0, vmax=1) + colorbar；xy 刻度为 12 个类名（x 旋转 45°，ha='right'）；在格子内标注两位小数值（0 值留白）；title='Normalized Confusion Matrix - Crop Recommendation'，xlabel='Predicted'，ylabel='Actual'；plt.tight_layout()；savefig('output.png', dpi=300, bbox_inches='tight')。"
+    },
+    {
+      "step": 9,
+      "name": "write_outputs_and_validate",
+      "detail": "按下方 output_specs 写 output1.csv / output2.csv / output.png，并执行 validation_checks。"
+    }
+  ],
+  "output_specs": {
+    "output1.csv": {
+      "format": "csv, 带 index（首列列名为空字符串或 'class'），首行为列名 precision,recall,f1-score,support",
+      "rows": "12 个作物类（按 sorted 顺序）+ 'accuracy' + 'macro avg' + 'micro avg'（共 15 行，顺序固定）",
+      "columns": [
+        "precision",
+        "recall",
+        "f1-score",
+        "support"
+      ],
+      "rules": [
+        "所有 12 个类别都要出现，即使测试集 support=0（指标置 0，zero_division=0），避免下游解析缺行。",
+        "accuracy 行的 precision/recall/f1-score 三列均填 overall accuracy（保证单元格非空、语义一致），support = 测试集样本数。",
+        "macro avg = 12 类指标简单平均（不含 support 加权），support = 测试集样本数。",
+        "micro avg 的 precision/recall/f1-score 均等于 overall accuracy，support = 测试集样本数。",
+        "数值保留 6 位小数，support 为整数。"
+      ]
+    },
+    "output2.csv": {
+      "format": "csv, index = 实际类别（index 名称 'Actual'），columns = 预测类别（columns 名称 'Predicted'）",
+      "rows_columns": "12×12，行列为同一 class_order",
+      "values": "按行（真实标签）归一化的比例，每行和为 1（support=0 的行全 0），保留 6 位小数"
+    },
+    "output.png": {
+      "title": "Normalized Confusion Matrix - Crop Recommendation",
+      "xlabel": "Predicted",
+      "ylabel": "Actual",
+      "content": "12×12 归一化混淆矩阵热图 + colorbar，类别刻度标签，格内两位小数标注",
+      "dpi": 300
+    }
+  },
+  "headline_metrics_to_report": {
+    "overall_accuracy": "accuracy_score(y_test, y_pred)",
+    "macro_f1": "f1_score(y_test, y_pred, average='macro')",
+    "micro_f1": "f1_score(y_test, y_pred, average='micro')（= overall accuracy）",
+    "note": "三项数值以实际运行结果为准，不得预估或编造。"
+  },
+  "validation_checks": [
+    "output1.csv 行数 = 15（12 类 + accuracy + macro avg + micro avg），列名与顺序完全匹配。",
+    "output2.csv shape = (12,12)，行标签与列标签一致且等于 class_order，每行和为 1（或为 0/support=0 行）。",
+    "output2.csv 对角线均值 ≈ output1.csv 各类 recall 的一致值（同一 cm 派生，用作交叉校验）。",
+    "output1 中 micro avg 的 f1-score 与 accuracy 行的值一致，且与 accuracy_score 一致。",
+    "output.png 存在且大小 > 50KB，图像标题/轴标签按要求设置。",
+    "support 列各类之和 = 测试集样本数；macro/micro/accuracy 行 support 亦等于测试集样本数。"
+  ],
+  "risks_and_caveats": [
+    "天气区块（16 组常量天气向量）导致随机划分存在信息泄漏，测试指标可能偏乐观；严谨评估应使用 GroupKFold（按天气区块分组），本报告按题目要求仅做单次随机划分，需在结论中说明。",
+    "类别不平衡 + 小类测试样本 ≤ 6 条：Fallow/Red Pepper/Potato/Niger seed 等的 precision/recall/F1 方差大，宜以 macro F1 与 per-class support 一并解读。",
+    "Soilcolor 编码方案的规范化映射是启发式规则，可能仍保留 'other' 大桶；该特征在 profile 中信号较弱。",
+    "单次 train/test 划分不含交叉验证，模型性能估计的稳定性有限（可另做 5 折 CV 作为补充，但非本题必需）。",
+    "sklearn classification_report 默认不输出 micro avg（多分类单标签），必须手工补齐，否则 output1.csv 缺行。"
+  ],
+  "reproducibility": {
+    "random_seed": 42,
+    "uses": [
+      "train_test_split(random_state=42, stratify=y)",
+      "RandomForestClassifier(n_estimators=100, random_state=42)"
+    ],
+    "deterministic": true,
+    "note": "同版本环境下结果可完全复现；不同 sklearn 版本可能有极小数值差异。"
+  },
+  "deliverables_owner": {
+    "this_node": [
+      "analysis_plan.json"
+    ],
+    "downstream": [
+      "output1.csv",
+      "output2.csv",
+      "output.png"
+    ]
+  }
+}

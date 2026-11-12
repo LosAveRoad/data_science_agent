@@ -1,0 +1,152 @@
+{
+  "top5_detail": [
+    {
+      "rank": 1,
+      "region": "District of Columbia",
+      "disparity_pp": 4.2281,
+      "highest_type": "3 bedroom",
+      "highest_cagr_pct": 6.706,
+      "lowest_type": "1 bedroom",
+      "lowest_cagr_pct": 2.478,
+      "mean_cagr_pct": 4.361,
+      "allhomes_cagr_pct": 4.65
+    },
+    {
+      "rank": 2,
+      "region": "Florida",
+      "disparity_pp": 2.7633,
+      "highest_type": "1 bedroom",
+      "highest_cagr_pct": 6.773,
+      "lowest_type": "5 bedroom or more",
+      "lowest_cagr_pct": 4.01,
+      "mean_cagr_pct": 5.721,
+      "allhomes_cagr_pct": 5.923
+    },
+    {
+      "rank": 3,
+      "region": "Nevada",
+      "disparity_pp": 2.6992,
+      "highest_type": "1 bedroom",
+      "highest_cagr_pct": 8.984,
+      "lowest_type": "5 bedroom or more",
+      "lowest_cagr_pct": 6.284,
+      "mean_cagr_pct": 8.095,
+      "allhomes_cagr_pct": 8.143
+    },
+    {
+      "rank": 4,
+      "region": "Georgia",
+      "disparity_pp": 2.6926,
+      "highest_type": "1 bedroom",
+      "highest_cagr_pct": 6.77,
+      "lowest_type": "5 bedroom or more",
+      "lowest_cagr_pct": 4.077,
+      "mean_cagr_pct": 5.17,
+      "allhomes_cagr_pct": 4.9
+    },
+    {
+      "rank": 5,
+      "region": "Kansas",
+      "disparity_pp": 2.4172,
+      "highest_type": "4 bedroom",
+      "highest_cagr_pct": 3.196,
+      "lowest_type": "1 bedroom",
+      "lowest_cagr_pct": 0.779,
+      "mean_cagr_pct": 2.309,
+      "allhomes_cagr_pct": 2.679
+    }
+  ],
+  "disparity_stats_pp": {
+    "min": 0.3351,
+    "median": 1.0904,
+    "max": 4.2281,
+    "mean": 1.3011
+  },
+  "cagr_overall_pct": {
+    "min": -0.969,
+    "median": 3.009,
+    "max": 8.984,
+    "mean": 3.424
+  },
+  "property_type_national_pct": {
+    "1 bedroom": {
+      "mean": 3.443,
+      "median": 2.84,
+      "min": -0.969,
+      "max": 8.984
+    },
+    "2 bedroom": {
+      "mean": 3.494,
+      "median": 2.916,
+      "min": -0.399,
+      "max": 8.755
+    },
+    "3 bedroom": {
+      "mean": 3.638,
+      "median": 3.086,
+      "min": 0.089,
+      "max": 8.477
+    },
+    "4 bedroom": {
+      "mean": 3.378,
+      "median": 3.051,
+      "min": -0.143,
+      "max": 7.462
+    },
+    "5 bedroom or more": {
+      "mean": 3.145,
+      "median": 2.87,
+      "min": -0.411,
+      "max": 6.555
+    },
+    "All homes": {
+      "mean": 3.515,
+      "median": 3.035,
+      "min": -0.067,
+      "max": 8.143
+    },
+    "Condominium": {
+      "mean": 3.238,
+      "median": 2.798,
+      "min": -0.862,
+      "max": 8.634
+    },
+    "Single family residence": {
+      "mean": 3.54,
+      "median": 3.049,
+      "min": 0.015,
+      "max": 8.018
+    }
+  },
+  "n_negative_cagr_obs": 6,
+  "negative_cagr_regions": [
+    "Connecticut"
+  ],
+  "bottom5": [
+    {
+      "rank": 47,
+      "region_name": "New Jersey",
+      "disparity_pp": 0.462
+    },
+    {
+      "rank": 48,
+      "region_name": "Mississippi",
+      "disparity_pp": 0.4234
+    },
+    {
+      "rank": 49,
+      "region_name": "Ohio",
+      "disparity_pp": 0.4101
+    },
+    {
+      "rank": 50,
+      "region_name": "Vermont",
+      "disparity_pp": 0.3386
+    },
+    {
+      "rank": 51,
+      "region_name": "Virginia",
+      "disparity_pp": 0.3351
+    }
+  ]
+}

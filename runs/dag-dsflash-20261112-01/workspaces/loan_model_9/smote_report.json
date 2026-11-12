@@ -1,0 +1,9 @@
+{
+  "train_positive_ratio_before_smote": 0.09688422433584781,
+  "train_positive_ratio_after_smote": 0.5,
+  "n_train_before": 30490,
+  "n_train_after": 55072,
+  "smote_sampling_strategy": 1.0,
+  "k_neighbors": 5,
+  "random_state": 42
+}

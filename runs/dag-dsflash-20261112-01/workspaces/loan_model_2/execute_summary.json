@@ -1,0 +1,180 @@
+{
+ "node": "execute",
+ "task": "corr filter(|r|>0.8) -> time split 70/30 -> XGBoost -> output.json",
+ "data_loaded": {
+  "features_csv": [
+   49910,
+   100
+  ],
+  "label_csv": [
+   49910,
+   3
+  ],
+  "join": "inner on (time,bizcode), 1:1, rows=49910, dup_keys=0, missing=0, constant_cols=0",
+  "n_features": 98,
+  "positive_rate": 0.093168,
+  "time_field": "int YYYYMMDD, 153 unique daily snapshots, min 20230701 max 20231130"
+ },
+ "method": {
+  "correlation": {
+   "metric": "Pearson |r| on 98 features",
+   "threshold": 0.8,
+   "criterion": "abs(r) > 0.8 (strict)",
+   "dedup_rule": "greedy keep-first in original column order; a feature is dropped if |r|>0.8 with any already-kept feature"
+  },
+  "split": {
+   "rule": "cut_time = 70th percentile of time field (20231024); train = time < cut, test = time >= cut",
+   "why": "all rows of a date fall on one side -> no same-day leakage; row share 69.3/30.7 (date count is uneven)"
+  },
+  "model": {
+   "library": "xgboost 3.4.1 (xgb.train)",
+   "objective": "binary:logistic",
+   "eval_metric": "auc",
+   "tree_method": "hist",
+   "params": {
+    "learning_rate": 0.05,
+    "max_depth": 3,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 20,
+    "reg_lambda": 5.0,
+    "random_state": 42
+   },
+   "rounds": "early stopping (50) on inner time-based val = last 15% of train dates (inner cut 20231006, val rows 9257) -> best_iteration 120 => 121 rounds; refit on full train window; test untouched during tuning"
+  }
+ },
+ "key_results": {
+  "n_all_features": 98,
+  "pairs_abs_r_gt_0.8": 133,
+  "max_abs_offdiag_r": 0.999319,
+  "median_abs_offdiag_r": 0.097231,
+  "remaining_feature_count": 56,
+  "dropped_features": 42,
+  "residual_max_abs_r_among_kept": 0.798975,
+  "remaining_features": [
+   "f0",
+   "f1",
+   "f2",
+   "f3",
+   "f4",
+   "f5",
+   "f6",
+   "f7",
+   "f8",
+   "f10",
+   "f12",
+   "f13",
+   "f15",
+   "f22",
+   "f23",
+   "f24",
+   "f25",
+   "f26",
+   "f27",
+   "f29",
+   "f30",
+   "f31",
+   "f33",
+   "f48",
+   "f51",
+   "f54",
+   "f55",
+   "f57",
+   "f58",
+   "f59",
+   "f61",
+   "f63",
+   "f64",
+   "f66",
+   "e6",
+   "e8",
+   "x0",
+   "x1",
+   "x2",
+   "x3",
+   "x4",
+   "x5",
+   "x6",
+   "x7",
+   "x8",
+   "x9",
+   "x10",
+   "x11",
+   "x12",
+   "x13",
+   "x14",
+   "x15",
+   "x16",
+   "x17",
+   "x18",
+   "x19"
+  ],
+  "correlated_groups_connected_components": 13,
+  "component_based_reference_count": 46,
+  "split": {
+   "cut_time": 20231024,
+   "train_rows": 34591,
+   "test_rows": 15319,
+   "train_row_share": 0.6931,
+   "train_time_range": [
+    20230701,
+    20231023
+   ],
+   "test_time_range": [
+    20231024,
+    20231130
+   ],
+   "train_pos_rate": 0.095343,
+   "test_pos_rate": 0.088256
+  },
+  "model": {
+   "n_rounds": 121,
+   "inner_val_auc": 0.644496,
+   "train_auc": 0.685984,
+   "test_auc": 0.632384,
+   "train_minus_test_auc": 0.0536,
+   "top_importance_gain": {
+    "f5": 156.5657,
+    "f12": 132.9219,
+    "e6": 61.5281,
+    "x10": 43.1343,
+    "f2": 34.4726,
+    "f13": 30.9132,
+    "x0": 27.0236,
+    "f3": 20.732,
+    "f66": 20.3201,
+    "f22": 15.5971
+   }
+  },
+  "robustness": {
+   "seed_variation_train_test_auc": [
+    [
+     7,
+     0.6858,
+     0.6348
+    ],
+    [
+     2024,
+     0.6867,
+     0.6309
+    ]
+   ],
+   "note": "AUC stable across seeds (train ~0.686, test 0.631-0.635); test AUC < train AUC by ~0.054 as expected for temporal extrapolation"
+  }
+ },
+ "checks": [
+  "kept 56 features have max off-diagonal |r| = 0.7990 <= 0.8 -> no residual high-correlation pair",
+  "train/test date sets disjoint (cut 20231024)",
+  "output.json contains exactly 3 keys with int/float values"
+ ],
+ "upstream_artifact_notes": [
+  "corr_filter_result.json 复现一致：98 特征、133 对 |r|>0.8、保留 56、剔除 42（本节点独立重算结果相同）",
+  "model_meta.json 的 top_importance_gain 特征名与本轮剩余特征集合不符（含 f34/f46/f11/f36/f39f/… 未在保留列表中），其 gain 数值与本轮前 10 名数值一一对应但名称错位，疑为按 98 列原始顺序回填名称导致；本轮以自算的 kept 列名映射为准",
+  "train_meta.json 记录 n_estimators=167，与 early stopping 得到的 best_iteration=120（121 轮）不一致；本轮按 121 轮 refit，AUC 与 output.json 既有数值一致（0.685984 / 0.632384）"
+ ],
+ "outputs": [
+  "output.json",
+  "execute_summary.json",
+  "corr_matrix.csv (重算校验)"
+ ]
+}

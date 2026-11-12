@@ -1,0 +1,99 @@
+{
+  "plan_id": "real_estate_04_cagr_disparity",
+  "objective": "Calculate the 2010-12-31 -> 2019-12-31 compound annual growth rate (CAGR) of home values for 8 house types in each US state, quantify the within-state growth-rate disparity (max - min CAGR across the 8 house types), and output the top 5 states by disparity to top5_cagr_disparity.csv.",
+  "data_inputs": {
+    "source_dir": "Zillow House Price Data",
+    "files": [
+      {"file": "State_Zhvi_1bedroom.csv", "property_type": "1 bedroom"},
+      {"file": "State_Zhvi_2bedroom.csv", "property_type": "2 bedroom"},
+      {"file": "State_Zhvi_3bedroom.csv", "property_type": "3 bedroom"},
+      {"file": "State_Zhvi_4bedroom.csv", "property_type": "4 bedroom"},
+      {"file": "State_Zhvi_5BedroomOrMore.csv", "property_type": "5 bedroom or more"},
+      {"file": "State_Zhvi_AllHomes.csv", "property_type": "All homes"},
+      {"file": "State_Zhvi_Condominum.csv", "property_type": "Condominium"},
+      {"file": "State_Zhvi_SingleFamilyResidence.csv", "property_type": "Single family residence"}
+    ],
+    "upstream_profile": "data_profile.json",
+    "observed_structure": {
+      "rows_per_file": 51,
+      "cols_per_file": 297,
+      "id_columns": ["Unnamed: 0 (row index, dropped)", "RegionID", "SizeRank", "RegionName", "RegionType", "StateName"],
+      "date_columns": "291 monthly ZHVI columns in 'YYYY-MM-DD' headers, 1996-01-31 .. 2020-03-31, float64",
+      "start_column": "2010-12-31 (column index 185)",
+      "end_column": "2019-12-31 (column index 293)",
+      "region_level": "All rows are RegionType == 'State' (50 states + District of Columbia)",
+      "region_sets_identical_across_files": true,
+      "missing_values_on_target_dates": 0
+    }
+  },
+  "steps": [
+    {
+      "step": 1,
+      "name": "Data loading and column identification",
+      "actions": [
+        "Glob all 8 Zillow state-level CSVs.",
+        "Read header only to confirm the presence and position of the '2010-12-31' and '2019-12-31' date columns (no full-file scan of irrelevant columns needed since rows are only 51).",
+        "Read each file selecting only RegionName, RegionType, StateName, '2010-12-31', '2019-12-31'.",
+        "Assign property type from the file name per the mapping table.",
+        "Validation: assert 51 rows, RegionType == 'State' only, no duplicated RegionName, no NaN/zero/negative values on the two target dates, identical region sets across files."
+      ],
+      "output": "in-memory long table: region_name, state_name, property_type, v2010, v2019"
+    },
+    {
+      "step": 2,
+      "name": "CAGR calculation",
+      "actions": [
+        "cagr = (v2019 / v2010)^(1/9) - 1, with 9 = number of year intervals between 2010-12-31 and 2019-12-31.",
+        "Guard: only compute where v2010 > 0 and v2019 > 0; report count of skipped rows (expected 0).",
+        "Merged result frame with exactly 3 analysis columns: region_name, property_type, cagr (plus state_name and raw start/end values kept for auditability).",
+        "Validation: 51 regions x 8 property types = 408 rows; cagr range sanity check (should be positive, plausibly 0-15%/yr); cross-check a couple of states numerically."
+      ],
+      "output": "all_state_type_cagr.csv (long format, 408 rows)"
+    },
+    {
+      "step": 3,
+      "name": "State-level disparity statistics",
+      "actions": [
+        "Group by region_name, take max(cagr), min(cagr), count (must equal 8).",
+        "growth rate difference = max(cagr) - min(cagr).",
+        "Also record argmax/argmin property types and mean/median CAGR for interpretation.",
+        "Sort by growth rate difference descending; select top 5 states.",
+        "Tie-breaking: on equal disparity, sort by region_name ascending for determinism."
+      ],
+      "output": "state_cagr_disparity.csv (51 rows, ranked) + top5_cagr_disparity.csv (5 rows)"
+    },
+    {
+      "step": 4,
+      "name": "Result output and report",
+      "actions": [
+        "Write top5_cagr_disparity.csv with columns exactly ['region name', 'growth rate difference'] (camel-free, as specified).",
+        "Growth rate difference expressed in percentage points rounded to 4 decimals (value kept in decimal CAGR units in the full detail file).",
+        "Write an accompanying markdown/JSON report summarizing method, validation results, top-5 ranking, which house types drive the extremes, and limitations."
+      ],
+      "output": "top5_cagr_disparity.csv, analysis_report.md, analysis_summary.json"
+    }
+  ],
+  "column_specification": {
+    "all_state_type_cagr.csv": ["region_name", "state_name", "property_type", "value_2010_12_31", "value_2019_12_31", "cagr"],
+    "top5_cagr_disparity.csv": ["region name", "growth rate difference"],
+    "units": {
+      "cagr": "decimal fraction per year (0.05 == 5%/yr)",
+      "growth rate difference": "percentage points (max CAGR - min CAGR, x100), rounded to 4 dp"
+    }
+  },
+  "validation_checks": [
+    "8 files x 51 states = 408 (state, type) observations, no duplicates",
+    "target date columns exist in every file at the expected positions",
+    "no NaN / non-positive values on the two target dates",
+    "every state has exactly 8 property types in the disparity step",
+    "spot check: USA aggregate CAGR for All homes roughly (643270/89137)-style ~ around 6-7%/yr given min/max in profile"
+  ],
+  "assumptions_and_risks": [
+    "The 9-year exponent assumes exactly 9 annual intervals between 2010-12-31 and 2019-12-31 (correct: 2011..2019).",
+    "Property type is not a column in the source files; it is derived from file names (documented mapping).",
+    "'District of Columbia' is included as a region although it is not a state (consistent with Zillow's state-level file).",
+    "Comparisons are nominal ZHVI growth, not inflation-adjusted.",
+    "Files are small (51 rows) so full in-memory pandas processing is safe; run_python 120s limit is far from binding."
+  ],
+  "outputs": ["top5_cagr_disparity.csv", "all_state_type_cagr.csv", "state_cagr_disparity.csv", "analysis_report.md", "analysis_summary.json"]
+}

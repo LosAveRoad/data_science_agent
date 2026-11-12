@@ -1,0 +1,340 @@
+{
+  "node": "verify_output",
+  "status": "passed",
+  "target_file": "output.json",
+  "summary": {
+    "checks_total": 54,
+    "checks_passed": 54,
+    "checks_failed": 0,
+    "schema_valid": true,
+    "results_reproducible": true,
+    "upstream_consistency": "top_10_relationships reconciles with intermediate_state_strongest_lag.csv and intermediate_cross_correlation.csv; metadata counts reconcile with intermediate_qc.json"
+  },
+  "checks": [
+    {
+      "check": "output_file_exists",
+      "passed": true,
+      "detail": "output.json present"
+    },
+    {
+      "check": "output_json_parses",
+      "passed": true,
+      "detail": "valid JSON"
+    },
+    {
+      "check": "top_level_keys",
+      "passed": true,
+      "detail": "['analysis_metadata', 'summary_statistics', 'top_10_relationships']"
+    },
+    {
+      "check": "metadata_fields",
+      "passed": true,
+      "detail": "['correlation_threshold', 'lag_range_months', 'significant_relationships_found', 'time_range', 'total_states_analyzed', 'window_size']"
+    },
+    {
+      "check": "metadata_time_range",
+      "passed": true,
+      "detail": "2010-01 to 2019-12"
+    },
+    {
+      "check": "metadata_lag_range",
+      "passed": true,
+      "detail": "[-24, 24]"
+    },
+    {
+      "check": "metadata_threshold",
+      "passed": true,
+      "detail": "0.1"
+    },
+    {
+      "check": "metadata_window",
+      "passed": true,
+      "detail": "12"
+    },
+    {
+      "check": "metadata_total_states_int",
+      "passed": true,
+      "detail": "51"
+    },
+    {
+      "check": "metadata_significant_int",
+      "passed": true,
+      "detail": "51"
+    },
+    {
+      "check": "top10_is_list_len10",
+      "passed": true,
+      "detail": "10"
+    },
+    {
+      "check": "top10_keys_ok",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_variable1",
+      "passed": true,
+      "detail": "{'ZHVI_Rolling_Mean'}"
+    },
+    {
+      "check": "top10_variable2",
+      "passed": true,
+      "detail": "{'Unemployment_Rolling_Mean'}"
+    },
+    {
+      "check": "top10_state_format",
+      "passed": true,
+      "detail": "['OR', 'HI', 'FL', 'AZ', 'CA', 'MA', 'GA', 'VA', 'CO', 'DC']"
+    },
+    {
+      "check": "top10_state_unique",
+      "passed": true,
+      "detail": "10"
+    },
+    {
+      "check": "top10_lag_int_in_range",
+      "passed": true,
+      "detail": "[-24, -16, -23, -17, -14, -24, -21, -24, -21, -7]"
+    },
+    {
+      "check": "top10_corr_float_in_range",
+      "passed": true,
+      "detail": "[-0.9989, -0.9963, -0.9939, -0.9938, -0.9929, -0.9925, -0.9911, -0.991, -0.9896, -0.9891]"
+    },
+    {
+      "check": "top10_corr_rounded4",
+      "passed": true,
+      "detail": "all 4dp"
+    },
+    {
+      "check": "top10_abs_rounded4",
+      "passed": true,
+      "detail": "all 4dp"
+    },
+    {
+      "check": "top10_abs_consistent",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_relationship_values",
+      "passed": true,
+      "detail": "{'Unemployment leads ZHVI'}"
+    },
+    {
+      "check": "top10_relationship_sign_consistent",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_sorted_by_abs_desc",
+      "passed": true,
+      "detail": "[0.9989, 0.9963, 0.9939, 0.9938, 0.9929, 0.9925, 0.9911, 0.991, 0.9896, 0.9891]"
+    },
+    {
+      "check": "top10_all_above_threshold",
+      "passed": true,
+      "detail": "min abs=0.9891"
+    },
+    {
+      "check": "summary_keys",
+      "passed": true,
+      "detail": "['max_correlation', 'mean_correlation', 'mean_lag_months', 'min_correlation']"
+    },
+    {
+      "check": "summary_mean_corr",
+      "passed": true,
+      "detail": "(-0.9929, -0.9929)"
+    },
+    {
+      "check": "summary_max_corr",
+      "passed": true,
+      "detail": "(-0.9891, -0.9891)"
+    },
+    {
+      "check": "summary_min_corr",
+      "passed": true,
+      "detail": "(-0.9989, -0.9989)"
+    },
+    {
+      "check": "summary_mean_lag",
+      "passed": true,
+      "detail": "(-19.1, -19.1)"
+    },
+    {
+      "check": "summary_float_types",
+      "passed": true,
+      "detail": "{'mean_correlation': 'float', 'max_correlation': 'float', 'min_correlation': 'float', 'mean_lag_months': 'float'}"
+    },
+    {
+      "check": "summary_max_ge_min",
+      "passed": true,
+      "detail": "(-0.9891, -0.9989)"
+    },
+    {
+      "check": "rolling_timestamps_day1",
+      "passed": true,
+      "detail": "all day==1"
+    },
+    {
+      "check": "cc_lags_per_state",
+      "passed": true,
+      "detail": "[49]"
+    },
+    {
+      "check": "cc_lag_range",
+      "passed": true,
+      "detail": "(-24, 24)"
+    },
+    {
+      "check": "cc_nan_corr",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "cc_abs_corr_le1",
+      "passed": true,
+      "detail": "0.998879401801022"
+    },
+    {
+      "check": "sl_states_unique",
+      "passed": true,
+      "detail": "(51, 51)"
+    },
+    {
+      "check": "metadata_total_states_matches",
+      "passed": true,
+      "detail": "(51, 51, 51, 51, 51)"
+    },
+    {
+      "check": "metadata_significant_matches_abs_gt_0.1",
+      "passed": true,
+      "detail": "(51, 51)"
+    },
+    {
+      "check": "abs_corr_max_le1",
+      "passed": true,
+      "detail": "0.9989"
+    },
+    {
+      "check": "top10_matches_strongest_lag_ranking",
+      "passed": true,
+      "detail": "(['OR', 'HI', 'FL', 'AZ', 'CA', 'MA', 'GA', 'VA', 'CO', 'DC'], ['OR', 'HI', 'FL', 'AZ', 'CA', 'MA', 'GA', 'VA', 'CO', 'DC'])"
+    },
+    {
+      "check": "top10_lags_match_intermediate",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_corrs_match_intermediate",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_relationships_match_intermediate",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_pairs_exist_in_cc_table",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top10_corr_values_match_cc_table",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "recomputed_cc_matches_table",
+      "passed": true,
+      "detail": "Independent recomputation from intermediate_zhvi_rolling.csv / intermediate_unemployment_rolling.csv (reindex 2010-01..2019-12 MS, ffill->bfill, Pearson corr per lag -24..24) matches intermediate_cross_correlation.csv exactly: max abs diff = 0 over 2499 (state,lag) pairs."
+    },
+    {
+      "check": "recomputed_shape_51_states_49_lags",
+      "passed": true,
+      "detail": "Recomputed matrix = 51 states x 49 lags (-24..+24)."
+    },
+    {
+      "check": "recomputed_strongest_lag_matches",
+      "passed": true,
+      "detail": "Independent argmax|r| (tie-break: smaller |lag| then smaller lag) reproduces lag/correlation/abs_correlation for all 51 states in intermediate_state_strongest_lag.csv."
+    },
+    {
+      "check": "top10_reproduced_independently",
+      "passed": true,
+      "detail": "Top-10 by abs_correlation reproduced exactly: OR(-24,-0.9989), HI(-16,-0.9963), FL(-23,-0.9939), AZ(-17,-0.9938), CA(-14,-0.9929), MA(-24,-0.9925), GA(-21,-0.9911), VA(-24,-0.9910), CO(-21,-0.9896), DC(-7,-0.9891)."
+    },
+    {
+      "check": "significant_count_reproduced",
+      "passed": true,
+      "detail": "51 states with abs_correlation > 0.1, matching analysis_metadata.significant_relationships_found=51."
+    },
+    {
+      "check": "rolling_means_populated_in_window",
+      "passed": true,
+      "detail": "0 NaN in ZHVI/Unemployment 12-month rolling means across all 51 states within 2010-01..2019-12 (120 months each), so ffill/bfill is a no-op safety net; min_periods=6 window handling did not leave gaps."
+    },
+    {
+      "check": "summary_stats_reproduced",
+      "passed": true,
+      "detail": "summary_statistics recomputed from top_10_relationships: mean=-0.9929, max=-0.9891, min=-0.9989, mean_lag=-19.1 — all match reported values."
+    }
+  ],
+  "key_facts": {
+    "total_states_analyzed": 51,
+    "significant_relationships_found": 51,
+    "top10_states": [
+      "OR",
+      "HI",
+      "FL",
+      "AZ",
+      "CA",
+      "MA",
+      "GA",
+      "VA",
+      "CO",
+      "DC"
+    ],
+    "top10_lag_months": [
+      -24,
+      -16,
+      -23,
+      -17,
+      -14,
+      -24,
+      -21,
+      -24,
+      -21,
+      -7
+    ],
+    "top10_correlations": [
+      -0.9989,
+      -0.9963,
+      -0.9939,
+      -0.9938,
+      -0.9929,
+      -0.9925,
+      -0.9911,
+      -0.991,
+      -0.9896,
+      -0.9891
+    ],
+    "abs_correlation_distribution": {
+      "min": 0.8011,
+      "median": 0.9581,
+      "mean": 0.9481,
+      "max": 0.9989
+    },
+    "relationship_label_counts": {
+      "Unemployment leads ZHVI": 51
+    },
+    "states_with_argmax_at_boundary_lag_24": 37
+  },
+  "warnings": [
+    "All 51 relationships are negative and |r|>0.9 because both series are 12-month smoothed monotone trends over 2010-2019; magnitude should be read as trend co-movement, not independent predictive power.",
+    "37 of 51 states attain max |r| at the -24 lag boundary, i.e. the strongest lag is truncated by the specified lag window; reported lag magnitudes for those states are not interior estimates (methodological limitation of the spec, not an output defect)."
+  ],
+  "issues": []
+}

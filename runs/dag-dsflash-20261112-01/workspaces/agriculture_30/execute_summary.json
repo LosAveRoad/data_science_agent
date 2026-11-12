@@ -1,0 +1,85 @@
+{
+  "node": "execute",
+  "status": "success",
+  "task": "degree-2 多项式回归（PolynomialFeatures + LinearRegression）以 avg_temp / rainfall / pesticide_value 预测 crop yield，计算 in-sample R²，输出 output.csv 与 output.txt",
+  "data_cleaning": {
+    "yield.csv": "过滤 Element=='Yield'，重命名 Area->country, Item->crop_item, Year->year, Value->actual_yield，country 去首尾空格 → 56717 行",
+    "pesticides.csv": "重命名 Area->country, Year->year, Value->pesticide_value，保留 Value=0 真实记录 → 4349 行，(country,year) 唯一（Element 仅 'Use'）",
+    "rainfall.csv": "列名 strip + 去 BOM（' Area'->'Area'），average_rain_fall_mm_per_year 用 pd.to_numeric(errors='coerce') 数值化，丢弃 '..'/空值 → 5947 行，无重复键",
+    "temp.csv": "country 去空格，按 (country,year) groupby 求均值消除 42797 条重复冲突记录，dropna → 27479 行（唯一键）"
+  },
+  "join_waterfall": {
+    "yield_yield_element": 56717,
+    "after_pesticides": 24153,
+    "after_rainfall": 18949,
+    "after_temp": 13130,
+    "model_rows": 13130
+  },
+  "join_strategy": "yield ← pesticides ← rainfall ← temp 三级 inner join（键 country+year），特征按国家-年广播到各 crop_item；随后 dropna 建模 4 列；采用精确国家名匹配（不做别名映射）以保证可复现",
+  "model": {
+    "features_order": [
+      "avg_temp",
+      "rainfall",
+      "pesticide_value"
+    ],
+    "transformer": "PolynomialFeatures(degree=2, include_bias=False) → 9 个特征（3 主效应 + 3 平方项 + 3 交互项）",
+    "estimator": "LinearRegression() 默认参数，fit_intercept=True",
+    "prediction": "对同一拟合数据 in-sample predict",
+    "n_samples": 13130,
+    "n_countries": 101,
+    "n_crop_items": 10,
+    "year_range": [
+      1990,
+      2013
+    ],
+    "coefficients": {
+      "avg_temp": -0.0005639677892628664,
+      "rainfall": -0.005753489200755392,
+      "pesticide_value": 1.1749957266914557,
+      "avg_temp^2": -0.020312568686708173,
+      "avg_temp rainfall": -0.6589390245252932,
+      "avg_temp pesticide_value": -0.02446336814694625,
+      "rainfall^2": 0.007477586198275899,
+      "rainfall pesticide_value": -0.00020677122470572567,
+      "pesticide_value^2": -6.649987844298142e-07,
+      "intercept": 67125.52093667298
+    }
+  },
+  "results": {
+    "r2_raw": 0.030078438380563455,
+    "r2_rounded": 0.0301,
+    "r2_formatted": "0.0301",
+    "actual_yield_stats": {
+      "mean": 70968.61546077684,
+      "min": 50.0,
+      "max": 501412.0
+    },
+    "predicted_yield_stats": {
+      "mean": 70968.61546077726,
+      "min": 56171.33607250321,
+      "max": 154501.59513236524
+    }
+  },
+  "interpretation": "R²=0.0301 很低：avg_temp/rainfall/pesticide 三个国家级宏观变量仅解释约 3% 的产量方差。原因包括：(1) 特征为国家-年粒度并广播到 10 个 crop_item，无法区分作物间差异；(2) pesticide 为国家级总量，未按作物/面积拆分且强右偏（量级支配平方项，二阶项共线）；(3) 目标产量跨国家/作物量级差异巨大（50 ~ 501412 hg/ha），线性+二次结构无法捕捉国家/作物固定效应。predicted 均值与 actual 均值一致（70968.6），符合最小二乘性质，说明拟合流程正确，低 R² 是数据特性而非实现错误。",
+  "validation_checks": {
+    "output_csv_rows_equals_model_rows": true,
+    "output_csv_columns_exact_order": true,
+    "no_nan_in_output": true,
+    "country_no_leading_trailing_space": true,
+    "output_txt_single_line_format": "Polynomial Regression R2 Score: 0.0301",
+    "r2_consistent_between_txt_and_variable": true,
+    "X_poly_shape": [
+      13130,
+      9
+    ]
+  },
+  "artifacts": [
+    "output.csv",
+    "output.txt",
+    "execute_summary.json"
+  ],
+  "output_files": {
+    "output.csv": "13130 行 × 8 列（country, year, crop_item, actual_yield, predicted_yield, pesticide_value, rainfall, avg_temp），index=False，utf-8",
+    "output.txt": "单行 'Polynomial Regression R2 Score: 0.0301'"
+  }
+}

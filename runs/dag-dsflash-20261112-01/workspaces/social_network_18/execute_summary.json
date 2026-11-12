@@ -1,0 +1,68 @@
+{
+  "node": "execute",
+  "status": "success",
+  "data_source": {
+    "file": "Twitter_US_Airline_Sentiment.sqlite",
+    "table": "Tweets",
+    "total_rows": 14485,
+    "extraction_filter": "airline NOT NULL/blank AND airline_sentiment NOT NULL/blank",
+    "extracted_rows": 14485,
+    "rows_dropped": 0,
+    "missing_text": 0,
+    "distinct_airlines": 6,
+    "sentiment_labels": ["positive", "negative", "neutral"],
+    "note": "01 row filtering/cleaning required; every sentiment value already in {positive, negative, neutral}. The dataset's own 'negativereason' column was NOT used (task mandates keyword matching on tweet text)."
+  },
+  "method": {
+    "sentiment_distribution": "pandas groupby(airline, airline_sentiment) size(); percentage = count / AIRLINE-level total * 100, formatted to exactly 2 decimals (airline denominator, not global 14485).",
+    "negative_keyword_tagging": "On the 9082 negative tweets only: text lowercased (case-insensitive) then substring containment test per category. Multi-label: a tweet can hit several categories. Categories/Keywords: delay=[delay, delayed, late, wait, waiting, hours, waited], service=[service, rude, staff, customer, attitude, unhelpful, rudest], baggage=[baggage, luggage, bag, lost, damage, suitcase, damaged], cancel=[cancel, cancelled, cancellation, 'flight cancelled', canceled], seat=[seat, seating, overbook, overbooking, upgrade, cramped], food=[food, meal, drink, hungry, refreshment, thirsty], other=matched none of the six. ('lost' appeared twice in the spec and was deduped; 'flight cancelled' is redundant under substring matching but honored.)",
+    "aggregation": "Per-airline category counts; full 6 airlines x 7 categories grid emitted, missing combos filled with 0 (all 42 combos were non-zero in the data).",
+    "ordering": "output.csv: airline ascending then sentiment in positive/negative/neutral order (matches pre-existing artifact for idempotency). negative_reasons.csv: airline ascending then reasons alphabetically."
+  },
+  "key_results": {
+    "sentiment_totals": {"negative": 9082, "neutral": 3069, "positive": 2334},
+    "airline_totals": {"American": 2604, "Delta": 2222, "Southwest": 2420, "US Airways": 2913, "United": 3822, "Virgin America": 504},
+    "negative_share_ranked_worst_first": [
+      {"airline": "US Airways", "negative_pct": 77.69, "negative_count": 2263},
+      {"airline": "American", "negative_pct": 71.58, "negative_count": 1864},
+      {"airline": "United", "negative_pct": 68.89, "negative_count": 2633},
+      {"airline": "Southwest", "negative_pct": 49.01, "negative_count": 1186},
+      {"airline": "Delta", "negative_pct": 42.98, "negative_count": 955},
+      {"airline": "Virgin America", "negative_pct": 35.91, "negative_count": 181}
+    ],
+    "best_positive_share": [{"airline": "Virgin America", "positive_pct": 30.16}, {"airline": "Delta", "positive_pct": 24.48}, {"airline": "Southwest", "positive_pct": 23.55}],
+    "negative_reason_totals_multilabel": {"delay": 2112, "service": 1395, "baggage": 1080, "cancel": 864, "seat": 404, "food": 120, "other": 4239},
+    "negative_union_of_six_categories": 4843,
+    "multi_label_sum": 10214,
+    "primary_driver_ranking": ["delay (2112)", "service (1395)", "baggage (1080)", "cancel (864)", "seat (404)", "food (120)"],
+    "dominant_driver_per_airline": {
+      "American": "delay (387)",
+      "Delta": "delay (244)",
+      "Southwest": "delay (246)",
+      "US Airways": "delay (588)",
+      "United": "delay (624)",
+      "Virgin America": "delay (23)"
+    },
+    "caveat_other_bucket": "'other' is the single largest bucket (4239 of 9082 negative tweets, 46.7%) and exceeded the union of every named category (4843). Keyword coverage is therefore limited: named-category shares are lower bounds on true complaint volumes. 'delay' being the top named driver is partly driven by broad tokens such as 'hours' and 'wait' that occur in unrelated contexts."
+  },
+  "validation": {
+    "extraction_row_count_matches_profile": true,
+    "per_airline_counts_match_profile": true,
+    "sentiment_counts_match_profile": true,
+    "sum_output_counts": 14485,
+    "per_airline_percentage_sums": "100.00 for all 6 airlines",
+    "percentage_regex_check": "all 18 values match ^\\d+\\.\\d{2}$",
+    "independent_sql_vs_pandas_crosscheck": "18/18 rows agree on both count and rounded percentage (0 mismatches)",
+    "other_bucket_identity_check": "other == 9082 - 4843 == 4239 (verified)",
+    "negative_reasons_row_count": 42,
+    "negative_reasons_category_sums": "match per-category totals exactly",
+    "output_csv_negative_counts_match_extraction": true,
+    "duplicate_key_check": "0 duplicates in either output",
+    "case_insensitivity_spotcheck": "9 tweets with literal 'DELAY', 383 with 'Late', 12 with 'Rude' were all captured by the lowercase keyword test",
+    "all_checks_passed": true
+  },
+  "outputs": [
+    {"file": "output.csv", "rows": 18, "columns": ["airline", "sentiment", "count", "percentage"], "description": "Per-airline sentiment distribution, counts + 2-decimal percentages."},
+    {"file": "negative_reasons.csv", "rows": 42, "columns": ["airline", "reasons", "count"], "description": "Per-airline complaint-category counts over negative tweets (multi-label, 6 airlines x 7 categories)."}
+  ]
+}

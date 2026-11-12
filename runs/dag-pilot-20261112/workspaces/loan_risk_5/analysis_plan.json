@@ -1,0 +1,176 @@
+{
+  "node": "plan",
+  "task_id": "loan_risk_5",
+  "generated_at": "2026-11-12T00:00:00",
+  "task_goal": "Compute a group-wise behavioral-score distribution report from a table with columns apply_date (YYYYMMDD), score (numeric), group_id. Deliver two parts: (1) overall distribution per group_id -> output_1.csv; (2) monthly distribution per (group_id, apply_month=YYYYMM) -> output_2.csv. Each part reports 7 metrics: count, max, min, mode (tie -> take minimum mode), mean, median, std (sample std, ddof=1, fill 0 when n<2).",
+
+  "inputs": {
+    "upstream_artifacts": [
+      {
+        "path": "data_profile.json",
+        "produced_by": "inspect",
+        "used_for": "schema expectations, known data risks, output contract, blocking-gap statement"
+      }
+    ],
+    "expected_source_data": {
+      "columns": ["apply_date", "score", "group_id"],
+      "file": "NOT PRESENT in workspace (see data_status)"
+    }
+  },
+
+  "data_status": {
+    "status": "blocked_no_data",
+    "verified_by_this_node": true,
+    "evidence": {
+      "workspace_inventory": ["data_profile.json (5618 bytes) only"],
+      "workspace_data_files_found": [],
+      "recursive_search_of_run_dir": {
+        "searched_root": "runs/dag-pilot-20261112",
+        "data_files_found_for_this_task": 0,
+        "note": "The only datasets in the run tree belong to the sibling task healthcare_05; nothing matching apply_date/score/group_id exists for loan_risk_5."
+      },
+      "matches_upstream_inspect_node": "data_profile.json -> data_availability.status = 'no_data_found'"
+    },
+    "consequence": "No statistic of the score distribution (overall or monthly) can be computed in this run. No number in output_1.csv / output_2.csv may be invented.",
+    "execution_policy_for_downstream": {
+      "primary": "Re-run data discovery at execute time. If a data file is found, compute exactly per this plan. If still absent, emit output_1.csv and output_2.csv as HEADER-ONLY files with the exact required column order, set status='data_blocked' and rows_written=0 in the results artifact, and exit 0.",
+      "forbidden": "Fabricating, simulating, or back-filling any metric value; writing 'overall' rows to output_2.csv; omitting required columns."
+    }
+  },
+
+  "environment_constraints": {
+    "python": "3.13.18",
+    "available_modules_checked": {"stdlib_ok": ["csv", "json", "statistics", "collections"], "missing": ["pandas", "numpy", "scipy", "pyarrow", "openpyxl"]},
+    "implication": "The implementation MUST be pure standard library (csv, statistics, collections.Counter). Do NOT plan on pandas/numpy. Consequently the plan also specifies a hand-rolled CSV reader/writer and Excel/parquet inputs are out of scope unless a library becomes available."
+  },
+
+  "input_contract_and_preprocessing": {
+    "discovery_order": [
+      "1) explicit CLI path if provided (--input /path/to/file.csv)",
+      "2) any *.csv in workspace root (excluding output_1.csv, output_2.csv)",
+      "3) any *.jsonl / *.json (JSON array of records)",
+      "4) if multiple candidates: choose the file whose header contains all of apply_date, score, group_id; if still ambiguous, fail with an explicit error listing candidates (never guess silently)"
+    ],
+    "delimiter": "sniff with csv.Sniffer, fall back to ','; strip UTF-8 BOM; tolerate CRLF",
+    "column_validation": "Validate the header (case-insensitive, strip whitespace) contains apply_date, score, group_id. Missing column -> fail loudly with a clear message. Extra columns are ignored.",
+    "apply_date_rules": [
+      "read as raw string (never let a numeric loader drop leading zeros); strip whitespace and surrounding quotes",
+      "accept 8-digit YYYYMMDD -> apply_month = first 6 chars",
+      "accept floats like '20240105.0' -> strip trailing '.0' first",
+      "accept 'YYYY-MM-DD', 'YYYY/MM/DD', 'YYYYMMDD HH:MM:SS' -> normalise by keeping only digits, then take first 6",
+      "result must match ^[0-9]{6}$ and represent month 01-12; rows failing this are INVALID_DATE and are excluded from output_2 (kept in output_1 is NOT allowed either -> exclude from both, and log the count)",
+      "null / empty / 'nan' / 'null' / 'NA' -> INVALID_DATE"
+    ],
+    "score_rules": [
+      "parse with float(); strip whitespace, thousands separators and surrounding quotes",
+      "unparseable / null / empty / inf / nan -> invalid, excluded from all 7 metrics",
+      "cnt is therefore the number of VALID score observations in the group (equals raw row count when the data is clean)",
+      "note: if invalid_score_count > 0, record both raw_rows and valid_rows in the results artifact so cnt is auditable"
+    ],
+    "group_id_rules": [
+      "read as raw string, strip whitespace; preserve identifier semantics (never coerce to int for the output value)",
+      "null / empty group_id -> row cannot be attributed to a group and is EXCLUDED; count it as INVALID_GROUP and report the number in the results artifact",
+      "rationale: group_id is the aggregation key; silently inventing a '__null__' bucket would misrepresent the distribution and is not requested by the spec"
+    ]
+  },
+
+  "metric_definitions": {
+    "scope": "computed over the valid score values of each (group_id) or (group_id, apply_month) cell; all values are floats",
+    "cnt": "float(len(valid_scores)); the output column MUST be written as a float literal (e.g. '3.0', never '3')",
+    "max_score": "float(max(valid_scores))",
+    "min_score": "float(min(valid_scores))",
+    "mode_score": "most frequent value; Counter-based; if several values tie for the maximum frequency, take the MINIMUM of the tied values (not the first-seen one, not statistics.mode)",
+    "mean_score": "float(statistics.mean(valid_scores))",
+    "median_score": "float(statistics.median(valid_scores)); for even n the average of the two middle values",
+    "std_score": "float(statistics.stdev(valid_scores)) i.e. SAMPLE std with ddof=1; if n < 2 (including n == 0 and n == 1) write 0.0 — std_score must NEVER be empty/NaN",
+    "empty_cell_rule": "if a (group, month) cell exists but has 0 valid scores: cnt=0.0, std_score=0.0, and max/min/mode/mean/median are left EMPTY (empty CSV field), never 0"
+  },
+
+  "computation_steps": [
+    "S1. Discover and open the input file (see input_contract_and_preprocessing); build the reader, validate/normalise the header.",
+    "S2. Stream rows once; for each row parse group_id, score, apply_date -> (group_id, apply_month, score_valid) or classify as INVALID_DATE / INVALID_SCORE / INVALID_GROUP. Accumulate per-group and per-(group, month) lists of valid scores, plus a row-audit counter set.",
+    "S3. Build the OVERALL table: for each group_id compute the 7 metrics over its valid scores; tag each record with apply_month='overall' internally (single code path shared with the monthly table).",
+    "S4. Build the MONTHLY table: same 7 metrics over each (group_id, apply_month) cell.",
+    "S5. Emit output_1.csv = overall records with the month field DROPPED (columns: group_id, cnt, max_score, min_score, mode_score, mean_score, median_score, std_score), sorted by group_id (natural/numeric-aware ascending when all group_ids are integer-like, else lexicographic).",
+    "S6. Emit output_2.csv = monthly records (columns: group_id, apply_month, cnt, max_score, min_score, mode_score, mean_score, median_score, std_score), apply_month written as a 6-char zero-padded string, sorted by group_id then apply_month ascending.",
+    "S7. Write a results artifact (analysis_results.json) with: status (ok | data_blocked), input file used, rows_read, valid_rows, invalid_date/invalid_score/invalid_group counts, groups, months, rows_written per output, and the metric definitions actually applied.",
+    "S8. Run the self-validation checklist below before finishing."
+  ],
+
+  "output_specs": {
+    "output_1.csv": {
+      "columns_in_order": ["group_id", "cnt", "max_score", "min_score", "mode_score", "mean_score", "median_score", "std_score"],
+      "grain": "one row per group_id",
+      "must_not_contain": ["apply_month / month column", "an 'overall' text row in any grouping column"],
+      "dtypes": {"group_id": "str", "cnt": "float", "others": "float or empty"},
+      "sort": "group_id ascending"
+    },
+    "output_2.csv": {
+      "columns_in_order": ["group_id", "apply_month", "cnt", "max_score", "min_score", "mode_score", "mean_score", "median_score", "std_score"],
+      "grain": "one row per (group_id, apply_month)",
+      "must_not_contain": ["rows where apply_month == 'overall'"],
+      "dtypes": {"group_id": "str", "apply_month": "6-char str YYYYMM", "cnt": "float", "others": "float or empty"},
+      "sort": "group_id ascending, then apply_month ascending"
+    },
+    "csv_writing": {
+      "header": "always written (required, including in the data-blocked case)",
+      "quoting": "csv.QUOTE_MINIMAL",
+      "line_terminator": "default '\\n' (no trailing blank line)",
+      "float_format": "repr(float) / '%.10g' — keep full precision, do not round to fixed decimals",
+      "bool_bug_guard": "cnt must be written via a float cast (f'{v}'), because str(3.0)='3.0' but an accidental int path would write '3'"
+    }
+  },
+
+  "edge_cases": [
+    "n < 2 -> std_score = 0.0 (explicitly required; statistics.stdev raises StatisticsError here, so guard it)",
+    "multiple modes -> minimum of the tied modes (e.g. [1,1,5,5] -> 1.0); ties are common with integer-scaled scores, so this rule materially changes the number",
+    "all scores in a cell invalid -> cnt=0.0, metrics empty, std 0.0 (only reachable for cells created by grouping, so normally never emitted)",
+    "group_ids that are numeric-like strings: sort numerically for output readability but keep the original string in the output value",
+    "single-digit months must be zero-padded to 6 chars (202401, not 20241)",
+    "duplicate header/blank lines in the source -> skipped and counted",
+    "very large files: stream with csv.reader (no full-file load), memory grows only with the number of distinct score values held per cell (acceptable); if a single cell exceeds ~5M values, switch that cell to an online mean/std (Welford) + Counter; median then needs an external sort — document if this fallback is used because median would otherwise be memory-bound",
+    "ties in mode after float parsing (e.g. 1 vs 1.0) are the same key because scores are compared as floats",
+    "NaN/Infinity text tokens -> invalid score, excluded"
+  ],
+
+  "validation_checklist_for_execute_node": [
+    "header of output_1.csv == group_id,cnt,max_score,min_score,mode_score,mean_score,median_score,std_score (exact order)",
+    "header of output_2.csv == group_id,apply_month,cnt,max_score,min_score,mode_score,mean_score,median_score,std_score (exact order)",
+    "every cnt value parses as a float AND contains a '.' (float type preserved on re-read)",
+    "std_score is never empty and never NaN (0.0 when n<2)",
+    "no 'overall' anywhere in output_2.csv; output_1.csv has no month column",
+    "apply_month matches ^[0-9]{4}(0[1-9]|1[0-2])$ in every row",
+    "row counts: len(output_1) == number of distinct valid group_id; len(output_2) == number of distinct (group_id, apply_month) pairs",
+    "reconciliation: sum(cnt in output_2 for a group) == cnt in output_1 for the same group (exactly, because months partition the valid rows of a group)",
+    "cross-check on a hand-built fixture: [1,5,1,5,3] -> mode 1.0, mean 3.0, median 3.0, std 2.0, cnt 5.0; [2.0] -> std 0.0",
+    "data-blocked case: both files exist with header only (0 data rows) and the results artifact states status='data_blocked'"
+  ],
+
+  "spec_sanity_check_performed_by_this_node": {
+    "purpose": "prove the metric rules in this plan are implementable and unambiguous with the available (stdlib-only) environment",
+    "method": "in-memory synthetic fixture inside the plan node; NO data file was read and NO output CSV was produced from it",
+    "fixture_note": "synthetic values only, unrelated to the (absent) real dataset",
+    "assertions_passed": {
+      "mode_tie_takes_minimum": "[1,5,1,5,3] -> mode_score 1.0",
+      "sample_std_ddof1": "[1,5,1,5,3] -> std_score 2.0 (matches manual (sum sq dev/4)^0.5)",
+      "single_observation_std": "[2.0] -> 0.0 (no exception)",
+      "empty_cell": "[] and [None,None] -> cnt 0.0, metrics None, std 0.0",
+      "cnt_is_float": "type(cnt) is float"
+    }
+  },
+
+  "risks": [
+    {"risk": "No data present -> the run cannot produce real numbers", "impact": "high", "mitigation": "explicit data-blocked policy above; header-only outputs; never fabricate"},
+    {"risk": "No pandas/numpy in the sandbox", "impact": "medium", "mitigation": "plan mandates a pure-stdlib implementation; Excel/parquet inputs only if a reader library appears"},
+    {"risk": "score stored as dirty text / group_id coerced to numbers", "impact": "medium", "mitigation": "explicit parsing rules; read everything as raw strings first"},
+    {"risk": "mode tie-breaking misread as first-seen mode (statistics.mode)", "impact": "high on mode_score", "mitigation": "Counter + min(tied) is mandated and unit-checked"},
+    {"risk": "output_2 accidentally containing an 'overall' row, or output_1 keeping the month column", "impact": "high on acceptance", "mitigation": "explicit drop/filter step + validation checklist"},
+    {"risk": "cnt written as int by a formatter", "impact": "medium", "mitigation": "float cast at write time + re-read assertion"}
+  ],
+
+  "open_questions": [
+    "Sorting order was not specified by the task: this plan fixes group_id (then apply_month) ascending for determinism.",
+    "Treatment of rows with null group_id: this plan excludes them and reports the count (documented decision); an alternative would be a labelled '__null__' group.",
+    "Whether cnt should count raw rows or only valid-score rows: when nulls/invalids exist the two differ; this plan uses valid-score count and reports both numbers."
+  ]
+}

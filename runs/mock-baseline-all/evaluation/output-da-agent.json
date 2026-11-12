@@ -1,0 +1,1830 @@
+{
+    "num_results": 30,
+    "average_score": 0.0,
+    "results": [
+        {
+            "id": "agriculture_18",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 6,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 3 \u4e2a\u6587\u4ef6: output.png, output1.csv, output2.csv",
+            "added_files": [
+                "output.png",
+                "output1.csv",
+                "output2.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output2.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.png",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 16 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (16 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 12 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (12 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/agriculture_18/output.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type, graph_title, x_label, y_label (0.0/1 subplots matched)"
+                }
+            ],
+            "domain": "agriculture"
+        },
+        {
+            "id": "agriculture_30",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output.csv, output.txt",
+            "added_files": [
+                "output.csv",
+                "output.txt"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.028
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.txt",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.028
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.028
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.028
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 28242 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (28242 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Text mismatch at position 0: output has '{ \"mock\": true, \"tas' but expected 'polynomial regressio'"
+                    ],
+                    "meaning": "Text comparison: case-insensitive, whitespace-normalized comparison between output (135 chars) and gold (38 chars). Score: 0.0",
+                    "output_data": "{\n  \"mock\": true,\n  \"task_id\": \"agriculture_30\",\n  \"output_file\": \"output.txt\",\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\"\n}",
+                    "gold_data": "Polynomial Regression R2 Score: 0.0347"
+                }
+            ],
+            "domain": "agriculture"
+        },
+        {
+            "id": "ecommerce_30",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 8,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 4 \u4e2a\u6587\u4ef6: output.json, output1.csv, output2.csv, output3.csv",
+            "added_files": [
+                "output.json",
+                "output1.csv",
+                "output2.csv",
+                "output3.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output2.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output3.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.26
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'Column index 0' does not match: expected values eBay, Olist but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 1' does not match: expected values 3.9550115779027455, 4.562937062937063 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 2' does not match: expected values 92.28612805679725, 308.5837719033233 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 3' does not match: expected values 0.05977073404676798 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 4' does not match: expected values -14.0 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared all 5 columns in the CSV files (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"ecommerce_30\"                           NaN\n  \"output_file\": \"output1.csv\"                        NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "  platform  avg_review_score   avg_price  macro_f1_sentiment  max_delay_bin\n0    Olist          3.955012   92.286128            0.059771          -14.0\n1     eBay          4.562937  308.583772                 NaN            NaN"
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'Column index 0' does not match: expected values computers_accessories, telephony, electronics but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 1' does not match: expected values 3.946867389860527, 4.037468170243725, 3.9308192126385526 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 2' does not match: expected values 57.93953757225433, 71.17349450549452, 116.49867494299468 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 3' does not match: expected values 5.845528913569116, 6.507475780677854, 6.269703112433965 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared all 4 columns in the CSV files (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"ecommerce_30\"                           NaN\n  \"output_file\": \"output2.csv\"                        NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "                category  avg_review_score  avg_price_brl  avg_shipping_distance\n0  computers_accessories          3.930819     116.498675               6.269703\n1            electronics          4.037468      57.939538               5.845529\n2              telephony          3.946867      71.173495               6.507476"
+                },
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 134 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (134 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "macro_f1_score: key not found in output"
+                    ],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/ecommerce_30/output.json', gold='gold/ecommerce_30/result.json', evaluating 1 fields with thresholds: macro_f1_score=None (default: 1% rel error for numbers, strict equality for strings)",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "ecommerce_30",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": {
+                        "macro_f1_score": 0.05977073404676798,
+                        "max_frequency_delay_bin": -14,
+                        "total_olist_electronics_orders": 15212,
+                        "total_ebay_listings": 6620
+                    }
+                }
+            ],
+            "domain": "ecommerce"
+        },
+        {
+            "id": "ecommerce_35",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output.db, output.json",
+            "added_files": [
+                "output.db",
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.186
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.186
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.186
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.186
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "file is not a database"
+                    ]
+                }
+            ],
+            "domain": "ecommerce"
+        },
+        {
+            "id": "energy_03",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.png",
+            "added_files": [
+                "output.png"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.255
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.255
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/energy_03/output.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type (0.0/1 subplots matched)"
+                }
+            ],
+            "domain": "energy"
+        },
+        {
+            "id": "energy_09",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.042
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.042
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 51 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (51 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "energy"
+        },
+        {
+            "id": "entertainment_03",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.207
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.207
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 10 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (10 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "entertainment"
+        },
+        {
+            "id": "entertainment_04",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.06
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.06
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "music_features: key not found",
+                        "anova: key not found",
+                        "game_market_hhi: key not found in output",
+                        "ratings: key not found"
+                    ],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/entertainment_04/output.json', gold='gold/entertainment_04/result.json', evaluating 29 fields with thresholds: music_features={danceability_2017_mean:None (default: 1% rel error for numbers, strict equality for strings), danceability_2017_std:None (default: 1% rel error for numbers, strict equality for strings), danceability_2018_mean:None (default: 1% rel error for numbers, strict equality for strings), danceability_2018_std:None (default: 1% rel error for numbers, strict equality for strings), danceability_2020_mean:None (default: 1% rel error for numbers, strict equality for strings), danceability_2020_std:None (default: 1% rel error for numbers, strict equality for strings), energy_2017_mean:None (default: 1% rel error for numbers, strict equality for strings), energy_2017_std:None (default: 1% rel error for numbers, strict equality for strings), energy_2018_mean:None (default: 1% rel error for numbers, strict equality for strings), energy_2018_std:None (default: 1% rel error for numbers, strict equality for strings), energy_2020_mean:None (default: 1% rel error for numbers, strict equality for strings), energy_2020_std:None (default: 1% rel error for numbers, strict equality for strings), valence_2017_mean:None (default: 1% rel error for numbers, strict equality for strings), valence_2017_std:None (default: 1% rel error for numbers, strict equality for strings), valence_2018_mean:None (default: 1% rel error for numbers, strict equality for strings), valence_2018_std:None (default: 1% rel error for numbers, strict equality for strings), valence_2020_mean:None (default: 1% rel error for numbers, strict equality for strings), valence_2020_std:None (default: 1% rel error for numbers, strict equality for strings)}; anova={danceability_f_statistic:None (default: 1% rel error for numbers, strict equality for strings), danceability_p_value:None (default: 1% rel error for numbers, strict equality for strings), energy_f_statistic:None (default: 1% rel error for numbers, strict equality for strings), energy_p_value:None (default: 1% rel error for numbers, strict equality for strings), valence_f_statistic:None (default: 1% rel error for numbers, strict equality for strings), valence_p_value:None (default: 1% rel error for numbers, strict equality for strings)}; game_market_hhi=None (default: 1% rel error for numbers, strict equality for strings); ratings={books_mean:None (default: 1% rel error for numbers, strict equality for strings), books_median:None (default: 1% rel error for numbers, strict equality for strings), movies_mean:None (default: 1% rel error for numbers, strict equality for strings), movies_median:None (default: 1% rel error for numbers, strict equality for strings)}",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "entertainment_04",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": "{\n  \"music_features\": {\n    \"danceability_2017_mean\": 0.6968199999999999,\n    \"danceability_2017_std\": 0.12507972245610782,\n    \"danceability_2018_mean\": 0.7164600000000001,\n    \"danceability_2018_std\": 0.1310701423750742,\n    \"danceability_2020_mean\": 0.7167200000000001,\n    \"danceability_2020_std\": 0.12497526939032247,\n    \"energy_2017_mean\": 0.6606899999999999,\n    \"energy_2017_std\": 0.13920718481109481,\n    \"energy_2018_mean\": 0.6590600000000001,\n    \"energy_2018_std\": 0.1450671610397102,\n    \"energy_2020_mean\": 0.6093,\n    \"energy_2020_std\": 0.15434816857629746,\n    \"valence_2017_mean\": 0.517049,\n    \"valence_2017_std\": 0.21643606586022235,\n    \"valence_2018_mean\": 0.4844429999999999,\n    \"valence_2018_std\": 0.20614516374720906,\n    \"valence_2020_mean\": 0.55571,\n    \"valence_2020_std\": 0.21638641951615264\n  },\n  \"anova\": {\n    \"danceability_f_statistic\": 0.7182730772011928,\n    \"danceability_p_value\": 0.48860914133273275,\n    \"energy_f_statistic\": 2.4475755586534715,\n    \"energy_p\n... (1312 characters total)"
+                }
+            ],
+            "domain": "entertainment"
+        },
+        {
+            "id": "financial_234",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'Column index 0' does not match: expected values 710555000000.0 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'Column index 1' does not match: expected values 17.51 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared all 2 columns in the CSV files (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"financial_234\"                          NaN\n  \"output_file\": \"output.csv\"                         NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "             \u8425\u6536   \u8425\u6536\u5360\u6bd4\n0  710555000000  17.51"
+                }
+            ],
+            "domain": "financial"
+        },
+        {
+            "id": "financial_310",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.001
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.001
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'Column index 0' does not match: expected values \u77f3\u6cb9\u52a0\u5de5\u3001\u70bc\u7126\u548c\u6838\u71c3\u6599\u52a0\u5de5\u4e1a but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared all 1 columns in the CSV files (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"financial_310\"                          NaN\n  \"output_file\": \"output.csv\"                         NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "    industry_name\n0  \u77f3\u6cb9\u52a0\u5de5\u3001\u70bc\u7126\u548c\u6838\u71c3\u6599\u52a0\u5de5\u4e1a"
+                }
+            ],
+            "domain": "financial"
+        },
+        {
+            "id": "healthcare_05",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output.csv, output.png",
+            "added_files": [
+                "output.csv",
+                "output.png"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.005
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/healthcare_05/output.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type (0.0/1 subplots matched)"
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Missing matched columns in input files: columns ['test', 'comparison'] are not found in either result file or gold file. Available columns in result: ['{']. Available columns in gold: ['test', 'comparison', 'statistic', 'p_value', 'significant']."
+                    ],
+                    "meaning": "Evaluating model predictions using metric 'mae' with lower_bound=0.0, upper_bound=1.0 and row alignment based on matched_columns=['test', 'comparison'], calculating on columns=['statistic', 'p_value', 'significant']",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "healthcare"
+        },
+        {
+            "id": "healthcare_20",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.004
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'posterior_mean' does not match: expected values 0.5667687039432092, 0.41585873034670556, 0.17778495876600917, 0.8667041468344671 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'ci_lower_2.5%' does not match: expected values 0.7713997471079649, 0.34594700310013726, 0.07612597751769674, 0.49922800805616235 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'ci_upper_97.5%' does not match: expected values 0.6343093998302561, 0.2794439400143216, 0.9620085465609692, 0.48577045759327386 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared 3 specified columns: posterior_mean, ci_lower_2.5%, ci_upper_97.5% with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"healthcare_20\"                          NaN\n  \"output_file\": \"output.csv\"                         NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "  risk_factor  posterior_mean  ci_lower_2.5%  ci_upper_97.5%\n0         age        0.866704       0.771400        0.962009\n1         bmi        0.415859       0.345947        0.485770\n2     glucose        0.566769       0.499228        0.634309\n3          bp        0.177785       0.076126        0.279444"
+                }
+            ],
+            "domain": "healthcare"
+        },
+        {
+            "id": "healthcare_24",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: meta_analysis_results.csv",
+            "added_files": [
+                "meta_analysis_results.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Row count mismatch: result file has 5 rows but gold file has 6 rows. Both files must have the same number of rows when matched_columns is None."
+                    ],
+                    "meaning": "Evaluating model predictions using metric 'mse' with lower_bound=0, upper_bound=1, calculating on columns=['meta_effect_size', 'meta_p_value', 'fdr_corrected_p', 'clinical_significance_rank']",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "healthcare"
+        },
+        {
+            "id": "healthcare_31",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 8,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 4 \u4e2a\u6587\u4ef6: feature_analysis.png, feature_coefficients.csv, selected_features.csv, top_coefficient.txt",
+            "added_files": [
+                "feature_analysis.png",
+                "feature_coefficients.csv",
+                "selected_features.csv",
+                "top_coefficient.txt"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa selected_features.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa feature_analysis.png",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa top_coefficient.txt",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.002
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.003
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.003
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 8 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (8 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 5 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (5 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/healthcare_31/feature_analysis.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type, ytick_labels, xtick_labels (0.0/1 subplots matched)"
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Text mismatch at position 0: output has '{ \"mock' but expected '-1.9008'"
+                    ],
+                    "meaning": "Text comparison: case-insensitive, whitespace-normalized comparison between output (143 chars) and gold (7 chars). Score: 0.0",
+                    "output_data": "{\n  \"mock\": true,\n  \"task_id\": \"healthcare_31\",\n  \"output_file\": \"top_coefficient.txt\",\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\"\n}",
+                    "gold_data": "-1.9008"
+                }
+            ],
+            "domain": "healthcare"
+        },
+        {
+            "id": "loan_model_2",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.056
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.056
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "train_auc: key not found in output",
+                        "test_auc: key not found in output"
+                    ],
+                    "meaning": "Comparing JSON files with normalized scoring: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/loan_model_2/output.json', evaluating 2 fields with thresholds: train_auc=[0.5, 1.0] (higher better, range [0.5, 1.0]); test_auc=[0.5, 1.0] (higher better, range [0.5, 1.0])",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "loan_model_2",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    }
+                }
+            ],
+            "domain": "loan_model"
+        },
+        {
+            "id": "loan_model_9",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.035
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.035
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "train_positive_ratio_after_smote: key not found in output",
+                        "test_ks: key not found in output"
+                    ],
+                    "meaning": "Comparing JSON files with normalized scoring: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/loan_model_9/output.json', evaluating 2 fields with thresholds: train_positive_ratio_after_smote=[0.5, 0.5] (lower better, range [0.5, 0.5]); test_ks=[0.0, 1.0] (higher better, range [0.0, 1.0])",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "loan_model_9",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    }
+                }
+            ],
+            "domain": "loan_model"
+        },
+        {
+            "id": "loan_risk_5",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output_1.csv, output_2.csv",
+            "added_files": [
+                "output_1.csv",
+                "output_2.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output_2.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 10 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (10 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 120 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (120 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "loan_risk"
+        },
+        {
+            "id": "loan_risk_8",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: summary_output.csv",
+            "added_files": [
+                "summary_output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'score_type' does not match: expected values score1, score2 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'gap_gt_1e3_ratio' does not match: expected values 0.0224, 0.0224 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'gap_gt_1e4_ratio' does not match: expected values 0.0224, 0.0224 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'gap_gt_1e5_ratio' does not match: expected values 0.3463, 0.3342 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'gap_gt_1e6_ratio' does not match: expected values 0.9395, 0.937 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared 5 specified columns: score_type, gap_gt_1e3_ratio, gap_gt_1e4_ratio, gap_gt_1e5_ratio, gap_gt_1e6_ratio (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"loan_risk_8\"                            NaN\n  \"output_file\": \"summary_output.csv\"                 NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "  score_type  gap_gt_1e3_ratio  gap_gt_1e4_ratio  gap_gt_1e5_ratio  gap_gt_1e6_ratio\n0     score1            0.0224            0.0224            0.3342            0.9370\n1     score2            0.0224            0.0224            0.3463            0.9395"
+                }
+            ],
+            "domain": "loan_risk"
+        },
+        {
+            "id": "real_estate_04",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: top5_cagr_disparity.csv",
+            "added_files": [
+                "top5_cagr_disparity.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.039
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.039
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 5 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (5 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "real_estate"
+        },
+        {
+            "id": "real_estate_29",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.008
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.008
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/real_estate_29/output.json', gold='gold/real_estate_29/result.json', evaluating 0 fields with thresholds: ",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "real_estate_29",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": "{\n  \"analysis_metadata\": {\n    \"time_range\": \"2010-01 to 2019-12\",\n    \"lag_range_months\": [\n      -24,\n      24\n    ],\n    \"correlation_threshold\": 0.1,\n    \"window_size\": 12,\n    \"total_states_analyzed\": 51,\n    \"significant_relationships_found\": 51\n  },\n  \"top_10_relationships\": [\n    {\n      \"state\": \"DC\",\n      \"variable1\": \"ZHVI_Rolling_Mean\",\n      \"variable2\": \"Unemployment_Rolling_Mean\",\n      \"correlation\": -0.9826,\n      \"lag_months\": 0,\n      \"abs_correlation\": 0.9826,\n      \"relationship\": \"Synchronous\"\n    },\n    {\n      \"state\": \"CA\",\n      \"variable1\": \"ZHVI_Rolling_Mean\",\n      \"variable2\": \"Unemployment_Rolling_Mean\",\n      \"correlation\": -0.965,\n      \"lag_months\": 0,\n      \"abs_correlation\": 0.965,\n      \"relationship\": \"Synchronous\"\n    },\n    {\n      \"state\": \"NV\",\n      \"variable1\": \"ZHVI_Rolling_Mean\",\n      \"variable2\": \"Unemployment_Rolling_Mean\",\n      \"correlation\": -0.9468,\n      \"lag_months\": 0,\n      \"abs_correlation\": 0.9468,\n      \"relationship\": \"Synch\n... (2892 characters total)"
+                }
+            ],
+            "domain": "real_estate"
+        },
+        {
+            "id": "social_network_10",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.024
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.024
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 10 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (10 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "social_network"
+        },
+        {
+            "id": "social_network_18",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: negative_reasons.csv, output.csv",
+            "added_files": [
+                "negative_reasons.csv",
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.018
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa negative_reasons.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.018
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.018
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.018
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 18 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (18 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                },
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 42 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (42 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "social_network"
+        },
+        {
+            "id": "sports_14",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output.csv, physical_attributes_analysis.png",
+            "added_files": [
+                "output.csv",
+                "physical_attributes_analysis.png"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.02
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa physical_attributes_analysis.png",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.02
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.02
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.02
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'correlation_with_draft' does not match: expected values -0.0442, 0.0157, 0.1274, -0.0247 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'correlation_with_career' does not match: expected values 0.0112, 0.0213, -0.0762, 0.0138 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'normalized_weight' does not match: expected values 0.0063, 0.1807, 0.1497, 0.6634 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared 3 specified columns: correlation_with_draft, correlation_with_career, normalized_weight (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"sports_14\"                              NaN\n  \"output_file\": \"output.csv\"                         NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "              attribute  correlation_with_draft  p_value_draft  correlation_with_career  p_value_career  composite_score  normalized_weight\n0        height_w_shoes                 -0.0247         0.6041                   0.0213          0.6552           0.0459             0.1497\n1              wingspan                  0.0157         0.7408                   0.0138          0.7715          -0.0019             0.0063\n2     max_vertical_leap                 -0.0442         0.3527                   0.0112          0.8133           0.0554             0.1807\n3  three_quarter_sprint                  0.1274         0.0072                  -0.0762          0.1088          -0.2036             0.6634"
+                },
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/sports_14/physical_attributes_analysis.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type (0.0/1 subplots matched)"
+                }
+            ],
+            "domain": "sports"
+        },
+        {
+            "id": "sports_30",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.125
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.125
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "probability: key not found in output",
+                        "shared_countries_count: key not found in output",
+                        "nba_median_height: key not found in output",
+                        "olympic_athletes_count: key not found in output"
+                    ],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/sports_30/output.json', gold='gold/sports_30/result.json', evaluating 4 fields with thresholds: probability=0.05 (relative error tolerance); shared_countries_count=0 (relative error tolerance); nba_median_height=0.05 (relative error tolerance); olympic_athletes_count=0.05 (relative error tolerance)",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "sports_30",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": {
+                        "probability": 0.0283,
+                        "shared_countries_count": 42,
+                        "nba_median_height": 200.66,
+                        "olympic_athletes_count": 16243
+                    }
+                }
+            ],
+            "domain": "sports"
+        },
+        {
+            "id": "strategy_2",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 11 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (11 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "strategy"
+        },
+        {
+            "id": "strategy_3",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.056
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.056
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 9 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (9 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "strategy"
+        },
+        {
+            "id": "tourism_01",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output1.csv, output2.csv",
+            "added_files": [
+                "output1.csv",
+                "output2.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.1
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output2.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.1
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.1
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.1
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'mean' does not match: expected values -0.6501747570718609, -0.18851651530172459, 0.1882543655633394, 0.10636641544211485 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'std' does not match: expected values 0.6546162296178367, 1.1251894136772618, 0.8664849881015688, 2.1004392737143336 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'ci_lower' does not match: expected values -0.22933092824685913, -0.7298077204285047, 0.10078945008949274, 0.18294385961930357 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'ci_upper' does not match: expected values -0.14770210235659004, -0.5705417937152171, 0.11194338079473697, 0.19356487150737525 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared 4 specified columns: mean, std, ci_lower, ci_upper (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"tourism_01\"                             NaN\n  \"output_file\": \"output1.csv\"                        NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "                source      mean       std  ci_lower  ci_upper\n0               Airbnb  0.188254  0.866485  0.182944  0.193565\n1   Indoor Attractions -0.650175  2.100439 -0.729808 -0.570542\n2  Outdoor Attractions -0.188517  1.125189 -0.229331 -0.147702\n3          TripAdvisor  0.106366  0.654616  0.100789  0.111943"
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Column 'statistic' does not match: expected values 1064.8882978151505 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'p_value' does not match: expected values 0.0 but none found in prediction (score_rule='divide' scores each column independently)",
+                        "Column 'effect_size' does not match: expected values 0.01948053527589874 but none found in prediction (score_rule='divide' scores each column independently)"
+                    ],
+                    "meaning": "Compared 3 specified columns: statistic, p_value, effect_size (ignoring row order) with score rule 'divide' (score = matched columns / total columns). Score: 0.00/1",
+                    "output_data": "                                                        {\n  \"mock\": true                                        NaN\n  \"task_id\": \"tourism_01\"                             NaN\n  \"output_file\": \"output2.csv\"                        NaN\n  \"note\": \"MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09\" NaN\n}                                                     NaN",
+                    "gold_data": "     statistic  p_value  effect_size\n0  1064.888298      0.0     0.019481"
+                }
+            ],
+            "domain": "tourism"
+        },
+        {
+            "id": "tourism_02",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.csv",
+            "added_files": [
+                "output.csv"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.032
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.032
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0,
+                    "errors": [
+                        "Row count mismatch: output has 4 rows, gold has 78 rows (output too short)"
+                    ],
+                    "meaning": "Failed: output (4 rows) has fewer rows than gold (78 rows)",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "tourism"
+        },
+        {
+            "id": "transportation_05",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 4,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output1.json, output2.png",
+            "added_files": [
+                "output1.json",
+                "output2.png"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.181
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output2.png",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.181
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.181
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.181
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        ": type mismatch - gold is list with 15 items but output is dict, expected list format"
+                    ],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/transportation_05/output1.json', gold='gold/transportation_05/result1.json' (list comparison with keys: ['borough', 'month']), evaluating 60 fields with thresholds: borough=None (default: 1% rel error for numbers, strict equality for strings); month=None (default: 1% rel error for numbers, strict equality for strings); avg_trip_distance=0.05 (relative error tolerance); avg_total_fare=0.05 (relative error tolerance)",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "transportation_05",
+                        "output_file": "output1.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": "[\n  {\n    \"borough\": \"Bronx\",\n    \"month\": 1,\n    \"avg_trip_distance\": 7.75,\n    \"avg_total_fare\": 35.43,\n    \"trip_count\": 5759,\n    \"absolute_increase\": 1.13,\n    \"is_max_increase\": false\n  },\n  {\n    \"borough\": \"Bronx\",\n    \"month\": 2,\n    \"avg_trip_distance\": 8.03,\n    \"avg_total_fare\": 36.56,\n    \"trip_count\": 5839,\n    \"absolute_increase\": 1.13,\n    \"is_max_increase\": true\n  },\n  {\n    \"borough\": \"Brooklyn\",\n    \"month\": 1,\n    \"avg_trip_distance\": 6.15,\n    \"avg_total_fare\": 33.12,\n    \"trip_count\": 22333,\n    \"absolute_increase\": -0.72,\n    \"is_max_increase\": false\n  },\n  {\n    \"borough\": \"Brooklyn\",\n    \"month\": 2,\n    \"avg_trip_distance\": 5.98,\n    \"avg_total_fare\": 32.4,\n    \"trip_count\": 24925,\n    \"absolute_increase\": -0.72,\n    \"is_max_increase\": false\n  },\n  {\n    \"borough\": \"EWR\",\n    \"month\": 1,\n    \"avg_trip_distance\": 5.77,\n    \"avg_total_fare\": 99.18,\n    \"trip_count\": 49,\n    \"absolute_increase\": -5.85,\n    \"is_max_increase\": false\n  },\n  {\n    \"borough\": \"EWR\",\n  \n... (2934 characters total)"
+                },
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/transportation_05/output2.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type, graph_title, x_label, y_label (0.0/1 subplots matched)"
+                }
+            ],
+            "domain": "transportation"
+        },
+        {
+            "id": "transportation_06",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 2,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 1 \u4e2a\u6587\u4ef6: output.json",
+            "added_files": [
+                "output.json"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.37
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.37
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "RMSE: key not found in output",
+                        "R2: key not found in output"
+                    ],
+                    "meaning": "Comparing JSON files: output='/Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-baseline-all/output-da-agent/transportation_06/output.json', gold='gold/transportation_06/result.json', evaluating 2 fields with thresholds: RMSE=None (default: 1% rel error for numbers, strict equality for strings); R2=None (default: 1% rel error for numbers, strict equality for strings)",
+                    "output_data": {
+                        "mock": true,
+                        "task_id": "transportation_06",
+                        "output_file": "output.json",
+                        "note": "MockAgentRunner \u5360\u4f4d\u8f93\u51fa\uff08--mock \u7ba1\u7ebf\u8054\u8c03\uff0c\u975e\u771f\u5b9e\u5206\u6790\u7ed3\u679c\uff09"
+                    },
+                    "gold_data": {
+                        "RMSE": 6.017567919676673,
+                        "R2": 0.8887227006662045
+                    }
+                }
+            ],
+            "domain": "transportation"
+        }
+    ],
+    "average_finished": 1.0
+}

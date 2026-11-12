@@ -1,0 +1,145 @@
+{
+  "node": "verification",
+  "status": "passed",
+  "checked_artifacts": [
+    "output.csv",
+    "output.txt"
+  ],
+  "reference_artifacts": [
+    "execute_summary.json",
+    "analysis_plan.json",
+    "data_profile.json"
+  ],
+  "summary": "output.csv（13130 行 × 8 列，列顺序与规格逐字一致、无缺失/无重复键）与 output.txt（单行 'Polynomial Regression R2 Score: 0.0301'）均存在且格式正确；从原始四表独立重跑全套清洗 + inner join + PolynomialFeatures(degree=2) + LinearRegression，得到完全相同的样本集（13130 行、101 国、10 作物、1990-2013）与逐行零差异的预测值，in-sample R² = 0.030078438380563455（round4 = 0.0301），与 output.txt / execute_summary 三方一致。",
+  "checks": [
+    {
+      "id": "file_exists_output_csv",
+      "name": "output.csv 存在且非空",
+      "passed": true,
+      "evidence": "size=899205 bytes"
+    },
+    {
+      "id": "file_exists_output_txt",
+      "name": "output.txt 存在且非空",
+      "passed": true,
+      "evidence": "size=39 bytes"
+    },
+    {
+      "id": "csv_columns_exact",
+      "name": "CSV 列名与顺序逐字匹配规格",
+      "passed": true,
+      "evidence": "['country','year','crop_item','actual_yield','predicted_yield','pesticide_value','rainfall','avg_temp'] 完全一致"
+    },
+    {
+      "id": "csv_row_count",
+      "name": "CSV 行数 = 建模样本数",
+      "passed": true,
+      "evidence": "output.csv 13130 行；独立复现模型样本 13130 行；execute_summary n_samples=13130、join_waterfall.model_rows=13130，三处一致"
+    },
+    {
+      "id": "csv_no_missing",
+      "name": "建模列无缺失值/无 NaN/inf",
+      "passed": true,
+      "evidence": "逐列 null 计数均为 0；无 inf"
+    },
+    {
+      "id": "csv_dtypes",
+      "name": "列 dtype 合理",
+      "passed": true,
+      "evidence": "country/crop_item=str, year=int64, actual_yield=int64, predicted_yield/pesticide_value/rainfall/avg_temp=float64"
+    },
+    {
+      "id": "csv_no_duplicate_keys",
+      "name": "(country,year,crop_item) 唯一、无完全重复行",
+      "passed": true,
+      "evidence": "重复键=0，重复行=0"
+    },
+    {
+      "id": "csv_key_coverage_vs_recompute",
+      "name": "CSV 键集合与独立复现样本完全对齐（无多余/缺失行）",
+      "passed": true,
+      "evidence": "outer merge indicator: both=13130, left_only=0, right_only=0"
+    },
+    {
+      "id": "predictions_reproducible",
+      "name": "predicted_yield 可由模型精确复现",
+      "passed": true,
+      "evidence": "独立重跑 max|pred_diff|=0.0，mean|pred_diff|=0.0，差异>1e-6 的行数=0"
+    },
+    {
+      "id": "features_reproducible",
+      "name": "特征列与目标列数值正确（源自原始表 join）",
+      "passed": true,
+      "evidence": "actual_yield/pesticide_value/rainfall/avg_temp 与独立复现的 max diff 均为 0.0"
+    },
+    {
+      "id": "r2_matches_csv",
+      "name": "output.txt 中 R² 与 output.csv 预测重算值一致",
+      "passed": true,
+      "evidence": "r2_score(actual_yield, predicted_yield)=0.030078438380563455 → round4=0.0301；txt=0.0301"
+    },
+    {
+      "id": "r2_reproducible_independently",
+      "name": "R² 可由原始数据独立复现",
+      "passed": true,
+      "evidence": "独立 PolynomialFeatures(degree=2, include_bias=False) → (13130, 9) + LinearRegression(in-sample predict) 得 R²=0.030078438380563455，与交付值一致"
+    },
+    {
+      "id": "r2_in_sample",
+      "name": "R² 为同一拟合数据的 in-sample 值（非留出集）",
+      "passed": true,
+      "evidence": "预测直接来自 fit 后对同一 X_poly 的 predict，且逐行零差异复现；OLS 性质校验通过：mean(predicted)==mean(actual)"
+    },
+    {
+      "id": "txt_format",
+      "name": "output.txt 单行且严格匹配 'Polynomial Regression R2 Score: {value}'",
+      "passed": true,
+      "evidence": "内容 b'Polynomial Regression R2 Score: 0.0301\\n'，splitlines 仅 1 行，正则匹配成功，结尾仅单个换行、无多余空白"
+    },
+    {
+      "id": "r2_four_decimals",
+      "name": "R² 保留 4 位小数",
+      "passed": true,
+      "evidence": "'0.0301' 恰为 4 位小数，与 round(0.030078438380563455, 4) 一致"
+    },
+    {
+      "id": "feature_ranges_plausible",
+      "name": "特征取值落在合理物理范围（无占位符残留）",
+      "passed": true,
+      "evidence": "rainfall 51–3240 mm、avg_temp 1.30–30.42 ℃、pesticide_value 0.04–367778 t、actual_yield 50–501412 hg/ha；rainfall 的 '..'/空值已剔除（清洗后 5947 行、键唯一）"
+    },
+    {
+      "id": "temp_dup_aggregation",
+      "name": "temp.csv 重复 country-year 已聚合（目标未被重复计数）",
+      "passed": true,
+      "evidence": "独立复现 groupby(country,year).mean 后 27479 行且键唯一；join 后样本 13130 行与交付一致"
+    },
+    {
+      "id": "consistency_with_execute_summary",
+      "name": "交付物与 execute_summary 记录一致",
+      "passed": true,
+      "evidence": "r2_rounded=0.0301、r2_formatted='0.0301'、n_samples=13130、n_countries=101、n_crop_items=10、year_range=[1990,2013] 均吻合"
+    }
+  ],
+  "key_numbers": {
+    "n_rows_output_csv": 13130,
+    "n_countries": 101,
+    "n_crop_items": 10,
+    "year_range": [
+      1990,
+      2013
+    ],
+    "polynomial_feature_count": 9,
+    "r2_raw": 0.030078438380563455,
+    "r2_rounded": 0.0301,
+    "output_txt_content": "Polynomial Regression R2 Score: 0.0301",
+    "max_abs_pred_diff_vs_independent_recompute": 0.0
+  },
+  "observations": [
+    "R²=0.0301 极低，但属数据特性而非实现缺陷：avg_temp/rainfall 为国家-年粒度并广播到 10 个 crop_item，pesticide_value 为国家总量且强右偏（量级主导多项式平方项），产量跨国家/作物差异达 4 个数量级（50–501412 hg/ha）。执行节点未调参美化，符合 degree=2 固定 + in-sample R² 的任务要求。",
+    "样本覆盖依赖精确国家名匹配（temp.csv 为短名），覆盖集中于 1990–2013；analysis_plan 已将别名映射列为可选增强且明确不纳入，属既定口径而非缺陷。",
+    "低解释力已在 execute_summary.interpretation 如实记录，二次项共线性风险也在 analysis_plan.risks 中声明，与实测弱解释力一致。"
+  ],
+  "issues": [],
+  "final_conclusion": "验证通过：output.csv 与 output.txt 存在、格式合规、内容完整，且可从原始数据确定性复现；交付 R² = 0.0301（4 位小数，in-sample）。"
+}

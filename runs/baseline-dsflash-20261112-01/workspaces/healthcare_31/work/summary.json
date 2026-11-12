@@ -1,0 +1,31 @@
+{
+  "n_records": 3612,
+  "n_features": 8,
+  "selected_features": [
+    "glucose",
+    "bmi",
+    "bp",
+    "age_glucose_interaction",
+    "bp_bmi_ratio"
+  ],
+  "pca_evr": [
+    0.3811630366141433,
+    0.3132506893203499,
+    0.18271373272698987
+  ],
+  "pca_cumulative": 0.877127458661483,
+  "top_feature": "pca_component_3",
+  "top_coefficient": 3.702301,
+  "train_accuracy": 0.812015503875969,
+  "cv_accuracy_mean": 0.8012340854319682,
+  "cv_accuracy_std": 0.03587341330465112,
+  "sources": {
+    "diabetes": 2612,
+    "stroke": 1000
+  },
+  "source_encoding": {
+    "diabetes": 0,
+    "stroke": 1
+  },
+  "medians_filled": 0
+}

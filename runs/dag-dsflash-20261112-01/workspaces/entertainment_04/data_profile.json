@@ -1,0 +1,159 @@
+{
+  "files": {
+    "top2017.csv": {
+      "rows": 100,
+      "cols": 16,
+      "role": "Billboard top-100 tracks 2017 audio features",
+      "key_cols": [
+        "danceability",
+        "energy",
+        "valence"
+      ],
+      "note": "no missing values in the 3 features"
+    },
+    "top2018.csv": {
+      "rows": 100,
+      "cols": 16,
+      "role": "Billboard top-100 tracks 2018 audio features",
+      "key_cols": [
+        "danceability",
+        "energy",
+        "valence"
+      ],
+      "note": "no missing values"
+    },
+    "top50_2020.csv": {
+      "rows": 50,
+      "cols": 17,
+      "role": "top-50 tracks 2020 audio features",
+      "key_cols": [
+        "danceability",
+        "energy",
+        "valence"
+      ],
+      "note": "extra unnamed index col + artist/album/track_name/track_id/genre; no missing values"
+    },
+    "books.csv": {
+      "rows": 11127,
+      "cols": 12,
+      "role": "Goodreads books",
+      "key_cols": [
+        "average_rating"
+      ],
+      "note": "4 rows contain unquoted commas (line 3350 etc.) -> 13 fields; recovered by merging middle fields into 'authors'; 0 missing average_rating, no duplicate bookID"
+    },
+    "vgsales.csv": {
+      "rows": 16598,
+      "cols": 11,
+      "role": "video game sales",
+      "key_cols": [
+        "Publisher",
+        "Global_Sales"
+      ],
+      "note": "58 missing Publisher (0.17% of global sales), 271 missing Year; Global_Sales ~= sum of regional sales (max diff 0.02)"
+    },
+    "The Movies Dataset/movies_metadata.csv": {
+      "rows": 45466,
+      "cols": 24,
+      "role": "TMDB movie metadata",
+      "key_cols": [
+        "vote_average",
+        "vote_count"
+      ],
+      "note": "6 missing vote_average, 2998 rows with vote_average==0 (mostly vote_count==0), 30 duplicate ids; read with usecols + low_memory=False (popularity/id columns are dirty strings)"
+    }
+  },
+  "sampling_notes": "All files are small enough to read in full except movies_metadata.csv (33MB) which should be read with usecols.",
+  "music_features": {
+    "definition": "per-year mean (arithmetic) and standard deviation (sample, ddof=1 = pandas default) of danceability/energy/valence over all tracks in that year's file (n=100/100/50).",
+    "values_ddof1": {
+      "danceability_2017_mean": 0.6968199999999999,
+      "danceability_2017_std": 0.12507972245610782,
+      "danceability_2018_mean": 0.7164600000000001,
+      "danceability_2018_std": 0.1310701423750742,
+      "danceability_2020_mean": 0.7167200000000001,
+      "danceability_2020_std": 0.12497526939032247,
+      "energy_2017_mean": 0.6606899999999999,
+      "energy_2017_std": 0.13920718481109481,
+      "energy_2018_mean": 0.6590600000000001,
+      "energy_2018_std": 0.1450671610397102,
+      "energy_2020_mean": 0.6093,
+      "energy_2020_std": 0.15434816857629746,
+      "valence_2017_mean": 0.517049,
+      "valence_2017_std": 0.21643606586022235,
+      "valence_2018_mean": 0.4844429999999999,
+      "valence_2018_std": 0.20614516374720906,
+      "valence_2020_mean": 0.55571,
+      "valence_2020_std": 0.21638641951615264
+    },
+    "values_ddof0_alternative": {
+      "danceability_2017_mean": 0.6968199999999999,
+      "danceability_2017_std": 0.12445275248061008,
+      "danceability_2018_mean": 0.7164600000000001,
+      "danceability_2018_std": 0.13041314504297485,
+      "danceability_2020_mean": 0.7167200000000001,
+      "danceability_2020_std": 0.12371920465311761,
+      "energy_2017_mean": 0.6606899999999999,
+      "energy_2017_std": 0.1385094000420188,
+      "energy_2018_mean": 0.6590600000000001,
+      "energy_2018_std": 0.14434000277123457,
+      "energy_2020_mean": 0.6093,
+      "energy_2020_std": 0.15279689132963406,
+      "valence_2017_mean": 0.517049,
+      "valence_2017_std": 0.21535116646770225,
+      "valence_2018_mean": 0.4844429999999999,
+      "valence_2018_std": 0.20511184814876005,
+      "valence_2020_mean": 0.55571,
+      "valence_2020_std": 0.2142116264351681
+    },
+    "groups_n": {
+      "2017": 100,
+      "2018": 100,
+      "2020": 50
+    },
+    "missing_values": 0
+  },
+  "anova": {
+    "test": "scipy.stats.f_oneway (one-way ANOVA, 3 groups: 2017/2018/2020), no missing values so no listwise deletion needed",
+    "values": {
+      "danceability": {
+        "f_statistic": 0.7182730772011928,
+        "p_value": 0.48860914133273275
+      },
+      "energy": {
+        "f_statistic": 2.447575558653471,
+        "p_value": 0.08859872893058825
+      },
+      "valence": {
+        "f_statistic": 1.929153777682068,
+        "p_value": 0.14745363009449414
+      }
+    },
+    "interpretation": "no feature differs significantly at alpha=0.05 (danceability p=0.489, energy p=0.089, valence p=0.147); energy is closest to significance"
+  },
+  "game_market_hhi": {
+    "definition": "HHI = sum of squared market shares, share = Publisher Global_Sales / total Global_Sales (all years 1980-2020, 578 publishers, rows with missing Publisher dropped).",
+    "primary_value": 0.07929227304017357,
+    "alternative_pct_scale_0_10000": 792.9227304017359,
+    "top_publishers_share": {
+      "Nintendo": 0.20061175265789014,
+      "Electronic Arts": 0.12467716797146951,
+      "Activision": 0.08168604781731863
+    },
+    "note": "Highly unconcentrated market (HHI 0.0793 on 0-1 scale = 792.9 on 0-10000 scale). Filling missing Publisher with 'Unknown' changes value only to 0.07904371."
+  },
+  "ratings": {
+    "books": {
+      "mean": 3.933630807944639,
+      "median": 3.96,
+      "n": 11127,
+      "note": "average_rating of all 11127 books; median 3.96, range 0-5"
+    },
+    "movies": {
+      "mean": 5.618207215134184,
+      "median": 6.0,
+      "n": 45460,
+      "note": "vote_average over all non-null rows (incl. 2998 zeros). Alternative: restricting to vote_count>0 gives mean 6.0009 median 6.1 (n=42561); vote_count-weighted mean is 6.6815."
+    }
+  }
+}

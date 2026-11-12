@@ -1,0 +1,201 @@
+{
+  "node": "verify_outputs",
+  "task": "校验 output_1.csv（整体分布）与 output_2.csv（月度分布）的存在性、格式、指标正确性与完整性",
+  "status": "pass",
+  "verdict": "两个输出文件均存在、格式合规、7 项指标经独立重算完全一致（最大绝对误差 0.0），结果完整无缺失。",
+  "checked_files": [
+    {
+      "path": "output_1.csv",
+      "exists": true,
+      "bytes": 771,
+      "shape": {
+        "rows": 10,
+        "cols": 8
+      }
+    },
+    {
+      "path": "output_2.csv",
+      "exists": true,
+      "bytes": 8688,
+      "shape": {
+        "rows": 120,
+        "cols": 9
+      }
+    }
+  ],
+  "source_data": {
+    "path": "input.csv",
+    "shape": {
+      "rows": 10000,
+      "cols": 3
+    },
+    "columns": [
+      "group_id",
+      "score",
+      "apply_date"
+    ],
+    "missing_values": {
+      "group_id": 0,
+      "score": 0,
+      "apply_date": 0
+    },
+    "group_id_unique": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "apply_date_range": [
+      "20230101",
+      "20231231"
+    ],
+    "all_apply_date_8_digits": true,
+    "months_observed": [
+      "202301",
+      "202302",
+      "202303",
+      "202304",
+      "202305",
+      "202306",
+      "202307",
+      "202308",
+      "202309",
+      "202310",
+      "202311",
+      "202312"
+    ],
+    "score_range": [
+      0.01,
+      99.99
+    ],
+    "duplicate_full_rows": 1,
+    "duplicate_note": "1 条完全重复行按行计入统计（与口径一致），不影响校验"
+  },
+  "format_checks": {
+    "output_1": {
+      "columns_exact_and_in_order": true,
+      "expected_columns": [
+        "group_id",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "no_apply_month_column": true,
+      "no_overall_placeholder_in_values": true,
+      "group_id_dtype": "int64",
+      "cnt_dtype": "float64",
+      "other_metric_dtypes": "float64 x6",
+      "row_count_expected": 10,
+      "row_count_actual": 10,
+      "group_id_complete_and_unique": true,
+      "sorted_by_group_id": true,
+      "nan_or_inf": false
+    },
+    "output_2": {
+      "columns_exact_and_in_order": true,
+      "expected_columns": [
+        "group_id",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "no_apply_month_column": true,
+      "no_overall_placeholder_in_values": true,
+      "group_id_dtype": "int64",
+      "cnt_dtype": "float64",
+      "other_metric_dtypes": "float64 x6",
+      "row_count_expected": 120,
+      "row_count_actual": 120,
+      "group_id_complete_and_unique": true,
+      "sorted_by_group_id": true,
+      "nan_or_inf": false,
+      "apply_month_format": "6 位 YYYYMM 文本（文件内为 202301..202312），月份集合与输入一致",
+      "group_month_pairs_unique": true,
+      "group_month_grid_complete": true,
+      "grid_note": "10 组 × 12 月 = 120 个组月单元格全覆盖，无缺失组合"
+    },
+    "common": {
+      "apply_month_note": "apply_month 在 CSV 中以 '202301' 形式落盘；用 pandas 默认推断读取时会得到 int64，仅为读取端类型推断，文本本身符合 YYYYMM 规范、无前导零丢失风险（月份均以 '20' 开头）。建议下游显式 dtype={'apply_month': str} 读取。"
+    }
+  },
+  "numeric_recheck": {
+    "method": "使用 collections.Counter + numpy 独立重算 7 项指标（mode 取并列众数最小值；std 用 ddof=1，n<2 或非有限值填 0），并与输出逐单元格比较",
+    "output_1": {
+      "cells_compared": 10,
+      "metrics_compared_per_cell": 7,
+      "max_abs_diff": 0.0,
+      "mismatched_cells": 0,
+      "cnt_sum": 10000.0,
+      "cnt_matches_raw_group_size": true
+    },
+    "output_2": {
+      "cells_compared": 120,
+      "metrics_compared_per_cell": 7,
+      "max_abs_diff": 0.0,
+      "mismatched_cells": 0,
+      "cnt_sum": 10000.0,
+      "monthly_cnt_sums_equal_overall_cnt_per_group": true,
+      "minmax_nested_within_overall": true
+    },
+    "precision_note": "输出保留 pandas 原始浮点精度（未四舍五入），与重算结果严格一致"
+  },
+  "completeness": {
+    "overall_cells_expected_vs_actual": "10 / 10",
+    "monthly_cells_expected_vs_actual": "120 / 120",
+    "count_total_overall": 10000.0,
+    "count_total_monthly": 10000.0,
+    "min_cell_n_overall": 962.0,
+    "min_cell_n_monthly": 53.0,
+    "cells_with_n_lt_2": 0,
+    "std_filled_with_zero_cells": 0,
+    "std_fallback_branch_triggered": false,
+    "std_fallback_note": "所有单元格 n>=53，样本标准差均可正常计算，未触发 n<2 填 0 分支"
+  },
+  "distribution_summary": {
+    "overall_mean_score_range": [
+      49.1398,
+      51.6757
+    ],
+    "overall_std_score_range": [
+      27.6071,
+      29.7905
+    ],
+    "monthly_cnt_range": [
+      53.0,
+      104.0
+    ],
+    "monthly_mean_score_range": [
+      43.5594,
+      56.2772
+    ],
+    "monthly_std_score_range": [
+      25.2603,
+      32.1302
+    ],
+    "monthly_cells_with_tied_mode": 96,
+    "tied_mode_note": "众数并列现象普遍（120 个组月单元格中 96 个存在并列），已按口径取并列众数中的最小值，校验重算一致",
+    "observation": "各组整体均值集中在约 49.14~51.68、样本标准差 27.61~29.79，组间差异很小；组月层面均值 43.56~56.28 的波动与单元格样本量 53~104 的抽样误差量级相符。median 与 mean 接近，分布近似对称。"
+  },
+  "issues": [],
+  "warnings": [
+    "apply_month 列以纯数字文本落盘，pandas 默认读取会推断为 int64；如需保证字符串语义，请显式指定 dtype。",
+    "input.csv 存在 1 条完全重复行，已按行计入统计（符合 count 定义）；若业务口径要求去重，需另行说明。"
+  ],
+  "artifacts": [
+    "verification.json"
+  ]
+}

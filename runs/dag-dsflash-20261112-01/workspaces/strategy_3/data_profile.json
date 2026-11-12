@@ -1,0 +1,299 @@
+{
+  "artifact": "data_profile.json",
+  "generated_by": "data_profile_node",
+  "input_files": [
+    {
+      "path": "data_1.csv",
+      "size_bytes": 38779164,
+      "rows": 477049,
+      "columns": 11,
+      "data_rows_excl_header": 477049
+    }
+  ],
+  "grain": "one row per outreach record (a call attempt or an SMS send) for one score; no unique id column, no de-dup possible",
+  "columns": [
+    {
+      "name": "send_time",
+      "dtype": "string(datetime)",
+      "nulls": 215532,
+      "null_pct": 45.18,
+      "meaning": "SMS send timestamp; non-null == SMS delivered/sent",
+      "example": "2026-03-01 08:13:53"
+    },
+    {
+      "name": "click_time",
+      "dtype": "string(datetime)",
+      "nulls": 473183,
+      "null_pct": 99.19,
+      "meaning": "link click timestamp; non-null == clicked",
+      "example": null
+    },
+    {
+      "name": "check_time",
+      "dtype": "string(datetime)",
+      "nulls": 476867,
+      "null_pct": 99.96,
+      "meaning": "check timestamp",
+      "example": null
+    },
+    {
+      "name": "apply_time",
+      "dtype": "string(datetime)",
+      "nulls": 476867,
+      "null_pct": 99.96,
+      "meaning": "application timestamp",
+      "example": null
+    },
+    {
+      "name": "upgrade_time",
+      "dtype": "string(datetime)",
+      "nulls": 476867,
+      "null_pct": 99.96,
+      "meaning": "conversion/upgrade timestamp",
+      "example": null
+    },
+    {
+      "name": "if_call_suc",
+      "dtype": "int64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "call outcome flag: 1 = connected, 0 = not connected, -1 = not a call (SMS row)",
+      "values": {
+        "-1": 251606,
+        "0": 190634,
+        "1": 34809
+      }
+    },
+    {
+      "name": "dt",
+      "dtype": "int64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "partition date, single value",
+      "values": [
+        20260301
+      ]
+    },
+    {
+      "name": "type",
+      "dtype": "string",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "record channel: call / sms",
+      "values": {
+        "sms": 251693,
+        "call": 225356
+      }
+    },
+    {
+      "name": "score",
+      "dtype": "float64",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "model score, all values lie exactly on the 0.001 grid in [0.99, 1.0]",
+      "min": 0.99,
+      "max": 1.0,
+      "unique_values": 11
+    },
+    {
+      "name": "score_bucket",
+      "dtype": "string",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "pre-existing 0.001-width bucket label; top bin is written as [0.999,1] and holds BOTH 0.999 and 1.0; all other bins are [A,B)"
+    },
+    {
+      "name": "id_bucket",
+      "dtype": "string",
+      "nulls": 0,
+      "null_pct": 0.0,
+      "meaning": "auxiliary user-attribute bucket (e.g. [40,45), 'other', '[70,70+)'), not needed for this task"
+    }
+  ],
+  "score_distribution": {
+    "note": "all scores are multiples of 0.001, so each 0.001-wide bin contains exactly one score value except the top bin",
+    "value_counts": {
+      "0.99": 21336,
+      "0.991": 42367,
+      "0.992": 49432,
+      "0.993": 48075,
+      "0.994": 50724,
+      "0.995": 48333,
+      "0.996": 47915,
+      "0.997": 50767,
+      "0.998": 46828,
+      "0.999": 47572,
+      "1": 23700
+    },
+    "no_rows_below_0.99": true
+  },
+  "binning_spec_for_downstream": {
+    "rule": "bins of width 0.001 starting at 0.99; 10 bins; every bin [A,B) EXCEPT the highest bin which must be written [A,B] (i.e. [0.999,1]) and absorbs score == 1.0",
+    "label_format": "highest bin '[A,B]', all other bins '[A,B)'",
+    "border_rule": "left-closed, right-open for non-top bins (score 0.99 -> '[0.99,0.991)'); top bin closed on both ends, so 0.999 and 1.0 both fall in '[0.999,1]'",
+    "float_formatting": "format bounds without trailing zeros, matching the file convention: [0.99,0.991), [0.99,0.991) style with %g",
+    "verified": "labels reproduced this way match the existing score_bucket column on 405777/477049 rows; the only 71272 mismatches are exactly the 0.999 (47572) + 1.0 (23700) rows that belong to the closed top bin -> confirms top-bin-as-[A,B] convention",
+    "buckets": [
+      {
+        "score_bucket": "[0.99,0.991)",
+        "closed_right": false,
+        "score_values": [
+          0.99
+        ],
+        "row_count": 21336,
+        "row_pct": 4.47
+      },
+      {
+        "score_bucket": "[0.991,0.992)",
+        "closed_right": false,
+        "score_values": [
+          0.991
+        ],
+        "row_count": 42367,
+        "row_pct": 8.88
+      },
+      {
+        "score_bucket": "[0.992,0.993)",
+        "closed_right": false,
+        "score_values": [
+          0.992
+        ],
+        "row_count": 49432,
+        "row_pct": 10.36
+      },
+      {
+        "score_bucket": "[0.993,0.994)",
+        "closed_right": false,
+        "score_values": [
+          0.993
+        ],
+        "row_count": 48075,
+        "row_pct": 10.08
+      },
+      {
+        "score_bucket": "[0.994,0.995)",
+        "closed_right": false,
+        "score_values": [
+          0.994
+        ],
+        "row_count": 50724,
+        "row_pct": 10.63
+      },
+      {
+        "score_bucket": "[0.995,0.996)",
+        "closed_right": false,
+        "score_values": [
+          0.995
+        ],
+        "row_count": 48333,
+        "row_pct": 10.13
+      },
+      {
+        "score_bucket": "[0.996,0.997)",
+        "closed_right": false,
+        "score_values": [
+          0.996
+        ],
+        "row_count": 47915,
+        "row_pct": 10.04
+      },
+      {
+        "score_bucket": "[0.997,0.998)",
+        "closed_right": false,
+        "score_values": [
+          0.997
+        ],
+        "row_count": 50767,
+        "row_pct": 10.64
+      },
+      {
+        "score_bucket": "[0.998,0.999)",
+        "closed_right": false,
+        "score_values": [
+          0.998
+        ],
+        "row_count": 46828,
+        "row_pct": 9.82
+      },
+      {
+        "score_bucket": "[0.999,1]",
+        "closed_right": true,
+        "score_values": [
+          0.999,
+          1.0
+        ],
+        "row_count": 71272,
+        "row_pct": 14.94
+      }
+    ]
+  },
+  "metric_candidates": {
+    "total": {
+      "recommended": "row count in bucket (calls + SMS records)",
+      "value": 477049,
+      "alt": "if the task's 'number of outbound calls' is meant to be total, then total = type=='call' = 225356 rows; downstream should prefer plain row count for 'total' and keep channel split visible via oncall"
+    },
+    "oncall": {
+      "recommended": "type == 'call' (outbound call attempts)",
+      "values": {
+        "type=='call'": 225356,
+        "if_call_suc != -1": 225443,
+        "if_call_suc == 1 (connected)": 34809
+      },
+      "ambiguity": "AM-1: 87 rows are type=='sms' but if_call_suc==1 (all timestamps null) - they are NOT counted by type=='call'; if 'oncall' is read strictly as if_call_suc != -1 these 87 rows shift from cnt_send/oncall boundary. Use type=='call' unless specified otherwise."
+    },
+    "cnt_send": {
+      "recommended": "send_time.notna()",
+      "value": 261517,
+      "note": "SMS rows always have send_time; 90837 call rows also carry a send_time, so cnt_send > #SMS (251693); no click exists without a send_time (click_without_send == 0)"
+    },
+    "cnt_click": {
+      "recommended": "click_time.notna()",
+      "value": 3866
+    },
+    "cnt_check": {
+      "recommended": "check_time.notna()",
+      "value": 182
+    },
+    "cnt_apply": {
+      "recommended": "apply_time.notna()",
+      "value": 182
+    },
+    "cnt_upgrade": {
+      "recommended": "upgrade_time.notna()",
+      "value": 182
+    }
+  },
+  "data_quality_findings": [
+    "Funnel is perfectly nested: click_time non-null => send_time non-null (0 violations); check => apply (0); upgrade => check and => apply (0).",
+    "check_time, apply_time and upgrade_time are non-null on exactly the same 182 rows, so cnt_check == cnt_apply == cnt_upgrade for every bucket. Not a bug from the profile's view, but downstream should not be surprised by identical columns.",
+    "87 rows (0.018%) have type=='sms' together with if_call_suc==1 and all five timestamps NULL - contradictory channel/outcome flags (anomaly).",
+    "No sentinel/placeholder strings: unset timestamps are real NULL, read them with pandas and use isna(), not string comparison.",
+    "Single partition dt=20260301 - no date filtering needed.",
+    "No id/user column - metrics are record-level counts; no de-duplication possible or required.",
+    "score has no nulls and is bounded to [0.99, 1.0]; there are zero rows with score < 0.99, so no 'below-threshold' bin is needed (21,336 rows sit exactly on 0.99 and go into the first bin [0.99,0.991))."
+  ],
+  "expected_output_contract": {
+    "path": "output.csv",
+    "headers": [
+      "score_bucket",
+      "total",
+      "oncall",
+      "cnt_send",
+      "cnt_click",
+      "cnt_check",
+      "cnt_apply",
+      "cnt_upgrade"
+    ],
+    "rows_expected": 10,
+    "row_order": "ascending by bucket lower bound",
+    "sum_checks": {
+      "sum_total": 477049,
+      "sum_cnt_send": 261517,
+      "sum_cnt_click": 3866,
+      "sum_cnt_check": 182,
+      "sum_cnt_apply": 182,
+      "sum_cnt_upgrade": 182
+    }
+  }
+}

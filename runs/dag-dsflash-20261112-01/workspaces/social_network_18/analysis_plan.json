@@ -1,0 +1,126 @@
+{
+  "plan_version": "1.0",
+  "objective": "Airline customer-feedback sentiment analysis: (a) per-airline sentiment distribution (counts + percentages) -> output.csv; (b) per-airline complaint-category breakdown of negative tweets via case-insensitive keyword matching -> negative_reasons.csv.",
+  "data_inventory": {
+    "source": "Twitter_US_Airline_Sentiment.sqlite",
+    "table": "Tweets",
+    "row_count": 14485,
+    "columns_relevant": [
+      "tweet_id",
+      "airline",
+      "airline_sentiment",
+      "text",
+      "negativereason",
+      "negativereason_confidence",
+      "tweet_created"
+    ],
+    "airlines": [
+      "American",
+      "Delta",
+      "Southwest",
+      "US Airways",
+      "United",
+      "Virgin America"
+    ],
+    "airline_totals": {
+      "American": 2604,
+      "Delta": 2222,
+      "Southwest": 2420,
+      "US Airways": 2913,
+      "United": 3822,
+      "Virgin America": 504
+    },
+    "sentiment_labels": [
+      "positive",
+      "negative",
+      "neutral"
+    ],
+    "sentiment_totals": {
+      "negative": 9082,
+      "neutral": 3069,
+      "positive": 2334
+    },
+    "completeness": "0 NULL and 0 empty values in airline, airline_sentiment, text; every sentiment value is one of positive/negative/neutral -> no row filtering/cleaning required for the two required outputs",
+    "unused_field_note": "the dataset's own 'negativereason' column (10 free-text values incl. 'Can't Tell'/'') is NOT used for the reason analysis; the task mandates keyword matching on tweet text"
+  },
+  "upstream_artifact_status": {
+    "output.csv": "exists, 18 data rows + header; per-airline counts sum to 14485 and per-airline percentages sum to 100.00 -> structurally valid",
+    "negative_reasons.csv": "exists, 42 data rows + header (6 airlines x 7 categories); per-airline sums exceed negative tweet counts as expected because categories are multi-label",
+    "data_profile.json": "exists, provides types, null counts, distinct values and reference totals usable as validation baselines"
+  },
+  "plan_steps": [
+    {
+      "step": 1,
+      "name": "extract_tweet_records",
+      "purpose": "Build the analysis base table of tweets carrying both an airline identifier and a sentiment label.",
+      "method": "SELECT tweet_id, airline, airline_sentiment, text FROM Tweets WHERE airline IS NOT NULL AND TRIM(airline) <> '' AND airline_sentiment IS NOT NULL AND TRIM(airline_sentiment) <> ''; also LOWER(TRIM()) airline/sentiment for stable grouping keys.",
+      "expected_result": "14485 rows (no rows dropped); 6 airlines; 3 sentiment labels",
+      "checks": [
+        "row count == 14485",
+        "distinct airlines == 6",
+        "distinct sentiments ⊂ {positive, negative, neutral}"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "sentiment_distribution",
+      "purpose": "Counts and percentages of each sentiment per airline.",
+      "method": "GROUP BY airline, airline_sentiment -> count; percentage = count / (total tweets of that airline) * 100, rounded to exactly 2 decimals (format '%.2f'); percentages must be computed on the AIRLINE denominator (not the global 14485).",
+      "expected_result": "18 rows (6 airlines x 3 sentiments)",
+      "checks": [
+        "sum(count) per airline == airline_totals",
+        "sum(percentage) per airline == 100.00",
+        "every percentage string matches ^\\d+\\.\\d{2}$"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "negative_keyword_tagging",
+      "purpose": "Multi-label complaint tagging on negative tweets only.",
+      "method": "Filter airline_sentiment == 'negative' (9082 tweets) -> text_l = LOWER(text); substring (in) matching per category: delay=[delay, delayed, late, wait, waiting, hours, waited]; service=[service, rude, staff, customer, attitude, unhelpful, rudest]; baggage=[baggage, luggage, bag, lost, damage, suitcase, damaged, lost] (dedupe 'lost'); cancel=[cancel, cancelled, cancellation, 'flight cancelled', canceled]; seat=[seat, seating, overbook, overbooking, upgrade, cramped]; food=[food, meal, drink, hungry, refreshment, thirsty]; other = matched none of the six. A tweet may be counted in several categories; 'flight cancelled' is redundant under substring matching (already covered by 'cancel') but keep for spec fidelity.",
+      "expected_result": "category totals (multi-label): delay 2112, service 1395, baggage 1080, cancel 864, seat 404, food 120, other 4239",
+      "checks": [
+        "sum of category counts may exceed 9082 (multi-label) - expected",
+        "other == 9082 - |union of 6 categories|",
+        "case-insensitivity verified by spot-checking a tweet containing 'DELAY'/'Late'"
+      ]
+    },
+    {
+      "step": 4,
+      "name": "negative_reason_aggregation",
+      "purpose": "Per-airline complaint-category counts.",
+      "method": "GROUP BY airline, category over the tagged negative set; emit all 6x7 = 42 combinations, filling missing combos with count 0 (currently every combo is non-zero).",
+      "expected_result": "42 rows",
+      "checks": [
+        "42 rows present",
+        "all counts >= 0 and integral",
+        "reason labels ⊂ {delay, service, baggage, cancel, seat, food, other}"
+      ]
+    },
+    {
+      "step": 5,
+      "name": "write_outputs",
+      "purpose": "Persist deliverables with exact required schemas.",
+      "method": "output.csv header 'airline,sentiment,count,percentage' (percentage as fixed 2-decimal text); negative_reasons.csv header 'airline,reasons,count'. Deterministic ordering: airline ascending, then sentiment in positive/negative/neutral order, then reasons alphabetically - matches the existing upstream artifacts so re-runs are idempotent and diffable.",
+      "expected_result": "output.csv 18 rows + header; negative_reasons.csv 42 rows + header"
+    },
+    {
+      "step": 6,
+      "name": "validate_and_cross_check",
+      "purpose": "Guard against silent computational errors.",
+      "method": "Recompute counts via an independent path (SQL vs pandas) and assert equality; assert per-airline percentage sums; assert sum(count) in output.csv == 14485; compare against data_profile.json baseline totals and (if regenerating) against existing artifacts.",
+      "expected_result": "All assertions pass; deviations from baselines documented rather than hidden."
+    }
+  ],
+  "business_interpretation_targets": [
+    "Share of negative vs neutral vs positive per airline and ranking of airlines by negative share (worst first).",
+    "Overall primary negative driver ranking (by category count) and per-airline dominant driver.",
+    "Note that 'other' is the largest bucket => keyword list coverage is limited; report it explicitly instead of ignoring it."
+  ],
+  "risks_and_notes": [
+    "Substring matching inflates categories vs word-boundary matching (e.g. 'wait' in 'await', 'late' in 'translate', 'bag' in 'baggage'/'boardbag'); the task specifies substring keyword presence, so substring is kept, but the sensitivity numbers in data_profile.json should be cited if precision is questioned.",
+    "Negatives include retweets/duplicates; no dedup is specified, so keep all rows (report row count as-is).",
+    "Rounding: use fixed 2-decimal formatting; percentages are individually rounded so tiny +/-0.01 drift is possible but per-airline sums verified to be exactly 100.00 on this data.",
+    "US Airways (2913 tweets) and United (3822 tweets) dominate volume; Virgin America has only 504 tweets -> its percentages are low-precision and should not be over-interpreted."
+  ]
+}

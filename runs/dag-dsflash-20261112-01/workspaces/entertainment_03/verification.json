@@ -1,0 +1,233 @@
+{
+ "artifact": "verification.json",
+ "target": "output.csv",
+ "verdict": "pass",
+ "checked_at": "inspect-node",
+ "summary": "output.csv 存在、schema 与格式完全符合规格，10 行/簇 ID 0-9 唯一；dominant_topic、top_topic_words、coherence_score(seed=42 采样)、representative_items 均能由上游 Artifact（tfidf.npz / kmeans_labels|centers / lda_doc_topic|components / corpus.pkl）独立复算得到一致结果；TF-IDF、K-Means、LDA 三个模型以规格参数重拟合均可逐位复现。",
+ "file_checks": {
+  "exists": true,
+  "bytes": 2053,
+  "rows_excluding_header": 10,
+  "columns": [
+   "cluster_id",
+   "dominant_topic",
+   "top_topic_words",
+   "coherence_score",
+   "representative_items"
+  ],
+  "schema_matches_required": true,
+  "duplicate_rows": 0,
+  "null_cells": 0,
+  "trailing_empty_lines_or_whitespace_issues": false
+ },
+ "field_checks": {
+  "cluster_id": {
+   "type": "int",
+   "values": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "unique_0_to_9": true
+  },
+  "dominant_topic": {
+   "type": "int",
+   "values": [
+    2,
+    2,
+    3,
+    4,
+    0,
+    8,
+    8,
+    1,
+    0,
+    7
+   ],
+   "all_in_0_9": true,
+   "matches_argmax_of_cluster_mean_lda_distribution": true
+  },
+  "top_topic_words": {
+   "format": "comma-separated, 5 tokens, no spaces",
+   "all_have_5_keywords": true,
+   "matches_lda_topic_words_json_top5_for_dominant_topic": true
+  },
+  "coherence_score": {
+   "format": "float, 4 decimal places",
+   "all_rounded_to_4dp": true,
+   "all_in_range_0_1": true,
+   "min": 0.089,
+   "max": 0.6575,
+   "independently_recomputed_match": true,
+   "recompute_rule": "mean cosine(doc, kmeans_centers_[k]); n>500 -> np.random.seed(42); np.random.choice(n,500,replace=False)"
+  },
+  "representative_items": {
+   "format": "'source: title' joined by ' | '",
+   "counts_per_row": [
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5
+   ],
+   "all_between_1_and_5": true,
+   "all_have_source_colon_title": true,
+   "all_sources_in_corpus_source_keys": true,
+   "all_items_actually_in_assigned_cluster": true,
+   "items_are_top_similarity_tier_with_distinct_titles": true
+  }
+ },
+ "recompute_crosschecks": {
+  "corpus_docs": 145435,
+  "corpus_sources": [
+   "spotify",
+   "movies",
+   "vgsales",
+   "books",
+   "netflix",
+   "top2018",
+   "top2017",
+   "top50_2020"
+  ],
+  "cluster_sizes": [
+   59777,
+   2268,
+   2914,
+   3610,
+   4010,
+   8389,
+   43848,
+   1372,
+   8242,
+   11005
+  ],
+  "per_cluster": [
+   {
+    "cluster_id": 0,
+    "size": 59777,
+    "dominant_topic": 2,
+    "top_topic_words": "ao,vivo,bluegrass,sleep,mpb",
+    "coherence_score": 0.089,
+    "dominant_margin_over_runner_up": 0.006
+   },
+   {
+    "cluster_id": 1,
+    "size": 2268,
+    "dominant_topic": 2,
+    "top_topic_words": "ao,vivo,bluegrass,sleep,mpb",
+    "coherence_score": 0.6222,
+    "dominant_margin_over_runner_up": 0.5961
+   },
+   {
+    "cluster_id": 2,
+    "size": 2914,
+    "dominant_topic": 3,
+    "top_topic_words": "metal,techno,afrobeat,house,black",
+    "coherence_score": 0.6575,
+    "dominant_margin_over_runner_up": 0.566
+   },
+   {
+    "cluster_id": 3,
+    "size": 3610,
+    "dominant_topic": 4,
+    "top_topic_words": "malay,idol,rock,guitar,industrial",
+    "coherence_score": 0.5298,
+    "dominant_margin_over_runner_up": 0.0837
+   },
+   {
+    "cluster_id": 4,
+    "size": 4010,
+    "dominant_topic": 0,
+    "top_topic_words": "pop,eng,iranian,salsa,garage",
+    "coherence_score": 0.5556,
+    "dominant_margin_over_runner_up": 0.5506
+   },
+   {
+    "cluster_id": 5,
+    "size": 8389,
+    "dominant_topic": 8,
+    "top_topic_words": "drama,comedy,family,films,romance",
+    "coherence_score": 0.235,
+    "dominant_margin_over_runner_up": 0.0955
+   },
+   {
+    "cluster_id": 6,
+    "size": 43848,
+    "dominant_topic": 8,
+    "top_topic_words": "drama,comedy,family,films,romance",
+    "coherence_score": 0.1398,
+    "dominant_margin_over_runner_up": 0.2977
+   },
+   {
+    "cluster_id": 7,
+    "size": 1372,
+    "dominant_topic": 1,
+    "top_topic_words": "cantopop,mandopop,turkish,brazil,club",
+    "coherence_score": 0.5206,
+    "dominant_margin_over_runner_up": 0.1682
+   },
+   {
+    "cluster_id": 8,
+    "size": 8242,
+    "dominant_topic": 0,
+    "top_topic_words": "pop,eng,iranian,salsa,garage",
+    "coherence_score": 0.2782,
+    "dominant_margin_over_runner_up": 0.2684
+   },
+   {
+    "cluster_id": 9,
+    "size": 11005,
+    "dominant_topic": 7,
+    "top_topic_words": "hop,electronic,grindcore,ds,acoustic",
+    "coherence_score": 0.2232,
+    "dominant_margin_over_runner_up": 0.365
+   }
+  ],
+  "kmeans_centers_consistent_with_labels": "每一簇 X[labels==k].mean(axis=0) 与 kmeans_centers_[k] 余弦 = 1.0000",
+  "lda_topic_words_consistent_with_lda_components": true
+ },
+ "model_spec_reproducibility": {
+  "tfidf": {
+   "params": "TfidfVectorizer(max_features=5000, stop_words='english')",
+   "refit_shape": [
+    145435,
+    5000
+   ],
+   "feature_names_identical_ordered": true,
+   "matrix_max_abs_diff": 0.0
+  },
+  "kmeans": {
+   "params": "KMeans(n_clusters=10, random_state=42, n_init=10)",
+   "refit_inertia": 137541.85,
+   "labels_identical": true,
+   "centers_allclose": true
+  },
+  "lda": {
+   "params": "LatentDirichletAllocation(n_components=10, random_state=42)",
+   "refit_perplexity": 4261.66,
+   "components_allclose": true,
+   "doc_topic_max_abs_diff": 0.0
+  }
+ },
+ "caveats": [
+  "簇 0（59,777 文档，以 spotify 为主）coherence 仅 0.089，且 dominant_topic=2 与其 runner-up topic 3 的均值差距仅 0.0060 —— 主导主题判定在该簇上不稳定，属上游模型/数据特性而非输出格式错误。",
+  "簇 3（gap 0.0837）与簇 5（gap 0.0955）的主导主题也存在一定模糊性。",
+  "TF-IDF 矩阵中有 164 条全零向量文档（文本清洗后 token 全部落在 5000 特征词汇表/停用词之外），全部落在簇 0；计算余弦相似度时按 0 处理（否则产生 NaN），与上游 0.0890 的数值一致。",
+  "多个簇内存在大量余弦相似度完全相同的文档（如簇 3/4/7/8 的最大相似度整簇并列），因此 representative_items 的具体取值受并列排序/标题去重策略影响；已逐条核验 10 行共 50 个代表条目全部真实属于对应簇且处于该簇最高相似度层级（同分并列），无越簇或杜撰条目。",
+  "10 个簇只覆盖 8 个不同主导主题（0,1,2,3,4,7,8；topic 5/6/9 未成为任何簇的主导），这是 10 簇×10 主题映射的正常结果，不违反规格（规格只要求输出 dominant_topic 0-9）。",
+  "语料按 analysis_plan 的 year_policy 采用全量池化（未对 2017–2020 硬过滤），因为多源年份字段缺失/覆盖率极低；此为本流水线上游既定策略。"
+ ],
+ "recommendation": "无需重跑；output.csv 可直接进入下游。若追求更强可解释性，可考虑降低 K 或对簇 0 做二次切分，但超出本节点职责。"
+}

@@ -1,0 +1,141 @@
+{
+  "node": "execute",
+  "status": "completed",
+  "task": "eBay vs Olist 跨平台品牌/市场基准分析 -> output1.csv / output2.csv / output3.csv / output.json",
+  "methods": {
+    "ebay_brand_stats (output3)": {
+      "price_parsing": "去掉 '$'、逗号、空格；117 条 '$a to $b' 区间取中点；6620/6620 行解析成功（$4.73–$3901，均值 310.0466 USD）",
+      "rating_parsing": "正则抽取 'X out of 5 stars' 中的数值；有效样本 286/6620（4.3%），均值 4.5629（代表性弱，仅作参考）",
+      "brand_normalization": "Brand strip + upper 作为归并键（121 个唯一品牌，原始写法 134 种，如 Dell/DELL、HP/Hp 已合并），展示名取该键下最高频原始写法并做智能 Title Case（HP/IBM/MSI/LG/ASUS 等缩写保留大写）；空品牌 2596 行（39.2%）不入表",
+      "spec_normalization": "Ram Size / SSD Capacity 去空格、大写后仅接受 ^数字+(GB|TB|MB)$ 且 >0，输出统一 'X GB'/'X TB'/'X MB'；过滤 'Not Applicable'/'See Options'/'Up to 2TB'/'8GB / 16 GB OR 32GB ...'/'0' 等无效串与 '1 Used, ...' 描述串；RAM 有效 2075 行、SSD 有效 2694 行",
+      "aggregation": "avg_price_usd = 品牌内 Price 均值（round 4）；most_common_ram/ssd = 众数，并列时按容量数值升序取最小，全无有效值填 'Unknown'；输出按 listing 数降序",
+      "note": "SSD 列存在疑似错位值（16/32/64 GB 共 308 行）按字面统计，未做语义过滤"
+    },
+    "olist_category_stats (output2)": {
+      "category_mapping": "products -> product_category_name_translation，取 telefonia->telephony(1134 products)、informatica_acessorios->computers_accessories(1639)、eletronicos->electronics(517)；翻译表 join 后 623 个产品无品类（未涉及目标品类）",
+      "row_base": "order_items join products = 15139 行 item 明细（computers_accessories 7827 / telephony 4545 / electronics 2767）",
+      "distance": "geolocation 100 万行先按 zip 前缀聚合出 19015 个前缀均值坐标；customer_zip / seller_zip 分别 map；距离 = sqrt(dlat^2+dlng^2)（度，非 haversine）；有效坐标行 14992/15139（99.0%）",
+      "price": "item 行级 price（BRL）均值，不做评论/多商品去重放大",
+      "review_score": "reviews 与 item 行按 order_id 左连接（15212 行，1.005 倍放大），按品类求均值；覆盖 15115/15212",
+      "deliverable": "三品类行序 telephony, computers_accessories, electronics；float round 4"
+    },
+    "olist_delay_bin (output.json)": {
+      "sample": "同时具备实际送达与预计送达日期的 96476 单",
+      "definition": "delay_days = floor((delivered - estimated) total days)，即 timedelta.dt.days（负值 = 提前送达）",
+      "result": "众数区间 = -14 天（7126 单，7.39%）；top5 = -14(7126), -13(5963), -15(5345), -7(4837), -8(4828) -> 整体普遍提前约两周送达"
+    },
+    "sentiment_rule_f1": {
+      "sample": "review_comment_message 非空 40977 条（占 99224 条评论 41.3%）",
+      "rule": "文本 lower() 后对 9 个正关键词、8 个负关键词做 str.count 子串计数（无词边界）；pos>neg=positive，neg>pos=negative，否则 neutral",
+      "pred_distribution": {
+        "neutral": 40760,
+        "negative": 208,
+        "positive": 9
+      },
+      "true_distribution": {
+        "positive": 26530,
+        "negative": 10890,
+        "neutral": 3557
+      },
+      "metric": "sklearn f1_score(y_true, y_pred, labels=['negative','neutral','positive'], average='macro', zero_division=0) = 0.059771",
+      "interpretation": "评论以葡语为主，英文关键词几乎不命中，预测 99.5% 为 neutral，故宏 F1 极低；另 neutral 类支持仅 3557 但召回 0.99，negative/positive 召回≈0，属方法局限而非数据问题"
+    },
+    "cross_platform_summary (output1)": {
+      "rows": "eBay: avg_review_score=4.5629（仅 286 个 Rating 样本）、avg_price=310.0466 USD、macro_f1_sentiment=0、max_delay_bin=0（后两项对 eBay 不适用，按 0 占位以满足 dtype）",
+      "olist_row": "Olist 取 output2 的 electronics 行（avg_review_score=4.0375, avg_price=57.9135 BRL），macro_f1_sentiment=0.05977，max_delay_bin=-14",
+      "caveat": "两平台价格币种不同（USD vs BRL），不可直接比较购买力；eBay 评分为稀疏样本"
+    }
+  },
+  "key_results": {
+    "output1": [
+      {
+        "platform": "eBay",
+        "avg_review_score": 4.5629,
+        "avg_price": 310.0466,
+        "macro_f1_sentiment": 0.0,
+        "max_delay_bin": 0
+      },
+      {
+        "platform": "Olist",
+        "avg_review_score": 4.0375,
+        "avg_price": 57.9135,
+        "macro_f1_sentiment": 0.05977,
+        "max_delay_bin": -14
+      }
+    ],
+    "output2": [
+      {
+        "category": "telephony",
+        "avg_review_score": 3.9469,
+        "avg_price_brl": 71.214,
+        "avg_shipping_distance": 6.5024
+      },
+      {
+        "category": "computers_accessories",
+        "avg_review_score": 3.9308,
+        "avg_price_brl": 116.5139,
+        "avg_shipping_distance": 6.2791
+      },
+      {
+        "category": "electronics",
+        "avg_review_score": 4.0375,
+        "avg_price_brl": 57.9135,
+        "avg_shipping_distance": 5.8447
+      }
+    ],
+    "output3_rows": 121,
+    "output3_top10": "Dell 332.2221/16 GB/240 GB; Lenovo 325.4451/16 GB/256 GB; HP 270.1050/8 GB/256 GB; Acer 166.0749/4 GB/32 GB; LG 179.0016/16 GB/512 GB; Fujitsu Siemens 431.5836/2 GB/240 GB; Samsung 115.6826/4 GB/16 GB; Microsoft 416.7990/8 GB/256 GB; Auo 82.7242/Unknown/Unknown; ASUS 324.1244/4 GB/512 GB",
+    "output_json": {
+      "macro_f1_score": 0.05977,
+      "max_frequency_delay_bin": -14,
+      "total_olist_electronics_orders": 2550,
+      "total_ebay_listings": 6620
+    }
+  },
+  "intermediate_results": {
+    "olist_target_item_rows": 15139,
+    "olist_target_review_rows": 15212,
+    "distance_coverage": "14992/15139 (99.0%)",
+    "review_join_coverage": "15115/15212",
+    "delay_sample": 96476,
+    "delay_mode_count": 7126,
+    "electronics_distinct_orders": 2550,
+    "ebay_valid_price": 6620,
+    "ebay_valid_rating": 286,
+    "ebay_valid_ram": 2075,
+    "ebay_valid_ssd": 2694,
+    "nonempty_comments": 40977,
+    "intermediate_files": [
+      "intermediate/geo_prefix.csv",
+      "intermediate/items_enriched.csv",
+      "intermediate/delay.csv"
+    ]
+  },
+  "validation_checks_done": [
+    "output1/2/3 列名、列序、dtype 与任务要求一致；float round 4，int 列 max_delay_bin 为整数；CSV 无 index",
+    "eBay 平均价 310.05 USD（合理区间 50–1000），无 0 或 1e6 级异常，说明 'a to b' 区间与 '$' 清理正确",
+    "avg_review_score 全部落在 [1,5]（3.93–4.56）；avg_shipping_distance 5.84–6.50 度，在巴西经纬差上限内，说明 zip 前缀映射未错配",
+    "宏观 F1 ∈ [0,1]；delay 众数为 -14 为负值，符合巴西 Olist 普遍提前送达的已知事实",
+    "与上游 data_profile 参考值交叉核对：output2 三行、output1 两行、output.json 四个键完全一致（F1 差异仅在第 5 位小数 0.05977 vs 0.05979）"
+  ],
+  "assumptions": [
+    "距离为经纬度欧氏距离（度），符合题面 'in degrees'",
+    "geolocation 用 zip 前缀均值坐标；缺坐标样本在距离均值中剔除（覆盖率 99.0%）",
+    "品类价格/距离按 item 行级计算（多商品订单按行加权），评论分按 item×review 行级计算（1.005 倍放大）",
+    "众数并列时取容量数值最小者/最小延迟天数，保证可复现",
+    "eBay 不适用的 macro_f1_sentiment / max_delay_bin 填 0 而非空，以满足 dtype 要求",
+    "Olist 平台代表价格使用 electronics 品类（题面明确），与 output2 electronics 行一致"
+  ],
+  "business_takeaways": [
+    "eBay 侧为高单价（均价 310 USD）高评分（4.56，样本仅 286）；主力配置 8–16 GB RAM + 240/256 GB SSD，头部品牌 Dell(1289)、Lenovo(718)、HP(494) 占据近 62% listing",
+    "Olist 侧电子/电脑配件/电话三品类客单价 58–117 BRL、评分 3.93–4.04，物流平均跨约 6 度经纬差，配送普遍比承诺日期提前约 14 天，可作为卖家承诺时效的定价杠杆",
+    "Olist 评分结构以 5 星为主但评论以葡语为主，英文关键词情感模型不可用（宏 F1≈0.06），进入巴西市场需本地化葡语文本模型"
+  ],
+  "artifacts": [
+    "output1.csv",
+    "output2.csv",
+    "output3.csv",
+    "output.json",
+    "execute_summary.json"
+  ]
+}

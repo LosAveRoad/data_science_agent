@@ -1,0 +1,32 @@
+{
+  "experimentId": "mock-baseline-all",
+  "system": "baseline-pi",
+  "taskId": "transportation_05",
+  "startedAt": "2026-11-11T18:25:26.627Z",
+  "finishedAt": "2026-11-11T18:25:26.809Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output1.json, output2.png",
+  "totalSteps": 4,
+  "tokenUsage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "totalTokens": 0
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:25:26.808Z",
+      "finishedAt": "2026-11-11T18:25:26.808Z",
+      "elapsedMs": 0,
+      "error": null,
+      "steps": 4,
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

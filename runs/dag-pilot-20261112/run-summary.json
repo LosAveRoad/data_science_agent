@@ -1,0 +1,60 @@
+{
+  "experimentId": "dag-pilot-20261112",
+  "system": "dag-prototype",
+  "startedAt": "2026-11-11T18:32:30.181Z",
+  "finishedAt": "2026-11-11T18:38:19.910Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": false,
+    "model": "deepseek-flash",
+    "baseUrl": "https://api.deepseek.com",
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 2,
+    "succeeded": 0,
+    "failed": 2,
+    "skipped": 0,
+    "tokenUsage": {
+      "inputTokens": 42217,
+      "outputTokens": 55011,
+      "totalTokens": 97228
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "healthcare_05",
+      "status": "failed",
+      "tokenUsage": {
+        "inputTokens": 28896,
+        "outputTokens": 34988,
+        "totalTokens": 63884
+      },
+      "outputs": [
+        "output.csv",
+        "output.png"
+      ],
+      "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json"
+    },
+    {
+      "taskId": "loan_risk_5",
+      "status": "failed",
+      "tokenUsage": {
+        "inputTokens": 13321,
+        "outputTokens": 20023,
+        "totalTokens": 33344
+      },
+      "outputs": [
+        "output_1.csv",
+        "output_2.csv"
+      ],
+      "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json"
+    }
+  ]
+}

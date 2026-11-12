@@ -1,0 +1,203 @@
+{
+  "verdict": "pass",
+  "checked_at_stage": "verify_output",
+  "artifacts_present": {
+    "output.csv": {
+      "exists": true,
+      "bytes": 326
+    },
+    "output.png": {
+      "exists": true,
+      "bytes": 102605
+    }
+  },
+  "output_csv": {
+    "format_valid": true,
+    "columns": [
+      "test",
+      "comparison",
+      "statistic",
+      "p_value",
+      "significant"
+    ],
+    "columns_match_required": true,
+    "n_rows": 4,
+    "expected_rows": 4,
+    "row_labels": [
+      {
+        "test": "Kruskal-Wallis",
+        "comparison": "all"
+      },
+      {
+        "test": "Dunn post-hoc",
+        "comparison": "Diabetes vs Stroke"
+      },
+      {
+        "test": "Dunn post-hoc",
+        "comparison": "Diabetes vs CKD"
+      },
+      {
+        "test": "Dunn post-hoc",
+        "comparison": "Stroke vs CKD"
+      }
+    ],
+    "row_labels_match_required": true,
+    "significant_is_boolean_literal": true,
+    "significant_values": [
+      "True",
+      "False"
+    ],
+    "numeric_columns_numeric_dtype": true,
+    "no_missing_cells": true,
+    "recomputed_from_harmonized_glucose_filtered_csv": {
+      "kruskal_wallis": {
+        "statistic": 628.1297472880678,
+        "p_value": 4.011976834982009e-137
+      },
+      "dunn_bonferroni": {
+        "Diabetes vs Stroke": {
+          "statistic": 23.369292894117425,
+          "p_value": 2.6323085574137743e-120
+        },
+        "Diabetes vs CKD": {
+          "statistic": -0.43762135560234433,
+          "p_value": 1.0
+        },
+        "Stroke vs CKD": {
+          "statistic": -12.768506131789152,
+          "p_value": 7.3748159242589e-37
+        }
+      },
+      "max_relative_difference_vs_output_csv": {
+        "statistic": 0.0,
+        "p_value": 0.0
+      },
+      "significant_flags_identical": true
+    },
+    "consistency_with_upstream_execute_summary": true
+  },
+  "statistical_validity": {
+    "kruskal_wallis_p_lt_0_05": true,
+    "posthoc_performed": true,
+    "posthoc_method": "Dunn (1964) on pooled average ranks, two-sided normal p, Bonferroni x3 (p_adj = min(1, p*3))",
+    "bonferroni_correction_applied": true,
+    "bonferroni_cap_observed": "Diabetes vs CKD raw p=0.6617 -> p_adj capped at 1.0 (expected behaviour)",
+    "significance_rule_consistent": "significant == (p_value < 0.05) for all 4 rows",
+    "individual_p_value_check": true
+  },
+  "harmonized_input_recheck": {
+    "rows": 4464,
+    "expected_rows": 4464,
+    "group_n": {
+      "Diabetes": 1306,
+      "Stroke": 2885,
+      "CKD": 273
+    },
+    "group_n_matches_expected": true,
+    "no_nan": true,
+    "glucose_all_positive": true,
+    "age_within_30_70": true,
+    "source_labels": [
+      "Diabetes",
+      "Stroke",
+      "CKD"
+    ],
+    "source_labels_only_three": true,
+    "re_derived_from_raw_sources": {
+      "Diabetes_filtered_rows": 1306,
+      "Stroke_filtered_rows": 2885,
+      "CKD_filtered_rows": 273,
+      "value_arrays_identical_to_harmonized": true,
+      "note": "Filter rules (coerce numeric -> drop NaN -> 30<=age<=70 -> glucose>0) reproduced independently from raw CSV/ARFF"
+    }
+  },
+  "output_png": {
+    "exists": true,
+    "bytes": 102605,
+    "width": 1500,
+    "height": 900,
+    "color_type": "RGBA (colortype 6), 8-bit",
+    "non_blank": true,
+    "non_white_pixel_fraction": 0.258,
+    "distinct_series_colors_detected": [
+      {
+        "series": "Diabetes",
+        "expected": "red",
+        "blend_color_rgb": [
+          255,
+          102,
+          102
+        ],
+        "pixels": 51049
+      },
+      {
+        "series": "Stroke",
+        "expected": "blue",
+        "blend_color_rgb": [
+          102,
+          102,
+          255
+        ],
+        "pixels": 72523
+      },
+      {
+        "series": "CKD",
+        "expected": "green",
+        "blend_color_rgb": [
+          102,
+          178,
+          102
+        ],
+        "pixels": 25806
+      }
+    ],
+    "all_three_series_rendered": true,
+    "alpha_consistent_with_0_6": true,
+    "overlap_blend_colors_detected": [
+      [
+        40,
+        92,
+        77
+      ],
+      [
+        102,
+        117,
+        40
+      ],
+      [
+        40,
+        117,
+        102
+      ],
+      [
+        102,
+        40,
+        193
+      ]
+    ],
+    "annotation_text_present_inside_interior": true,
+    "text_glyph_pixels_interior_region": 6207,
+    "legend_text_pixels_present": true,
+    "bins_and_density_verifiable_from_pixels": "50-bin structure not pixel-verifiable; histogram bars present for all three series, alpha 0.6 blending confirmed"
+  },
+  "findings": {
+    "overall": "Kruskal-Wallis H=628.13, p=4.01e-137 -> glucose distributions differ across the three cohorts (p<0.05)",
+    "pairwise": [
+      "Diabetes vs Stroke: z=23.37, p_adj=2.63e-120, significant -> Diabetes glucose higher (median 125.0 vs 92.23)",
+      "Diabetes vs CKD: z=-0.44, p_adj=1.0, NOT significant -> comparable central tendency (median 125.0 vs 123.0)",
+      "Stroke vs CKD: z=-12.77, p_adj=7.37e-37, significant -> CKD glucose higher (median 123.0 vs 92.23)"
+    ],
+    "group_medians_mg_dl": {
+      "Diabetes": 125.0,
+      "Stroke": 92.23,
+      "CKD": 123.0
+    },
+    "consistency_with_analysis_plan_sanity_profile": true
+  },
+  "notes_limitations": [
+    "Glucose semantics differ by source: Diabetes = plasma glucose (2h OGTT), Stroke = avg_glucose_level (long-run average), CKD = blood glucose random (bgr); unit is mg/dL in all three, so pooling is unit-safe but significance partly reflects measurement protocol.",
+    "Stroke dominates sample size (2885/4464), so tiny differences reach significance; effect direction is supported by medians (Stroke median lowest at 92.23).",
+    "Diabetes glucose is capped at 197 in the source data, truncating its upper tail.",
+    "Diabetes glucose==0 rows (18 within the age window) were treated as missing placeholders and excluded, as specified."
+  ]
+}

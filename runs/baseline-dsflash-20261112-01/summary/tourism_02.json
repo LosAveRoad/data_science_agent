@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "tourism_02",
+  "startedAt": "2026-11-11T19:30:48.108Z",
+  "finishedAt": "2026-11-11T19:31:39.192Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.csv",
+  "totalSteps": 53,
+  "tokenUsage": {
+    "inputTokens": 7520,
+    "outputTokens": 9020,
+    "totalTokens": 16540
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:30:48.127Z",
+      "finishedAt": "2026-11-11T19:31:39.191Z",
+      "elapsedMs": 51064,
+      "error": null,
+      "steps": 53,
+      "tokenUsage": {
+        "inputTokens": 7520,
+        "outputTokens": 9020,
+        "totalTokens": 16540
+      }
+    }
+  ]
+}

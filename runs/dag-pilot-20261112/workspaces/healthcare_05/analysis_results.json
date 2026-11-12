@@ -1,0 +1,161 @@
+{
+  "cleaning_counts": {
+    "Diabetes": {
+      "raw": 2768,
+      "after_age_na": 2768,
+      "after_age": 1314,
+      "dropped_glucose_zero_or_na": 8,
+      "final": 1306
+    },
+    "Stroke": {
+      "raw": 5110,
+      "after_age_na": 5110,
+      "after_age": 2885,
+      "dropped_glucose_zero_or_na": 0,
+      "final": 2885
+    },
+    "CKD": {
+      "raw": 397,
+      "after_age_na": 388,
+      "after_age": 300,
+      "dropped_glucose_zero_or_na": 27,
+      "final": 273
+    }
+  },
+  "ckd_malformed_rows_skipped": 3,
+  "groups_summary": {
+    "Diabetes": {
+      "n": 1306,
+      "mean": 129.52067381317,
+      "sd": 32.15682288550424,
+      "min": 44.0,
+      "q1": 105.0,
+      "median": 125.0,
+      "q3": 154.0,
+      "max": 197.0
+    },
+    "Stroke": {
+      "n": 2885,
+      "mean": 107.8992062391681,
+      "sd": 46.96387870344405,
+      "min": 55.22,
+      "q1": 77.67,
+      "median": 92.23,
+      "q3": 114.47,
+      "max": 271.74
+    },
+    "CKD": {
+      "n": 273,
+      "mean": 151.17948717948718,
+      "sd": 80.61136353280722,
+      "min": 70.0,
+      "q1": 100.0,
+      "median": 123.0,
+      "q3": 169.0,
+      "max": 490.0
+    }
+  },
+  "total_n": 4464,
+  "kruskal": {
+    "H": 628.1297472880678,
+    "p": 4.011976834982009e-137,
+    "df": 2
+  },
+  "dunn": [
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Diabetes vs Stroke",
+      "statistic": 23.369292894117425,
+      "p_raw": 8.77436185804469e-121,
+      "p_value": 2.632308557413407e-120,
+      "significant": true
+    },
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Diabetes vs CKD",
+      "statistic": -0.43762135560234433,
+      "p_raw": 0.6616607877623728,
+      "p_value": 1.0,
+      "significant": false
+    },
+    {
+      "test": "Dunn post-hoc",
+      "comparison": "Stroke vs CKD",
+      "statistic": -12.768506131789152,
+      "p_raw": 2.4582719747529015e-37,
+      "p_value": 7.3748159242587045e-37,
+      "significant": true
+    }
+  ],
+  "alpha": 0.05,
+  "source_counts": {
+    "Stroke": 2885,
+    "Diabetes": 1306,
+    "CKD": 273
+  },
+  "no_nan_glucose": true,
+  "min_glucose": 44.0,
+  "age_range": [
+    30.0,
+    70.0
+  ],
+  "verification": {
+    "output_csv_columns": [
+      "test",
+      "comparison",
+      "statistic",
+      "p_value",
+      "significant"
+    ],
+    "output_csv_rows": 4,
+    "test_values": [
+      "Kruskal-Wallis",
+      "Dunn post-hoc",
+      "Dunn post-hoc",
+      "Dunn post-hoc"
+    ],
+    "comparison_values": [
+      "all",
+      "Diabetes vs Stroke",
+      "Diabetes vs CKD",
+      "Stroke vs CKD"
+    ],
+    "significant_dtype": "bool",
+    "significant_values": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "p_value_all_leq_1": true,
+    "png_header_ok": true,
+    "png_size_px": [
+      1350,
+      825
+    ],
+    "png_bins": 50,
+    "png_alpha": 0.6,
+    "kruskal_matches_plan_reference": {
+      "H": 628.1297472880678,
+      "p": 4.011976834982009e-137
+    },
+    "dunn_matches_plan_reference": true
+  },
+  "execution_summary": {
+    "steps": [
+      "Parsed 3 sources: Healthcare-Diabetes.csv (Glucose/Age), stroke CSV (avg_glucose_level/age), CKD ARFF (bgr/age, positional parse of @data, 3 malformed 26-field lines skipped).",
+      "Unified to long table [source, glucose, age]; coerced numerics with errors=coerce ('?'/'' -> NaN).",
+      "Filters: drop missing age -> keep 30<=age<=70 inclusive -> drop glucose missing or <=0.",
+      "Kruskal-Wallis H on the three groups; since p<0.05, ran Dunn post-hoc with Bonferroni (3 pairs, p_adj capped at 1.0).",
+      "Wrote output.csv (4 rows) and output.png (overlaid density histogram, bins=50, alpha=0.6, red/blue/green, KW p annotated)."
+    ],
+    "notes": [
+      "First Dunn implementation paired rank positions with wrong group labels (only the Diabetes vs Stroke pair was accidentally correct); fixed by ranking all N observations once and grouping ranks by source, then verified internal consistency of the three z-scores.",
+      "CKD parsed rows = 397 (3 malformed skipped); final CKD n = 273 equals the profile expectation, so the skipped malformed lines did not remove any analyzable record.",
+      "CKD mean rank (2916.9) > Diabetes (2879.4) > Stroke (1874.9); signs of Dunn z kept as computed (group1 - group2)."
+    ],
+    "scripts": [
+      "scripts/analyze.py"
+    ]
+  }
+}

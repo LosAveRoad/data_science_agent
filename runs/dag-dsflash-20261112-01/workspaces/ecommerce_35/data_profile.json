@@ -1,0 +1,263 @@
+{
+  "files": {
+    "olist_customers_dataset.csv": {
+      "rows": 99441,
+      "columns": [
+        "customer_id",
+        "customer_unique_id",
+        "customer_zip_code_prefix",
+        "customer_city",
+        "customer_state"
+      ],
+      "dtypes": {
+        "customer_id": "str",
+        "customer_unique_id": "str",
+        "customer_zip_code_prefix": "str",
+        "customer_city": "str",
+        "customer_state": "str"
+      },
+      "nulls": {
+        "customer_id": 0,
+        "customer_unique_id": 0,
+        "customer_zip_code_prefix": 0,
+        "customer_city": 0,
+        "customer_state": 0
+      }
+    },
+    "olist_sellers_dataset.csv": {
+      "rows": 3095,
+      "columns": [
+        "seller_id",
+        "seller_zip_code_prefix",
+        "seller_city",
+        "seller_state"
+      ],
+      "dtypes": {
+        "seller_id": "str",
+        "seller_zip_code_prefix": "str",
+        "seller_city": "str",
+        "seller_state": "str"
+      },
+      "nulls": {
+        "seller_id": 0,
+        "seller_zip_code_prefix": 0,
+        "seller_city": 0,
+        "seller_state": 0
+      }
+    },
+    "olist_order_items_dataset.csv": {
+      "rows": 112650,
+      "columns": [
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "shipping_limit_date",
+        "price",
+        "freight_value"
+      ],
+      "dtypes": {
+        "order_id": "str",
+        "order_item_id": "int64",
+        "product_id": "str",
+        "seller_id": "str",
+        "shipping_limit_date": "str",
+        "price": "float64",
+        "freight_value": "float64"
+      },
+      "nulls": {
+        "order_id": 0,
+        "order_item_id": 0,
+        "product_id": 0,
+        "seller_id": 0,
+        "shipping_limit_date": 0,
+        "price": 0,
+        "freight_value": 0
+      }
+    },
+    "olist_products_dataset.csv": {
+      "rows": 32951,
+      "columns": [
+        "product_id",
+        "product_category_name",
+        "product_name_lenght",
+        "product_description_lenght",
+        "product_photos_qty",
+        "product_weight_g",
+        "product_length_cm",
+        "product_height_cm",
+        "product_width_cm"
+      ],
+      "dtypes": {
+        "product_id": "str",
+        "product_category_name": "str",
+        "product_name_lenght": "float64",
+        "product_description_lenght": "float64",
+        "product_photos_qty": "float64",
+        "product_weight_g": "float64",
+        "product_length_cm": "float64",
+        "product_height_cm": "float64",
+        "product_width_cm": "float64"
+      },
+      "nulls": {
+        "product_id": 0,
+        "product_category_name": 610,
+        "product_name_lenght": 610,
+        "product_description_lenght": 610,
+        "product_photos_qty": 610,
+        "product_weight_g": 2,
+        "product_length_cm": 2,
+        "product_height_cm": 2,
+        "product_width_cm": 2
+      }
+    },
+    "olist_orders_dataset.csv": {
+      "rows": 99441,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "order_status",
+        "order_purchase_timestamp",
+        "order_approved_at",
+        "order_delivered_carrier_date",
+        "order_delivered_customer_date",
+        "order_estimated_delivery_date"
+      ],
+      "dtypes": {
+        "order_id": "str",
+        "customer_id": "str",
+        "order_status": "str",
+        "order_purchase_timestamp": "str",
+        "order_approved_at": "str",
+        "order_delivered_carrier_date": "str",
+        "order_delivered_customer_date": "str",
+        "order_estimated_delivery_date": "str"
+      },
+      "nulls": {
+        "order_id": 0,
+        "customer_id": 0,
+        "order_status": 0,
+        "order_purchase_timestamp": 0,
+        "order_approved_at": 160,
+        "order_delivered_carrier_date": 1783,
+        "order_delivered_customer_date": 2965,
+        "order_estimated_delivery_date": 0
+      }
+    },
+    "olist_order_reviews_dataset.csv": {
+      "rows": 99224,
+      "columns": [
+        "review_id",
+        "order_id",
+        "review_score",
+        "review_comment_title",
+        "review_comment_message",
+        "review_creation_date",
+        "review_answer_timestamp"
+      ],
+      "dtypes": {
+        "review_id": "str",
+        "order_id": "str",
+        "review_score": "int64",
+        "review_comment_title": "str",
+        "review_comment_message": "str",
+        "review_creation_date": "str",
+        "review_answer_timestamp": "str"
+      },
+      "nulls": {
+        "review_id": 0,
+        "order_id": 0,
+        "review_score": 0,
+        "review_comment_title": 87656,
+        "review_comment_message": 58247,
+        "review_creation_date": 0,
+        "review_answer_timestamp": 0
+      }
+    },
+    "product_category_name_translation.csv": {
+      "rows": 71,
+      "columns": [
+        "product_category_name",
+        "product_category_name_english"
+      ],
+      "dtypes": {
+        "product_category_name": "str",
+        "product_category_name_english": "str"
+      },
+      "nulls": {
+        "product_category_name": 0,
+        "product_category_name_english": 0
+      }
+    },
+    "olist_geolocation_dataset.csv": {
+      "rows": 1000163,
+      "columns": [
+        "geolocation_zip_code_prefix",
+        "geolocation_lat",
+        "geolocation_lng",
+        "geolocation_city",
+        "geolocation_state"
+      ],
+      "nulls": {
+        "geolocation_zip_code_prefix": 0,
+        "geolocation_lat": 0,
+        "geolocation_lng": 0,
+        "geolocation_city": 0,
+        "geolocation_state": 0
+      },
+      "unique_zip_prefixes": 19015,
+      "note": "multiple rows per zip prefix (raw geocoded points); averaged lat/lng per zip prefix -> 19015 centroids"
+    }
+  },
+  "key_facts": {
+    "order_status_counts": {
+      "delivered": 96478,
+      "shipped": 1107,
+      "canceled": 625,
+      "unavailable": 609,
+      "invoiced": 314,
+      "processing": 301,
+      "created": 5,
+      "approved": 2
+    },
+    "purchase_timestamp_range": [
+      "2016-09-04 21:15:19",
+      "2018-10-17 17:30:18"
+    ],
+    "delivered_orders_usable": 96470,
+    "reviews_rows": 99224,
+    "reviews_duplicate_order_ids": 551,
+    "category_filter_english_names": [
+      "telephony",
+      "computers_accessories",
+      "electronics",
+      "consoles_games"
+    ],
+    "category_filter_portuguese": [
+      "telefonia",
+      "informatica_acessorios",
+      "eletronicos",
+      "consoles_games"
+    ],
+    "filtered_products": 3607,
+    "filtered_order_items": 16276,
+    "filtered_orders_with_items": 14143,
+    "purchase_months_in_result": 21,
+    "month_range": [
+      "2016-10",
+      "2018-08"
+    ],
+    "state_pairs": 243,
+    "state_pairs_with_ge6_months": 121
+  },
+  "method_notes": {
+    "join_path": "order_items -> products (category filter) -> orders (status=delivered, non-null delivered & estimated dates) -> customers (customer_state) -> sellers (seller_state) -> reviews (latest review per order) -> geolocation zip centroids",
+    "delivery_delay_days": "(order_delivered_customer_date - order_estimated_delivery_date).dt.days (negative = delivered earlier than estimated)",
+    "purchase_month": "YYYY-MM of order_purchase_timestamp",
+    "aggregation_grain": "seller_state x customer_state x purchase_month; avg_delivery_delay/avg_review/total_orders computed on de-duplicated order level rows, avg_freight/avg_haversine on order-item rows",
+    "total_orders": "distinct order_id count within each group",
+    "haversine": "Haversine with R=6371 km between seller zip centroid and customer zip centroid; missing coordinates -> NaN (9 monthly groups)",
+    "arima": "statsmodels ARIMA(1,1,1) on monthly avg_delivery_delay series per state pair (>=6 monthly points); forecast_mean = mean of 12-step forecast, forecast_std = population std of the 12 forecasted values; 121/121 fits succeeded so no fallback was used",
+    "known_gaps": "avg_review_score NaN in 4 monthly groups (orders without review); avg_haversine NaN in 9 monthly groups (zip prefix absent from geolocation)"
+  }
+}

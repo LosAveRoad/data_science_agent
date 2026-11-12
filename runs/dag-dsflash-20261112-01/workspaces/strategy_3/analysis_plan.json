@@ -1,0 +1,208 @@
+{
+  "artifact": "analysis_plan.json",
+  "generated_by": "analysis_plan_node",
+  "task": {
+    "goal": "按 score 分段统计转化漏斗指标（外呼、接通/发送、点击、查看、申请、转化），输出 output.csv",
+    "input": "data_1.csv (477,049 行 x 11 列, 38,779,164 bytes, 单分区 dt=20260301)",
+    "output": "output.csv",
+    "output_headers": [
+      "score_bucket",
+      "total",
+      "oncall",
+      "cnt_send",
+      "cnt_click",
+      "cnt_check",
+      "cnt_apply",
+      "cnt_upgrade"
+    ],
+    "rows_expected": 10
+  },
+  "data_understanding": {
+    "grain": "一行 = 一条触达记录（一次外呼尝试 或 一次短信发送），无唯一 ID，不可去重",
+    "key_columns": {
+      "score": "float64, 无空值, 取值全部落在 [0.99, 1.0] 的 0.001 网格上, 共 11 个唯一值 (0.99 ... 0.999, 1.0)",
+      "type": "记录渠道: call=225,356 / sms=251,693",
+      "if_call_suc": "外呼结果: 1=接通 34,809 / 0=未接通 190,634 / -1=非外呼(短信行) 251,606",
+      "send_time": "非空=已发送, 非空 261,517（含 90,837 条 call 行，故 cnt_send > 短信行数）",
+      "click_time": "非空=点击, 非空 3,866",
+      "check_time / apply_time / upgrade_time": "各非空 182 行，且三者完全重叠（同一批 182 行）",
+      "dt": "单值 20260301，无需按日期过滤",
+      "score_bucket": "数据中已存在的 0.001 宽度标签，最高档写作 [0.999,1]（含 0.999 与 1.0）；本节点不复用它，改由 score 重新分箱后与之交叉校验",
+      "id_bucket": "辅助用户属性分箱，本任务不使用"
+    },
+    "funnel_nesting": "click ⇒ send、check ⇒ apply、upgrade ⇒ check∧apply 均为 0 违反，漏斗严格嵌套",
+    "known_anomaly": "87 行 type=='sms' 但 if_call_suc==1 且全部时间戳为空（渠道与结果标记矛盾），不影响按 type 口径的 oncall",
+    "no_below_threshold": "score < 0.99 的行数为 0，因此不需要 '<0.99' 兜底档"
+  },
+  "binning_spec": {
+    "rule": "从 0.99 起、宽度 0.001，共 10 档；左闭右开 [A,B)；最高档 [0.999,1] 右端闭合，吸收 score==0.999 与 score==1.0",
+    "label_format": "非最高档 '[A,B)'，最高档 '[A,B]'；边界用 %g 格式化（不补多余 0），如 [0.99,0.991) 而非 [0.990,0.991)",
+    "expected_buckets": [
+      {
+        "score_bucket": "[0.99,0.991)",
+        "lo": 0.99,
+        "hi": 0.991,
+        "closed_right": false,
+        "profile_rows": 21336
+      },
+      {
+        "score_bucket": "[0.991,0.992)",
+        "lo": 0.991,
+        "hi": 0.992,
+        "closed_right": false,
+        "profile_rows": 42367
+      },
+      {
+        "score_bucket": "[0.992,0.993)",
+        "lo": 0.992,
+        "hi": 0.993,
+        "closed_right": false,
+        "profile_rows": 49432
+      },
+      {
+        "score_bucket": "[0.993,0.994)",
+        "lo": 0.993,
+        "hi": 0.994,
+        "closed_right": false,
+        "profile_rows": 48075
+      },
+      {
+        "score_bucket": "[0.994,0.995)",
+        "lo": 0.994,
+        "hi": 0.995,
+        "closed_right": false,
+        "profile_rows": 50724
+      },
+      {
+        "score_bucket": "[0.995,0.996)",
+        "lo": 0.995,
+        "hi": 0.996,
+        "closed_right": false,
+        "profile_rows": 48333
+      },
+      {
+        "score_bucket": "[0.996,0.997)",
+        "lo": 0.996,
+        "hi": 0.997,
+        "closed_right": false,
+        "profile_rows": 47915
+      },
+      {
+        "score_bucket": "[0.997,0.998)",
+        "lo": 0.997,
+        "hi": 0.998,
+        "closed_right": false,
+        "profile_rows": 50767
+      },
+      {
+        "score_bucket": "[0.998,0.999)",
+        "lo": 0.998,
+        "hi": 0.999,
+        "closed_right": false,
+        "profile_rows": 46828
+      },
+      {
+        "score_bucket": "[0.999,1]",
+        "lo": 0.999,
+        "hi": 1.0,
+        "closed_right": true,
+        "profile_rows": 71272
+      }
+    ],
+    "implementation": "pd.cut(score, bins=edges, right=False, labels=[...]) 处理 9 个非顶档；再把 score>=0.999（即 0.999 与 1.0）显式覆盖为 '[0.999,1]'，避免 float 边界/落档误差；也可直接用 score.round(3) 映射标签，更稳健（数据全部在 0.001 网格上）",
+    "ordering": "按档位下界升序输出，共 10 行"
+  },
+  "metric_definitions": {
+    "total": {
+      "formula": "该档行数 (len(group))",
+      "justification": "上游 data_profile 的 expected_output_contract 明确 sum_total=477,049（全表行数），故 total 为记录总量（call+sms）",
+      "expected_sum": 477049
+    },
+    "oncall": {
+      "formula": "(type == 'call').sum()",
+      "justification": "上游推荐口径；等同于 if_call_suc != -1 的近似（差 87 行短信异常行）",
+      "expected_sum": 225356
+    },
+    "cnt_send": {
+      "formula": "send_time.notna().sum()",
+      "expected_sum": 261517
+    },
+    "cnt_click": {
+      "formula": "click_time.notna().sum()",
+      "expected_sum": 3866
+    },
+    "cnt_check": {
+      "formula": "check_time.notna().sum()",
+      "expected_sum": 182
+    },
+    "cnt_apply": {
+      "formula": "apply_time.notna().sum()",
+      "expected_sum": 182
+    },
+    "cnt_upgrade": {
+      "formula": "upgrade_time.notna().sum()",
+      "expected_sum": 182
+    },
+    "note": "所有指标均为记录级计数（无用户 ID，不可去重）；cnt_check == cnt_apply == cnt_upgrade 属数据事实，非计算错误"
+  },
+  "ambiguity_decisions": [
+    {
+      "id": "AMB-total-oncall",
+      "issue": "任务文字把 'number of outbound calls' 与 'calls connected' 并列，两种可能映射：A) total=记录总量, oncall=外呼尝试(type=='call')；B) total=外呼尝试数, oncall=接通数(if_call_suc==1)",
+      "decision": "采用 A（与上游 data_profile.expected_output_contract 的 sum 校验一致：sum(total)=477,049, sum(oncall)=225,356）",
+      "fallback": "若下游/评审要求 B，仅需把 total 改为 (type=='call').sum()、oncall 改为 (if_call_suc==1).sum()，分箱与其它 5 列不变；计划中同时把 'calls connected' 的补充口径记入备注",
+      "connected_count_reference": 34809
+    },
+    {
+      "id": "AMB-oncall-87rows",
+      "issue": "87 行 type=='sms' 但 if_call_suc==1（时间戳全空）",
+      "decision": "oncall 以 type=='call' 为准，这 87 行计入 total 与 cnt_send 口径之外（它们 send_time 为空，故 cnt_send 也不计）",
+      "impact": "oncall 与 'if_call_suc != -1' 口径相差 87 行（0.04%）"
+    }
+  ],
+  "execution_steps": [
+    "1. pd.read_csv('data_1.csv')，逐列指定 dtype（type/score_bucket/id_bucket 为 str，if_call_suc/dt 为 int64，score 为 float64）；时间列用 pd.to_datetime(..., errors='coerce') 显式转换，空值判定一律用 isna()",
+    "2. 用 score.round(3) 生成 value→label 映射得到 score_bucket 列（10 档，最高档 [0.999,1]）",
+    "3. 生成布尔掩码：is_call=type.eq('call')，is_send=send_time.notna()，is_click/cnt_check/cnt_apply/cnt_upgrade 同理",
+    "4. groupby('score_bucket', sort=False) 聚合 size/各掩码 sum，按档位下界升序排序，缺失档补 0 并保证 10 行齐全（用 reindex 到固定标签列表）",
+    "5. 所有指标列 astype('int64')，无空值",
+    "6. to_csv('output.csv', index=False, columns=8 个表头顺序)",
+    "7. 校验：行数=10；sum(total)=477049；sum(oncall)=225356；sum(cnt_send)=261517；sum(cnt_click)=3866；sum(cnt_check)=sum(cnt_apply)=sum(cnt_upgrade)=182；每档价 cnt_check<=cnt_apply<=cnt_upgrade 与 click<=send 的漏斗单调关系；与既有 score_bucket 列交叉比对（预期除顶档 71,272 行合并外完全一致）"
+  ],
+  "validation_checks": [
+    {
+      "check": "输出恰好 10 行 + 表头，顺序按下界升序",
+      "severity": "must"
+    },
+    {
+      "check": "列和校验与 data_profile.expected_output_contract 的 sum_checks 完全一致",
+      "severity": "must"
+    },
+    {
+      "check": "档内 total 与 profile.binning_spec 的 row_count 一致 (21336,42367,49432,48075,50724,48333,47915,50767,46828,71272)",
+      "severity": "must"
+    },
+    {
+      "check": "漏斗单调：cnt_click <= cnt_send <= total, cnt_check <= cnt_click, cnt_upgrade <= cnt_apply",
+      "severity": "should"
+    },
+    {
+      "check": "最高档标签必须是 [0.999,1]（右闭），不得写成 [0.999,1)",
+      "severity": "must"
+    },
+    {
+      "check": "score_bucket 格式统一为 [A,B] / [A,B)，边界用 %g 风格（0.99 而非 0.990）",
+      "severity": "should"
+    }
+  ],
+  "risks": [
+    "浮点边界：0.999/1.0 若用 pd.cut(right=False) 会落到开放区间外，必须显式覆盖最高档",
+    "若误用已存在的 score_bucket 列做分组，顶档会因原列写法不同（部分行可能不同）产生偏差——应以 score 重新分箱后交叉校验",
+    "total 口径歧义（见 AMB-total-oncall）是本任务唯一实质性口径风险"
+  ],
+  "handoff": {
+    "downstream_node": "aggregate/output_node",
+    "expected_output": "output.csv（8 列 / 10 行 / UTF-8, 逗号分隔, 带表头）",
+    "notes": "本节点只产出计划，不生成 output.csv；下游按 execution_steps 执行并跑 validation_checks"
+  }
+}

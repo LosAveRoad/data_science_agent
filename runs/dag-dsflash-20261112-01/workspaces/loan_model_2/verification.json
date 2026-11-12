@@ -1,0 +1,95 @@
+{
+ "node": "verify",
+ "target_artifact": "output.json",
+ "status": "pass",
+ "checks": [
+  {
+   "id": "exists",
+   "name": "output.json exists and is parseable JSON",
+   "passed": true,
+   "detail": "84 B, 3 keys, valid JSON"
+  },
+  {
+   "id": "schema",
+   "name": "schema exactly {remaining_feature_count:int, train_auc:float, test_auc:float}",
+   "passed": true,
+   "detail": "keys exactly match required set; types int/float/float; no extra or missing keys; no NaN/null"
+  },
+  {
+   "id": "value_range",
+   "name": "value plausibility",
+   "passed": true,
+   "detail": "remaining_feature_count=56 > 0; 0 < test_auc(0.632384) < train_auc(0.685984) < 1"
+  },
+  {
+   "id": "corr_matrix_integrity",
+   "name": "corr_matrix.csv is a valid 98x98 |r| matrix",
+   "passed": true,
+   "detail": "shape (98,98), symmetric, diagonal all 1.0"
+  },
+  {
+   "id": "corr_filter_reproduced",
+   "name": "remaining_feature_count reproducible from corr_matrix.csv",
+   "passed": true,
+   "detail": "greedy keep-first at |r|>0.8 on 98 features -> 56 kept / 42 dropped; residual max |r| among kept = 0.798975 <= 0.8; 133 off-diagonal pairs > 0.8"
+  },
+  {
+   "id": "corr_filter_consistent_with_raw_data",
+   "name": "correlation filter reproducible from features.csv",
+   "passed": true,
+   "detail": "Pearson recomputed on merged (49910 x 98) feature matrix yields identical kept list (56) as output.json / corr_filter_result.json"
+  },
+  {
+   "id": "split_rule",
+   "name": "time-based 70/30 split as specified",
+   "passed": true,
+   "detail": "cut = 70th percentile of time = 20231024; train 34591 rows (69.3%), test 15319 rows (30.7%); zero date overlap between train and test (no same-day leakage); matches train_meta.json"
+  },
+  {
+   "id": "auc_reproduced",
+   "name": "train/test AUC independently reproduced",
+   "passed": true,
+   "detail": "XGBoost refit on the 56 kept features with documented params (lr 0.05, depth 3, subsample/colsample 0.8, mcw 20, lambda 5, 121 rounds) reproduces train_auc=0.685984 and test_auc=0.632384 exactly"
+  },
+  {
+   "id": "cross_artifact_consistency",
+   "name": "output.json consistent with model_meta.json",
+   "passed": true,
+   "detail": "model_meta.json remaining_feature_count=56, train_auc=0.6859840471, test_auc=0.6323843491 -> rounds to identical values"
+  },
+  {
+   "id": "data_quality",
+   "name": "model input sanity",
+   "passed": true,
+   "detail": "merged rows 49910 = len(features) = len(label), 1:1 keys, 0 dup keys, 0 NaN / 0 inf in kept features, all kept features numeric; pos rate 0.0932"
+  }
+ ],
+ "warnings": [
+  {
+   "artifact": "train_meta.json",
+   "severity": "minor",
+   "message": "n_estimators=167 does not reproduce the reported AUCs (167 rounds gives train 0.700101 / test 0.633280); the reported values correspond to 121 rounds, which is what model_meta.json (best_rounds=121) and execute_summary.json document. train_meta.json appears to be a stale/secondary artifact; it does not affect output.json."
+  },
+  {
+   "artifact": "model_meta.json",
+   "severity": "minor",
+   "message": "top_importance_gain lists features (f34, f46, f11, f36, f14, f18, f39, f42, f47, f49) that are not in the 56 kept features, so its importance block is likely from a different/earlier run; headline metrics are consistent."
+  },
+  {
+   "artifact": "output.json",
+   "severity": "info",
+   "message": "Values are rounded to 6 decimals; full precision in model_meta.json (0.6859840471397349 / 0.6323843491187808). Within stated tolerance."
+  }
+ ],
+ "reproduced_values": {
+  "remaining_feature_count": 56,
+  "train_auc": 0.685984,
+  "test_auc": 0.632384
+ },
+ "reported_values": {
+  "remaining_feature_count": 56,
+  "train_auc": 0.685984,
+  "test_auc": 0.632384
+ },
+ "summary": "output.json exists, matches the required schema exactly, and all three values are independently reproducible from features.csv / label.csv / corr_matrix.csv: 98 features -> 56 after |r|>0.8 greedy de-duplication (residual max |r| 0.798975), time split at 20231024 gives 34591/15319 rows with no date overlap, and an XGBoost refit reproduces train_auc 0.685984 / test_auc 0.632384 exactly. Only minor secondary-artifact inconsistencies (train_meta.json n_estimators, model_meta.json importance block) were found; they do not affect the deliverable."
+}

@@ -1,0 +1,6 @@
+{
+  "mock": true,
+  "task_id": "healthcare_05",
+  "node_id": "plan",
+  "artifact": "analysis_plan.json"
+}

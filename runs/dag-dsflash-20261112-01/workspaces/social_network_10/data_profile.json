@@ -1,0 +1,229 @@
+{
+  "generated_by": "inspect_node",
+  "task": "Social media user influence network analysis (2-source username join -> per-user aggregation -> directed weighted graph -> PageRank)",
+  "files": [
+    {
+      "path": "bot_detection_data.csv",
+      "size_bytes": 7464652.8,
+      "format": "csv",
+      "rows": 50000,
+      "cols": 11,
+      "columns": [
+        {
+          "name": "User ID",
+          "dtype": "int64",
+          "role": "id (NOT a stable user key, see risks)"
+        },
+        {
+          "name": "Username",
+          "dtype": "str",
+          "role": "join key / user identifier"
+        },
+        {
+          "name": "Tweet",
+          "dtype": "str",
+          "role": "text, unused for graph"
+        },
+        {
+          "name": "Retweet Count",
+          "dtype": "int64",
+          "role": "engagement metric"
+        },
+        {
+          "name": "Mention Count",
+          "dtype": "int64",
+          "role": "primary metric for edge count"
+        },
+        {
+          "name": "Follower Count",
+          "dtype": "int64",
+          "role": "primary metric for edge sampling weights"
+        },
+        {
+          "name": "Verified",
+          "dtype": "bool",
+          "role": "boolean attribute"
+        },
+        {
+          "name": "Bot Label",
+          "dtype": "int64",
+          "role": "0/1 label"
+        },
+        {
+          "name": "Location",
+          "dtype": "str",
+          "role": "categorical"
+        },
+        {
+          "name": "Created At",
+          "dtype": "str",
+          "role": "timestamp"
+        },
+        {
+          "name": "Hashtags",
+          "dtype": "str",
+          "role": "free text, nullable"
+        }
+      ],
+      "missing": {
+        "Hashtags": 8341,
+        "other_columns": 0
+      },
+      "unique_usernames": 40566,
+      "timestamp_range": [
+        "2020-01-01 00:44:14",
+        "2023-05-31 07:53:27"
+      ],
+      "numeric_ranges": {
+        "Retweet Count": [
+          0,
+          100
+        ],
+        "Mention Count": [
+          0,
+          5
+        ],
+        "Follower Count": [
+          0,
+          10000
+        ]
+      },
+      "label_balance": {
+        "Bot Label": {
+          "1": 25018,
+          "0": 24982
+        },
+        "Verified": {
+          "True": 25004,
+          "False": 24996
+        }
+      },
+      "rows_per_user": {
+        "count": 40566.0,
+        "mean": 1.2326,
+        "std": 0.7337,
+        "min": 1.0,
+        "25%": 1.0,
+        "50%": 1.0,
+        "75%": 1.0,
+        "max": 21.0
+      },
+      "rows_with_follower_count_zero": 4,
+      "rows_with_mention_count_zero": 8230
+    },
+    {
+      "path": "twitter_dataset.csv",
+      "size_bytes": 2723840.0,
+      "format": "csv",
+      "rows": 10000,
+      "cols": 6,
+      "columns": [
+        {
+          "name": "Tweet_ID",
+          "dtype": "int64",
+          "role": "id"
+        },
+        {
+          "name": "Username",
+          "dtype": "str",
+          "role": "join key / user identifier"
+        },
+        {
+          "name": "Text",
+          "dtype": "str",
+          "role": "text, unused"
+        },
+        {
+          "name": "Retweets",
+          "dtype": "int64",
+          "role": "engagement metric"
+        },
+        {
+          "name": "Likes",
+          "dtype": "int64",
+          "role": "engagement metric"
+        },
+        {
+          "name": "Timestamp",
+          "dtype": "str",
+          "role": "timestamp"
+        }
+      ],
+      "missing": {
+        "any": 0
+      },
+      "unique_usernames": 9447,
+      "timestamp_range": [
+        "2023-01-01 00:01:15",
+        "2023-05-15 12:32:09"
+      ],
+      "numeric_ranges": {
+        "Retweets": [
+          0,
+          100
+        ],
+        "Likes": [
+          0,
+          100
+        ]
+      },
+      "rows_per_user": {
+        "count": 9447.0,
+        "mean": 1.0585,
+        "std": 0.2751,
+        "min": 1.0,
+        "25%": 1.0,
+        "50%": 1.0,
+        "75%": 1.0,
+        "max": 6.0
+      },
+      "note": "No mention/follower columns; only Retweets/Likes/Tweet_ID. Text contains no '@' mentions (0 rows), so mention counts cannot be derived from text."
+    }
+  ],
+  "join": {
+    "key": "Username matched case-insensitively (str.strip().str.lower()); User ID must NOT be used: 6035 usernames map to >1 User ID",
+    "bot_unique": 40566,
+    "twitter_unique": 9447,
+    "intersection": 2694,
+    "bot_only": 37872,
+    "twitter_only": 6753,
+    "union": 47319,
+    "overlap_ratio_of_twitter": 0.2852,
+    "data_quality": "no leading/trailing whitespace, no embedded spaces, no non-alphanumeric chars, no mixed-case usernames in either file; lowering case produces no intra-file collisions -> case-insensitive join is safe/clean"
+  },
+  "aggregation_notes": {
+    "mention_count": "only in bot_detection_data.csv ('Mention Count'); rows sum 0-5. Per-user choice needed: sum vs max vs mean (mean/sum differ for the 6035 users with >1 row).",
+    "follower_count": "only in bot_detection_data.csv; 6033 users have >1 distinct follower value across their rows (average spread), so sum/max/mean differ.",
+    "engagement": "twitter_dataset contributes Retweets/Likes only; overlap users: 2694 users / 3095 rows. Use these as supplementary engagement metrics if a combined score is wanted.",
+    "overlap_user_stats": {
+      "mention_sum": {
+        "min": 0.0,
+        "median": 4.0,
+        "mean": 4.847,
+        "max": 69.0
+      },
+      "follower_max": {
+        "min": 16.0,
+        "median": 6263.0,
+        "mean": 5872.834,
+        "max": 10000.0
+      }
+    }
+  },
+  "graph_construction_implications": {
+    "node_set": "decision needed: union (47319 users) vs inner join (2694 users). Inner join = only users present in both sources.",
+    "out_degree": "min(mention_count, 10) incoming edges per target user; Mention Count max per row = 5, per-user sum max = 69 (overlap) -> cap of 10 actually binds only for heavy multi-row users.",
+    "edge_probability": "source user sampled from other users with probability proportional to follower_count (Follower Count ranges 0-10000, skew moderate: mean ~4989, no all-zero-follower user among overlap).",
+    "weighting": "edge weight appears intended = target user's mention count (or mention count / edges); state explicitly downstream.",
+    "pagerank_spec": "networkx.pagerank(G, alpha=0.85, weight='weight') on the directed weighted graph",
+    "reproducibility": "random.seed(42) / numpy default_rng(42) before sampling edges; sampling order must be deterministic (sort nodes) to guarantee identical output across runs."
+  },
+  "risks": [
+    "User ID is not unique per username (6035 usernames have multiple IDs) -> aggregate by username only.",
+    "Follower Count and Mention Count are row-level in the bot file; different aggregation choices change PageRank ranks -> document the choice in the output.",
+    "Only 2694 of 9447 twitter users (28.5%) exist in the bot file; if inner join is used, ~6753 users are dropped.",
+    "Follower count has 4 zero-valued rows; weight-proportional sampling must guard against zero total weight / division by zero.",
+    "Several users have mention_count aggregated 0 -> zero out-degree; PageRank needs a dangling-node handling (networkx handles automatically) and results must not be NaN.",
+    "Output requires pagerank rounded to 6 dp plus mention_count and follower_count columns, so the chosen per-user aggregation must be final before writing output.csv."
+  ]
+}

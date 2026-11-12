@@ -1,0 +1,78 @@
+{
+  "node": "execute_analysis",
+  "task": "按 group_id 输出 score 的整体分布（output_1.csv）与月度分布（output_2.csv），各含 7 项统计指标",
+  "input": {
+    "path": "input.csv",
+    "n_rows": 10000,
+    "n_cols": 3,
+    "columns": [
+      "group_id",
+      "score",
+      "apply_date"
+    ],
+    "notes": "apply_date 以 str 读取，apply_month = apply_date.str[:6]；无缺失值，group_id 共 10 组，月份覆盖 202301-202312 共 12 个"
+  },
+  "method": {
+    "grouping": "整体：groupby('group_id', sort=True)；月度：groupby(['group_id','apply_month'], sort=True)",
+    "metrics": {
+      "cnt": "组内行数（不去重，1 条完全重复行按行计入），导出为 float",
+      "max_score": "score 最大值",
+      "min_score": "score 最小值",
+      "mode_score": "组内出现频次最高的 score；多众数并列时取最小值（Counter 频次 → 并列 mode 排序取最小）",
+      "mean_score": "算术平均",
+      "median_score": "中位数（线性插值）",
+      "std_score": "样本标准差 ddof=1；n<2 或结果 NaN 时填 0"
+    },
+    "internal_overall_label": "整体分布内部 dataframe 含 apply_month='overall' 标记列，导出前 drop，最终 output_1.csv 不含该列",
+    "precision": "保留 pandas 原始浮点精度，未额外四舍五入"
+  },
+  "key_results": {
+    "output_1_rows": 10,
+    "output_2_rows": 120,
+    "cnt_sum_output_1": 10000.0,
+    "cnt_sum_output_2": 10000.0,
+    "group_month_cells_expected_vs_observed": "120 / 120（完整，无缺失组月组合，最小单元格 n=53，均在 n>=2，std 无需填 0 分支）",
+    "overall_by_group_extremes": {
+      "highest_mean_group": {
+        "group_id": 4,
+        "mean_score": 51.6757
+      },
+      "lowest_mean_group": {
+        "group_id": 5,
+        "mean_score": 49.1398
+      },
+      "overall_mean_range": [
+        49.1398,
+        51.6757
+      ],
+      "std_range": [
+        27.6071,
+        29.7905
+      ],
+      "overall_max_score_global": 99.99,
+      "overall_min_score_global": 0.01
+    },
+    "monthly_stats_range": {
+      "cnt_min": 53.0,
+      "cnt_max": 104.0,
+      "mean_score_min": 43.5594,
+      "mean_score_max": 56.2772,
+      "std_score_min": 25.2603,
+      "std_score_max": 32.1302
+    },
+    "cells_with_tied_mode": 96,
+    "observation": "各组整体均值集中在 49.14~51.68 区间、整体样本标准差 27.61~29.79，组间差异很小，未见分组层面的系统性偏移；score 为两位小数且组月单元格样本量仅 53~104，120 个组月单元格中有 96 个存在众数并列，已按规则取并列众数中的最小值；月度均值在 43.56~56.28、月度标准差在 25.26~32.13 之间波动，属于抽样波动量级，未发现单调趋势；全局 score 范围 0.01~99.99，整体分布形状接近对称（各组 median 与 mean 接近）。"
+  },
+  "validation": {
+    "independent_recheck": "用 collections.Counter + numpy 对 group_id=1/5/10 的整体行与 (1,202301)、(7,202312) 月度行独立重算，7 项指标 maxdiff 均为 0.0",
+    "nan_check": "两个输出均无 NaN/inf",
+    "dtype_check": "group_id=int64；cnt 及其余 6 个指标列均为 float64；apply_month 为 YYYYMM 字符串",
+    "column_order": "output_1: group_id,cnt,max_score,min_score,mode_score,mean_score,median_score,std_score；output_2 在 group_id 后增 apply_month",
+    "sort": "均按 group_id 升序（月度再按 apply_month 升序）"
+  },
+  "artifacts": [
+    "output_1.csv",
+    "output_2.csv",
+    "execute_summary.json"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "sports_30",
+  "startedAt": "2026-11-11T19:26:15.282Z",
+  "finishedAt": "2026-11-11T19:26:59.609Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.json",
+  "totalSteps": 49,
+  "tokenUsage": {
+    "inputTokens": 8473,
+    "outputTokens": 7023,
+    "totalTokens": 15496
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:26:15.375Z",
+      "finishedAt": "2026-11-11T19:26:59.607Z",
+      "elapsedMs": 44232,
+      "error": null,
+      "steps": 49,
+      "tokenUsage": {
+        "inputTokens": 8473,
+        "outputTokens": 7023,
+        "totalTokens": 15496
+      }
+    }
+  ]
+}

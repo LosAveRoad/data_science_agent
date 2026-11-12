@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-pilot-20261112",
+  "system": "dag-prototype",
+  "taskId": "healthcare_05",
+  "startedAt": "2026-11-11T18:32:30.191Z",
+  "finishedAt": "2026-11-11T18:36:26.308Z",
+  "status": "failed",
+  "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+  "result": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+  "totalSteps": 180,
+  "tokenUsage": {
+    "inputTokens": 28896,
+    "outputTokens": 34988,
+    "totalTokens": 63884
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:32:30.198Z",
+      "finishedAt": "2026-11-11T18:34:30.825Z",
+      "elapsedMs": 120627,
+      "error": null,
+      "steps": 90,
+      "tokenUsage": {
+        "inputTokens": 9541,
+        "outputTokens": 20103,
+        "totalTokens": 29644
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:34:30.827Z",
+      "finishedAt": "2026-11-11T18:34:58.218Z",
+      "elapsedMs": 27391,
+      "error": null,
+      "steps": 27,
+      "tokenUsage": {
+        "inputTokens": 6907,
+        "outputTokens": 4257,
+        "totalTokens": 11164
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:34:58.220Z",
+      "finishedAt": "2026-11-11T18:36:26.302Z",
+      "elapsedMs": 88082,
+      "error": null,
+      "steps": 63,
+      "tokenUsage": {
+        "inputTokens": 12448,
+        "outputTokens": 10628,
+        "totalTokens": 23076
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "failed",
+      "startedAt": "2026-11-11T18:36:26.305Z",
+      "finishedAt": "2026-11-11T18:36:26.305Z",
+      "elapsedMs": 0,
+      "error": "节点 verify 的依赖产物缺失: 上游节点 execute 未产出声明的产物 result.json; 上游节点 execute 未产出声明的产物 execute_summary.json",
+      "steps": 0,
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

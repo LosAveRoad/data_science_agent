@@ -1,0 +1,73 @@
+{
+  "generated_by": "plan_node",
+  "task": "Social media user influence network analysis: 2-source case-insensitive username join -> per-user metric aggregation -> directed weighted interaction graph -> PageRank (alpha=0.85) -> top-10 output.csv",
+  "inputs": [
+    {
+      "path": "bot_detection_data.csv",
+      "role": "primary: Username, Mention Count, Follower Count (+ Retweet Count, Bot Label, Verified as attributes)",
+      "rows": 50000,
+      "unique_usernames": 40566
+    },
+    {
+      "path": "twitter_dataset.csv",
+      "role": "secondary: Username, Retweets, Likes, Timestamp (no mention/follower columns)",
+      "rows": 10000,
+      "unique_usernames": 9447
+    }
+  ],
+  "decisions": {
+    "join_key": "username normalized as str.strip().str.lower(); User ID is NOT used (6035 usernames map to >1 User ID in the bot file)",
+    "join_type": "inner join on normalized username (users present in both sources). Rationale: the task requires integrating both sources, and only the overlap set has every column needed for output (mention_count and follower_count come from the bot file, engagement metrics from twitter). Expected size = 2694 users. Sensitivity note to record: union join = 47319 users with NaN engagement metrics; results on inner join are the reported primary output.",
+    "mention_count_per_user": "SUM of 'Mention Count' over the user's bot-file rows (row range 0-5, per-user sum range 0-69). Sum represents total times a user was mentioned, which is the quantity that drives edge count.",
+    "follower_count_per_user": "MAX of 'Follower Count' over the user's bot-file rows (follower count is a snapshot attribute of the account, not additive). Recorded alternative (mean) does not change ranks materially; to be noted in the notes artifact.",
+    "engagement_per_user": "SUM of Retweets and Likes over the user's twitter rows (supplementary columns in the full ranking artifact; not required by output.csv)",
+    "node_set": "the 2694 inner-join users",
+    "edge_construction": "for each target user u (iterate over nodes in sorted order for determinism): k = min(mention_count_u, 10); draw k distinct source users s != u without replacement, with probability proportional to follower_count_s; add directed edge s -> u",
+    "edge_weight": "mention_count_u / k (mention mass distributed evenly over the incoming edges, so a node's total in-weight equals its mention_count and does not double-count high-degree nodes). Alternative (weight = mention_count_u on every edge) to be computed as a sensitivity check and reported in the notes artifact.",
+    "pagerank": "networkx.pagerank(G, alpha=0.85, weight='weight', max_iter=200, tol=1e-10); dangling nodes handled by networkx's uniform redistribution; verify scores are finite, sum ~= 1.0",
+    "randomness": "numpy.random.default_rng(42) used for all sampling; deterministic node ordering (sorted usernames) so repeated runs produce identical output.csv",
+    "ranking": "sort by pagerank_score descending, tie-break username ascending; rank = 1..10 (1 = most influential)"
+  },
+  "steps": [
+    {
+      "id": "S1_load",
+      "action": "pandas.read_csv both files (only needed columns), coerce Mention/Follower/Retweets/Likes to numeric with errors='coerce' and fill 0; build lowercase stripped 'username_key'"
+    },
+    {
+      "id": "S2_aggregate",
+      "action": "bot file -> per username_key: mention_count = sum, follower_count = max, n_rows, any bot_label / verified; twitter file -> per username_key: retweets_sum, likes_sum, n_tweets. Save both to a temp parquet/csv if needed."
+    },
+    {
+      "id": "S3_join",
+      "action": "inner merge on username_key; assert no duplicate keys, assert expected count (~2694) and report coverage of all 9447 twitter users (28.5%); keep username_key as node id, keep original-case username for reporting"
+    },
+    {
+      "id": "S4_graph",
+      "action": "build directed graph as described in decisions.edge_construction; guard: skip zero/negative follower weights, fall back to uniform sampling if total weight == 0 or sum of eligible weights is 0, cap k at (n_nodes - 1), assert self-loops absent, assert total edges == sum(min(mention,10))"
+    },
+    {
+      "id": "S5_pagerank",
+      "action": "networkx.pagerank with alpha=0.85 and weight='weight'; store scores; compute in_degree, weighted in-strength for diagnostics; networkx dependency check -> fallback to own power-iteration implementation if networkx is unavailable (same alpha/weights/tol)"
+    },
+    {
+      "id": "S6_output",
+      "action": "rank users; write output.csv with exactly the columns: rank, username, pagerank_score (round 6), mention_count (int), follower_count (int). Also write full_ranking.csv (all 2694 users with diagnostics) and analysis_notes.md/json documenting aggregation choices, edge weight definition, seed and sensitivity results."
+    },
+    {
+      "id": "S7_validate",
+      "action": "checks to assert before finishing: output.csv has 10 rows and required columns; pagerank scores non-NaN, between 0 and 1, descending order; mention_count and follower_count non-negative integers and consistent with source aggregation for the top-10 users; file re-readable by pandas."
+    }
+  ],
+  "expected_output_schema": {
+    "file": "output.csv",
+    "columns": ["rank (int, 1-10)", "username (str)", "pagerank_score (float, 6 dp)", "mention_count (int)", "follower_count (int)"]
+  },
+  "risks_and_handling": [
+    "Username not unique per row -> aggregate at username level only, never join on User ID.",
+    "Twitter file has no mention/follower columns -> those metrics come solely from the bot file; twitter only contributes Retweets/Likes and the join restriction.",
+    "Inner join drops 6753 twitter-only users and 37872 bot-only users -> documented explicitly so the ranking is not misread as covering all users.",
+    "Users with mention_count 0 get no incoming edges (stragglers confined to ~base PageRank) -> expected; they still appear in full_ranking.csv.",
+    "Sampling proportional to follower count with 4 zero-follower rows and possible zero total -> uniform fallback + explicit check.",
+    "Random seed 42 + sorted iteration order are mandatory for reproducibility."
+  ]
+}

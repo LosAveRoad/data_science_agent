@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "real_estate_04",
+  "startedAt": "2026-11-11T19:20:45.476Z",
+  "finishedAt": "2026-11-11T19:21:11.758Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: top5_cagr_disparity.csv",
+  "totalSteps": 26,
+  "tokenUsage": {
+    "inputTokens": 6715,
+    "outputTokens": 4597,
+    "totalTokens": 11312
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:20:45.488Z",
+      "finishedAt": "2026-11-11T19:21:11.756Z",
+      "elapsedMs": 26268,
+      "error": null,
+      "steps": 26,
+      "tokenUsage": {
+        "inputTokens": 6715,
+        "outputTokens": 4597,
+        "totalTokens": 11312
+      }
+    }
+  ]
+}

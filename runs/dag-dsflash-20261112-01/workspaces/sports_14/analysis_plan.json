@@ -1,0 +1,229 @@
+{
+  "task": "NBA Physical Attributes Impact on Career Performance",
+  "generated_by": "plan node",
+  "confirmed_by_data_check": true,
+  "objective": "Quantify the relationship between NBA players' physical attributes (height, wingspan, max vertical leap, 3/4 court sprint speed) and career outcomes (draft round = draft capital, career span = longevity), then derive an absolute-composite-based normalized weight per attribute and produce a 2x2 visualization.",
+  "inputs": {
+    "physical": {
+      "path": "NBA Database/draft_combine_stats.csv",
+      "rows": 1202,
+      "cols": 47,
+      "key": "player_id",
+      "used_columns": [
+        "season",
+        "player_id",
+        "height_wo_shoes",
+        "wingspan",
+        "max_vertical_leap",
+        "three_quarter_sprint"
+      ],
+      "units": {
+        "height_wo_shoes": "inches",
+        "wingspan": "inches",
+        "max_vertical_leap": "inches",
+        "three_quarter_sprint": "seconds (LOWER = faster)"
+      }
+    },
+    "career": {
+      "path": "NBA Database/common_player_info.csv",
+      "rows": 4171,
+      "cols": 33,
+      "note": "Upstream profile reported 34 cols; actual header has 33. No impact on the columns used.",
+      "key": "person_id",
+      "used_columns": [
+        "person_id",
+        "display_first_last",
+        "height",
+        "draft_round",
+        "draft_number",
+        "from_year",
+        "to_year",
+        "season_exp",
+        "nba_flag"
+      ]
+    },
+    "draft_fallback": {
+      "path": "NBA Database/draft_history.csv",
+      "rows": 7990,
+      "key": "person_id",
+      "use": "OPTIONAL cross-check / fallback for round_number. Verified by inspect node that 0 of the 691 matched players need backfill, so the main pipeline must not depend on this file; only run the fallback if any matched player ends with a NaN draft round that draft_history can fill."
+    },
+    "upstream": "data_profile.json (inspect node) — join plan, units, missingness, expected n, recommended pipeline spec."
+  },
+
+  "pipeline_steps": [
+    {
+      "step": 1,
+      "name": "load",
+      "detail": "pd.read_csv all three files (utf-8). Do not print full frames."
+    },
+    {
+      "step": 2,
+      "name": "clean_combine",
+      "detail": "Drop rows with player_id <= 0 (3 invalid rows). sort_values('season') then drop_duplicates('player_id', keep='last') so a re-measured player keeps his latest combine measurement. Result: 1176 unique players."
+    },
+    {
+      "step": 3,
+      "name": "join",
+      "detail": "INNER merge combine.player_id == common_player_info.person_id. Expected 702 rows / 691 unique players (verified)."
+    },
+    {
+      "step": 4,
+      "name": "derive_career_span",
+      "detail": "career_span_years = to_year - from_year + 1 (inclusive integer years). Coerce from_year/to_year to numeric first; drop rows where either is NaN (career span undefined)."
+    },
+    {
+      "step": 5,
+      "name": "valid_career_filter",
+      "detail": "Keep 0 <= career_span_years <= 25 (task-required filter). Expected to drop 0 rows (range in data is 1..21); log and assert the drop count."
+    },
+    {
+      "step": 6,
+      "name": "derive_draft_round",
+      "detail": "draft_round_num = pd.to_numeric(common_player_info.draft_round, errors='coerce') (handles 'Undrafted' -> NaN, missing -> NaN), then set NaN where the value is outside [1, 10] (drops the single round_number == 0 sentinel). Expected 571 valid players, values only {1, 2}."
+    },
+    {
+      "step": 7,
+      "name": "height_backfill",
+      "detail": "If combine height_wo_shoes is NaN, backfill from common_player_info.height ('6-10' -> 82 inches) via split('-') -> ft*12+in. Expected ~20 backfills. Record how many were filled."
+    },
+    {
+      "step": 8,
+      "name": "attribute_selection",
+      "detail": "Use exactly 4 attributes: height_wo_shoes, wingspan, max_vertical_leap, three_quarter_sprint. Do NOT add weight/bench/agility to output rows (sprint is the only speed metric requested; standing_vertical_leap and lane_agility_time are excluded to avoid collinear duplicates of the requested attributes)."
+    },
+    {
+      "step": 9,
+      "name": "correlations",
+      "detail": "For each attribute compute Pearson r and two-sided p-value separately against draft_round_num and career_span_years using PAIRWISE-COMPLETE observations (each correlation uses its own n; do not drop rows globally). Use scipy.stats.pearsonr; if scipy is unavailable, compute r with numpy.corrcoef and p via the t-distribution formula in closed form (no scipy dependency allowed to break the run). Expected pairwise n: height 553/671, wingspan 554/672, vertical 479/585, sprint 477/583 (draft/span)."
+    },
+    {
+      "step": 10,
+      "name": "composite_score",
+      "detail": "composite_score = -correlation_with_draft + correlation_with_career. Interpretation: lower draft round = better (pick 1 better than pick 60), so a NEGATIVE r_draft means the attribute is associated with better draft stock -> the leading minus turns it positive. r_career > 0 means longer careers -> keeps its sign. Sign-aware handling of three_quarter_sprint: because lower seconds = faster, its r_career/r_draft already carry the natural direction; do NOT flip the sprint sign manually — report the raw Pearson coefficient and add a 'direction_note' only in documentation so the sign stays mathematically consistent with the -r_draft + r_career formula."
+    },
+    {
+      "step": 11,
+      "name": "normalized_weight",
+      "detail": "normalized_weight = |composite_score| / sum(|composite_score|) across the 4 attributes; must sum to 1.0 (assert with tolerance 1e-9). Keep full float precision in the CSV; display 2 decimals in annotations."
+    }
+  ],
+
+  "attributes": [
+    {
+      "column": "height_wo_shoes",
+      "label": "Height (in, no shoes)",
+      "expected_pairwise_n": {"draft": 553, "career": 671}
+    },
+    {
+      "column": "wingspan",
+      "label": "Wingspan (in)",
+      "expected_pairwise_n": {"draft": 554, "career": 672}
+    },
+    {
+      "column": "max_vertical_leap",
+      "label": "Max Vertical Leap (in)",
+      "expected_pairwise_n": {"draft": 479, "career": 585}
+    },
+    {
+      "column": "three_quarter_sprint",
+      "label": "3/4 Court Sprint (s, lower=faster)",
+      "expected_pairwise_n": {"draft": 477, "career": 583}
+    }
+  ],
+
+  "metrics": {
+    "correlation_with_draft": "Pearson r(attribute, draft_round_num), pairwise complete; SIGN CONVENTION: positive r = worse draft position as attribute increases.",
+    "p_value_draft": "two-sided p for the above (H0: rho = 0)",
+    "correlation_with_career": "Pearson r(attribute, career_span_years), pairwise complete",
+    "p_value_career": "two-sided p for the above",
+    "composite_score": "-correlation_with_draft + correlation_with_career (range roughly [-2, 2]); not bounded, may be negative",
+    "normalized_weight": "abs(composite_score) / sum(abs(composite_score)) over the 4 attributes; sums to 1"
+  },
+
+  "outputs": [
+    {
+      "path": "output.csv",
+      "format": "UTF-8 CSV, one row per attribute, 4 rows + header",
+      "columns_in_order": [
+        "attribute",
+        "correlation_with_draft",
+        "p_value_draft",
+        "correlation_with_career",
+        "p_value_career",
+        "composite_score",
+        "normalized_weight"
+      ],
+      "rules": [
+        "attribute = human-readable label (stable order: Height, Wingspan, Max Vertical Leap, 3/4 Court Sprint)",
+        "numeric columns rounded to 4 decimals except normalized_weight rounded to 4 as well",
+        "scientific notation allowed for very small p-values but prefer fixed decimals with 4-6 places; never output literal '0' for a p-value without rounding note — use rounding to 6 decimals (values below 1e-6 printed as 1e-06 style is acceptable)",
+        "no NaN: if an attribute has < 30 pairwise observations, abort and report instead of emitting NaN"
+      ]
+    },
+    {
+      "path": "physical_attributes_analysis.png",
+      "format": "PNG, 2x2 subplots, figsize=(14, 11), dpi=150, tight_layout, suptitle 'NBA Physical Attributes Impact on Career Performance'",
+      "panels": [
+        {
+          "panel": 1,
+          "type": "heatmap",
+          "spec": "imshow of a 4x2 matrix: rows = 4 attribute labels, cols = ['Draft Round', 'Career Span (yrs)']; values = the 4 correlation coefficients (draft column from correlation_with_draft, career column from correlation_with_career). Annotate each cell with r to 3 decimals. Colorbar with cmap 'RdBu_r', vmin=-1, vmax=1 so sign is comparable; title 'Correlation Matrix: Physical Attributes vs Outcomes'."
+        },
+        {
+          "panel": 2,
+          "type": "bar",
+          "spec": "Horizontal or vertical bar chart of normalized_weight (4 bars, ordered descending or same attribute order as panel 1 — keep the SAME order across panels for readability). Annotate each bar with weight as percentage or 3-decimal value. Title 'Normalized Weights of Physical Attributes'; ylabel 'Normalized Weight'; add a note in xlabel/caption that weights use |composite| = |-r_draft + r_career|."
+        },
+        {
+          "panel": 3,
+          "type": "scatter",
+          "spec": "x = Height (inches, height_wo_shoes with backfill), y = Draft Round (1/2 numeric), pairwise-complete rows (n≈553). alpha≈0.45, small markers; overlay least-squares regression line via np.polyfit; annotate r and p from output.csv; also add a light y-jitter OR plot means by height bin if the binary round makes the plot unreadable — preferred: keep raw scatter with jitter (only for display; jitter must NOT be used for the reported correlations). Title 'Height vs Draft Round'."
+        },
+        {
+          "panel": 4,
+          "type": "scatter",
+          "spec": "x = Max Vertical Leap (inches), y = Career Span (years), pairwise-complete rows (n≈585). alpha≈0.45, small markers, overlay least-squares regression line and annotate r/p. Title 'Max Vertical Leap vs Career Span'."
+        }
+      ],
+      "style_rules": [
+        "use matplotlib with a non-interactive backend (matplotlib.use('Agg'))",
+        "grid alpha 0.3, axis labels with units, readable font sizes (>=10), no unicode-minus issues (ensure labels are ASCII to avoid missing-glyph warnings)"
+      ]
+    }
+  ],
+
+  "validation_checks": [
+    "assert matched unique players == 691 (tolerance: report if differ, do not abort)",
+    "assert career_span range within [0,25] after filter and log rows dropped",
+    "assert all 4 normalized_weight values >= 0 and sum(abs) == 1 within 1e-9",
+    "assert output.csv has exactly 7 columns in the specified order and 4 data rows",
+    "assert PNG file exists and is > 50 KB, and that 4 axes were created",
+    "sanity: draft_round_num values must be a subset of {1,2}; career_span mean ~6.1, max 21",
+    "report per-attribute pairwise n in the run log (and optionally as diagnostics artifact) so reviewers can judge the restricted-n binary draft-round limitation"
+  ],
+
+  "known_limitations_to_report": [
+    "Draft round is effectively binary (round 1 vs round 2) in the 2001+ combine era: correlation_with_draft is a point-biserial on a restricted range and should be read as a coarse draft-capital proxy.",
+    "Sensitivity option (analysis node may include as a diagnostics note, NOT as an output column): correlate attributes with continuous draft_number for a finer-grained check.",
+    "Athleticism is only measured for combine invitees; 691/1176 invitees matched to an NBA record (58.8%) — survivorship/selection bias is possible: combine attendees are already a filtered elite group.",
+    "Career span is right-censored for players still active (to_year near the data snapshot); this attenuates the career correlation.",
+    "Correlations are univariate and do not control for position, age at entry, or era; sprint speed is inverted (lower = faster), so its composite sign must be interpreted with care.",
+    "Maximum pairwise n differs per attribute (477-672), so weights are computed from coefficients estimated on slightly different samples."
+  ],
+
+  "figure_order_and_labels": {
+    "attribute_order": [
+      "Height (in, no shoes)",
+      "Wingspan (in)",
+      "Max Vertical Leap (in)",
+      "3/4 Court Sprint (s, lower=faster)"
+    ],
+    "note": "Keep identical order in heatmap rows and bar chart x-axis."
+  },
+
+  "runtime_notes": [
+    "Pure pandas/numpy/scipy/matplotlib; whole pipeline runs in well under 120 s; keep it in a single run_python call and write both artifacts from the same script so numbers in the CSV and annotations in the PNG are guaranteed consistent (no recomputation drift).",
+    "Abort with a clear message rather than emitting placeholder numbers if any correlation gets < 30 pairwise rows."
+  ]
+}

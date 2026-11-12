@@ -1,0 +1,357 @@
+{
+ "artifact": "analysis_plan.json",
+ "node": "analysis_planning",
+ "task_summary": "Determine the strongest clinical/lifestyle predictors of a binary chronic-disease indicator across harmonized clinical datasets via: harmonization -> base+engineered feature set -> RFE(RF) top-5 -> PCA(3) -> hybrid (5+3) -> standardized LogisticRegression -> ranked coefficients. Final answer = coefficient of the most important (largest |coef|) predictor in the hybrid feature set.",
+ "inputs": {
+  "datasets": {
+   "Healthcare-Diabetes.csv": {
+    "n_rows": 2768,
+    "n_cols": 10,
+    "role": "primary cohort (all 4 base biomarkers native)"
+   },
+   "healthcare-dataset-stroke-data.csv": {
+    "n_rows": 5110,
+    "n_cols": 12,
+    "role": "primary cohort (bp = binary 'hypertension' proxy per spec)"
+   },
+   "heart_disease_uci.csv": {
+    "n_rows": 920,
+    "n_cols": 16,
+    "role": "loaded + harmonized with proxies; removed by base-biomarker drop rule (no BMI field at all)"
+   },
+   "Sleep_health_and_lifestyle_dataset.csv": {
+    "n_rows": 374,
+    "n_cols": 13,
+    "role": "loaded + harmonized with proxies; removed by base-biomarker drop rule (no glucose field at all)"
+   }
+  },
+  "upstream_artifacts": {
+   "data_profile.json": "inspection profile; harmonization_plan.recommended_sources_for_modeling.primary = [diabetes, stroke] is consistent with this plan"
+  }
+ },
+ "inspection_findings_used": [
+  "Diabetes: 0-coded missing -> Glucose 18 zeros, BMI 39 zeros, BloodPressure 125 zeros; must be set to NaN BEFORE any drop/ratio computation.",
+  "Diabetes after 0->NaN + dropna(age,glucose,bmi,bp): 2612 rows, target prevalence 0.34 (verified).",
+  "Stroke: bmi has 201 NaN; after dropna: 4909 rows, prevalence 0.0426; 1000-row sample (random_state=42) keeps 54 positives (5.4%).",
+  "Heart: no BMI column and no height/weight (BMI cannot be derived); glucose only as binary fbs; trestbps (systolic) has 59 NaN; target num is ordinal 0-4 (55.3% >0).",
+  "Sleep: no glucose column; BMI is categorical (Normal/Overweight/Obese/'Normal Weight'); BP is a 'sys/dia' string; target = Sleep Disorder notna (41.4%).",
+  "bp semantics are inconsistent across sources (diastolic mm Hg vs binary 0/1 vs systolic) -> a documented limitation for bp and bp_bmi_ratio interpretation."
+ ],
+ "key_design_decisions": [
+  {
+   "id": "D1",
+   "decision": "Modeling cohort = diabetes + stroke only (expected 2612 + 1000 = 3612 rows).",
+   "rationale": "The mandated rule 'drop records missing any of the four base biomarker columns before combining sources' removes 100% of heart_disease rows (BMI absent entirely) and 100% of sleep rows (glucose absent entirely). Filling these with external constants would inject fabricated biomarkers, which the task does not authorize at the harmonization stage (median imputation is specified only for the post-harmonization modeling matrix).",
+   "consequence": "All four datasets are loaded and harmonized (with documented proxies), and per-source retained/dropped counts are recorded, but only diabetes+stroke contribute rows to the model.",
+   "sensitivity_option": "Optional reported variant (not the deliverable): keep all four by imputing pooled-median BMI (29.5) for heart and pooled-median glucose for sleep -> ~4906 rows; report only as a robustness note if time allows."
+  },
+  {
+   "id": "D2",
+   "decision": "source_encoded = LabelEncoder on sorted unique source labels -> diabetes=0, stroke=1.",
+   "rationale": "Deterministic, reproducible label encoding as specified; sorted order avoids dependency on load order.",
+   "consequence": "source_encoded is a near-perfect cohort marker whose base rates differ strongly (34% vs 5.4%); it is likely to be highly ranked / selected. Must be flagged in interpretation, not treated as a clinical predictor."
+  },
+  {
+   "id": "D3",
+   "decision": "PCA is fit on the StandardScaler-transformed candidate feature matrix (all 8 candidates), then the 3 components are combined with the 5 RFE features and the hybrid matrix is scaled AGAIN before LogisticRegression.",
+   "rationale": "PCA is scale-sensitive; without scaling, PC1 would be almost entirely driven by glucose/age magnitudes and explained_variance_ratio_ would be uninformative. Double scaling is harmless (cosmetic) and keeps the logistic coefficients comparable.",
+   "consequence": "explained_variance_ratio_ refers to standardized-feature space; this is stated on the PNG/report."
+  },
+  {
+   "id": "D4",
+   "decision": "No train/test split; models are fit on the full 3612-row harmonized cohort (coefficient interpretation task, not predictive-performance task).",
+   "rationale": "Task defines no holdout and asks for coefficients/ranking of the final hybrid feature set. Any optional accuracy metric would be in-sample and must be labeled as such.",
+   "consequence": "No leakage controls needed across steps; all random_state values fixed for determinism."
+  },
+  {
+   "id": "D5",
+   "decision": "Class imbalance (final prevalence ~26%) is retained as-is (no resampling, no class_weight) to stay faithful to the specified estimator configurations.",
+   "rationale": "Spec fixes RFE classifier and LogisticRegression hyperparameters; adding balancing would change the coefficient interpretation relative to the spec.",
+   "consequence": "Coefficients reflect the natural prevalence; recall/AUC for the minority classes will be limited — reported as a limitation only."
+  }
+ ],
+ "harmonization_spec": {
+  "target_column": "target (binary chronic condition indicator)",
+  "base_columns": [
+   "age",
+   "glucose",
+   "bmi",
+   "bp"
+  ],
+  "per_source": {
+   "Healthcare-Diabetes.csv": {
+    "source_label": "diabetes",
+    "preprocessing": "replace 0 with NaN in Glucose, BMI, BloodPressure",
+    "age": "Age",
+    "glucose": "Glucose",
+    "bmi": "BMI",
+    "bp": "BloodPressure (diastolic mm Hg)",
+    "target": "Outcome (0/1 as given)",
+    "expected_rows_raw": 2768,
+    "expected_rows_after_drop": 2612,
+    "expected_prevalence": 0.34
+   },
+   "healthcare-dataset-stroke-data.csv": {
+    "source_label": "stroke",
+    "age": "age",
+    "glucose": "avg_glucose_level",
+    "bmi": "bmi",
+    "bp": "hypertension (binary 0/1 proxy, as instructed)",
+    "target": "stroke",
+    "post_filter_sampling": "df.sample(n=1000, random_state=42) AFTER dropna, per spec",
+    "expected_rows_after_drop": 4909,
+    "expected_rows_after_sample": 1000,
+    "expected_prevalence_after_sample": 0.054
+   },
+   "heart_disease_uci.csv": {
+    "source_label": "heart",
+    "age": "age",
+    "glucose": "proxy from fbs: True->140, False->90, NaN->NaN (mg/dL approximation, documented)",
+    "bmi": "NOT AVAILABLE -> NaN (no BMI, no height/weight) => every heart row fails the drop rule",
+    "bp": "trestbps (systolic mm Hg; 59 NaN)",
+    "target": "(num > 0).astype(int)",
+    "expected_rows_retained": 0,
+    "dropped_reason": "bmi missing in 100% of rows"
+   },
+   "Sleep_health_and_lifestyle_dataset.csv": {
+    "source_label": "sleep",
+    "age": "Age",
+    "glucose": "NOT AVAILABLE -> NaN => every sleep row fails the drop rule",
+    "bmi": "BMI Category -> ordinal/median mapping {Normal Weight/Normal: 22.0, Overweight: 27.0, Obese: 32.0} (documented proxy, unused downstream)",
+    "bp": "Blood Pressure 'sys/dia' -> systolic = int(split('/')[0])",
+    "target": "Sleep Disorder notna -> 1 else 0",
+    "expected_rows_retained": 0,
+    "dropped_reason": "glucose missing in 100% of rows"
+   }
+  },
+  "combine": "concat per-source frames on ['source','age','glucose','bmi','bp','target'] after the drop rule; reset_index(drop=True); verify no NaN in base columns and report dtype consistency (all float).",
+  "expected_combined_shape": {
+   "rows": 3612,
+   "cols": 6,
+   "target_prevalence": "approx 0.26"
+  }
+ },
+ "feature_spec": {
+  "candidate_feature_matrix": [
+   "age",
+   "glucose",
+   "bmi",
+   "bp",
+   "glucose_bmi_ratio",
+   "age_glucose_interaction",
+   "bp_bmi_ratio",
+   "source_encoded"
+  ],
+  "formulas": {
+   "glucose_bmi_ratio": "glucose / (bmi + 1)",
+   "age_glucose_interaction": "age * glucose / 1000",
+   "bp_bmi_ratio": "bp / (bmi + 1)",
+   "source_encoded": "LabelEncoder().fit_transform(source)"
+  },
+  "imputation": "X = X.fillna(X.median(numeric_only=True)) — applied to the candidate matrix after engineering, before RFE/PCA (expected 0 fills needed).",
+  "note": "n_candidates = 8; RFE selects 5; PCA yields 3 -> hybrid matrix has exactly 8 columns."
+ },
+ "steps": [
+  {
+   "step": 1,
+   "name": "Load and harmonize four datasets",
+   "method": "pandas.read_csv for all four files; diabetes 0->NaN on Glucose/BMI/BloodPressure first; map per harmonization_spec; build binary target per source; record raw/retained/dropped counts and target prevalence per source",
+   "params": {},
+   "outputs": [
+    "in-memory per-source frames",
+    "harmonization_log (counts) reproduced in report"
+   ],
+   "checks": [
+    "diabetes drop counts == 156",
+    "heart retained == 0 (bmi missing)",
+    "sleep retained == 0 (glucose missing)"
+   ]
+  },
+  {
+   "step": 2,
+   "name": "Build unified analytical dataset",
+   "method": "dropna(subset=['age','glucose','bmi','bp']) per source, then stroke.sample(n=1000, random_state=42), then concat + reset_index",
+   "params": {
+    "random_state": 42,
+    "stroke_sample_n": 1000
+   },
+   "outputs": [
+    "harmonized_df (3612 x 7 incl. source)"
+   ],
+   "checks": [
+    "no NaN in base columns",
+    "stroke rows == 1000",
+    "diabetes rows == 2612"
+   ]
+  },
+  {
+   "step": 3,
+   "name": "Engineer features + encode source + median fill",
+   "method": "vectorized ratio/interaction formulas; LabelEncoder on source; X.fillna(X.median())",
+   "params": {},
+   "outputs": [
+    "X (3612 x 8)",
+    "y (3612,)"
+   ],
+   "checks": [
+    "8 candidate columns",
+    "single source_encoded mapping diabetes=0/stroke=1",
+    "0 remaining NaN"
+   ]
+  },
+  {
+   "step": 4,
+   "name": "RFE with RandomForestClassifier",
+   "method": "RFE(estimator=RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10), n_features_to_select=5, step=1).fit(X, y); take support_ mask; also keep ranking_ for the report",
+   "params": {
+    "n_estimators": 100,
+    "random_state": 42,
+    "max_depth": 10,
+    "n_features_to_select": 5,
+    "step": 1
+   },
+   "outputs": [
+    "selected_features.csv (5 names)",
+    "rfe ranking table in report"
+   ],
+   "checks": [
+    "exactly 5 supported features",
+    "selection reproducible on re-run with same seed"
+   ]
+  },
+  {
+   "step": 5,
+   "name": "PCA to 3 latent components",
+   "method": "StandardScaler().fit_transform(X) -> PCA(n_components=3, random_state=42).fit_transform; name columns pca_component_1..3; keep explained_variance_ratio_ and cumulative sum",
+   "params": {
+    "n_components": 3,
+    "random_state": 42
+   },
+   "outputs": [
+    "pca_df (3612 x 3)",
+    "explained_variance_ratio (for PNG right panel)"
+   ],
+   "checks": [
+    "3 components",
+    "sum of first-3 explained variance reported (majority-of-variance claim must be evidenced, not assumed)"
+   ]
+  },
+  {
+   "step": 6,
+   "name": "Hybrid representation",
+   "method": "pd.concat([X[selected_features], pca_df], axis=1) -> 8 columns, column order: 5 selected (in candidate order) then 3 PCs",
+   "params": {},
+   "outputs": [
+    "hybrid_df (3612 x 8)"
+   ],
+   "checks": [
+    "hybrid width == 5 + 3 == 8"
+   ]
+  },
+  {
+   "step": 7,
+   "name": "Standardized LogisticRegression",
+   "method": "StandardScaler().fit_transform(hybrid) -> LogisticRegression(max_iter=1000, random_state=42, C=1.0).fit; verify convergence (n_iter_ < max_iter) and report in-sample accuracy/AUC labeled as in-sample",
+   "params": {
+    "max_iter": 1000,
+    "random_state": 42,
+    "C": 1.0
+   },
+   "outputs": [
+    "fitted model",
+    "scaled hybrid matrix"
+   ],
+   "checks": [
+    "model converged (no ConvergenceWarning)",
+    "coef_ length == 8"
+   ]
+  },
+  {
+   "step": 8,
+   "name": "Rank coefficients and write deliverables",
+   "method": "build DataFrame(feature, coefficient=model.coef_[0], abs_coefficient, rank=1-based by descending |coef|) -> feature_coefficients.csv; selected_features.csv = 5 RFE names (header 'feature'); top_coefficient.txt = signed coefficient of rank-1 feature as a single line float ('%.6f') for machine parseability; feature_analysis.png = 1x2 (left: horizontal bars of hybrid coefficients colored by sign; right: PCA explained_variance_ratio_ per component with cumulative line/annotation)",
+   "params": {
+    "png_figsize": [
+     12,
+     5
+    ],
+    "dpi": 150
+   },
+   "outputs": [
+    "feature_coefficients.csv",
+    "selected_features.csv",
+    "feature_analysis.png",
+    "top_coefficient.txt"
+   ],
+   "checks": [
+    "CSV has 8 rows",
+    "top_coefficient.txt parses via float()",
+    "PNG has exactly 2 axes"
+   ]
+  }
+ ],
+ "deliverables_contract": {
+  "feature_coefficients.csv": {
+   "columns": [
+    "rank",
+    "feature",
+    "coefficient",
+    "abs_coefficient"
+   ],
+   "rows": 8,
+   "sort": "descending abs_coefficient"
+  },
+  "selected_features.csv": {
+   "columns": [
+    "feature"
+   ],
+   "rows": 5
+  },
+  "feature_analysis.png": {
+   "layout": "1 row x 2 cols",
+   "left": "hybrid feature coefficients",
+   "right": "PCA explained variance (per-component bar + cumulative annotation)"
+  },
+  "top_coefficient.txt": {
+   "content": "single line, signed coefficient (6 dp) of the max-|coef| feature; feature name is resolvable via rank 1 of feature_coefficients.csv"
+  }
+ },
+ "validations": [
+  "Assert diabetes rows after 0->NaN + dropna == 2612 and diabetes target prevalence == 0.34.",
+  "Assert stroke rows after dropna == 4909 and sampled rows == 1000 with 54 positives.",
+  "Assert heart_disease and sleep contribute 0 rows; log dropped counts (920 and 374) and the reason (bmi / glucose entirely absent).",
+  "Assert no NaN in base columns of the combined frame and 0 residual NaN after median fill.",
+  "Assert RFE support count == 5 and hybrid width == 8.",
+  "Assert sum(explained_variance_ratio_) of the 3 PCs and state plainly whether 'majority of variance' is actually achieved; if < 50%, say so instead of claiming majority.",
+  "Assert LogisticRegression converged (n_iter_ < 1000, no warning).",
+  "Re-run determinism check: identical coefficients on a second run with the same seeds."
+ ],
+ "risks_and_limitations": [
+  "source_encoded encodes cohorts whose prevalence differs (0.34 diabetes vs 0.054 stroke) and is therefore likely to dominate the coefficient ranking; it is a study-design artifact, not a clinical/lifestyle predictor. Must be called out explicitly in the final answer.",
+  "The 'chronic condition' target is defined differently per cohort (diabetes diagnosis vs stroke event), so coefficients describe the pooled mixture, not a single disease mechanism.",
+  "bp is not semantically comparable across sources (diastolic mm Hg 30-122 vs binary hypertension 0/1), so bp and bp_bmi_ratio coefficients must be interpreted with this caveat.",
+  "Stroke sample keeps only 54 positives -> high variance in stroke-side coefficient contributions; seed fixed but stability limited.",
+  "PCA components are unsupervised linear combinations of the candidate features (partially overlapping the RFE-selected features) -> collinearity between hybrid blocks inflates individual coefficient magnitude/sign instability.",
+  "Only 2 of 4 clinical sources survive the drop rule; heart_disease and sleep disorders are represented only as documented load/harmonize steps, so the 'multiple patient populations' claim is limited to diabetics and stroke patients.",
+  "Engineered ratios are algebraically dependent on the base biomarkers; RFE importance is therefore shared/arbitrary among near-duplicates, so the identity of the 5 selected features may be sensitive to the RF seed."
+ ],
+ "execution_order": [
+  "step1 load/harmonize",
+  "step2 unify + sample",
+  "step3 engineer",
+  "step4 RFE",
+  "step5 PCA",
+  "step6 hybrid",
+  "step7 logreg",
+  "step8 outputs"
+ ],
+ "next_node_handoff": {
+  "expected_artifacts": [
+   "feature_coefficients.csv",
+   "selected_features.csv",
+   "feature_analysis.png",
+   "top_coefficient.txt"
+  ],
+  "final_answer_field": "top_coefficient.txt -> coefficient of the most important hybrid predictor (max |coefficient|)"
+ }
+}

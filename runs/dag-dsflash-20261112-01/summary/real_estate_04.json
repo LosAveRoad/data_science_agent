@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "real_estate_04",
+  "startedAt": "2026-11-11T20:00:31.858Z",
+  "finishedAt": "2026-11-11T20:02:30.202Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: top5_cagr_disparity.csv",
+  "totalSteps": 142,
+  "tokenUsage": {
+    "inputTokens": 31508,
+    "outputTokens": 23046,
+    "totalTokens": 54554
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:00:31.876Z",
+      "finishedAt": "2026-11-11T20:00:57.863Z",
+      "elapsedMs": 25987,
+      "error": null,
+      "steps": 23,
+      "tokenUsage": {
+        "inputTokens": 7067,
+        "outputTokens": 5093,
+        "totalTokens": 12160
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:00:57.864Z",
+      "finishedAt": "2026-11-11T20:01:34.598Z",
+      "elapsedMs": 36734,
+      "error": null,
+      "steps": 41,
+      "tokenUsage": {
+        "inputTokens": 6355,
+        "outputTokens": 7015,
+        "totalTokens": 13370
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:01:34.599Z",
+      "finishedAt": "2026-11-11T20:01:57.806Z",
+      "elapsedMs": 23207,
+      "error": null,
+      "steps": 31,
+      "tokenUsage": {
+        "inputTokens": 9274,
+        "outputTokens": 4653,
+        "totalTokens": 13927
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:01:57.807Z",
+      "finishedAt": "2026-11-11T20:02:30.198Z",
+      "elapsedMs": 32391,
+      "error": null,
+      "steps": 47,
+      "tokenUsage": {
+        "inputTokens": 8812,
+        "outputTokens": 6285,
+        "totalTokens": 15097
+      }
+    }
+  ]
+}

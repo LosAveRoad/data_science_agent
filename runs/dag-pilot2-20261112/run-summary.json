@@ -1,0 +1,58 @@
+{
+  "experimentId": "dag-pilot2-20261112",
+  "system": "dag-prototype",
+  "startedAt": "2026-11-11T18:39:44.472Z",
+  "finishedAt": "2026-11-11T18:44:56.043Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": false,
+    "model": "deepseek-flash",
+    "baseUrl": "https://api.deepseek.com",
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 2,
+    "succeeded": 2,
+    "failed": 0,
+    "skipped": 0,
+    "tokenUsage": {
+      "inputTokens": 59669,
+      "outputTokens": 56657,
+      "totalTokens": 116326
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "healthcare_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 32809,
+        "outputTokens": 31270,
+        "totalTokens": 64079
+      },
+      "outputs": [
+        "output.csv",
+        "output.png"
+      ]
+    },
+    {
+      "taskId": "loan_risk_5",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 26860,
+        "outputTokens": 25387,
+        "totalTokens": 52247
+      },
+      "outputs": [
+        "output_1.csv",
+        "output_2.csv"
+      ]
+    }
+  ]
+}

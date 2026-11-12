@@ -1,0 +1,170 @@
+{
+  "node": "execute",
+  "status": "success",
+  "task": "RandomForest(100 trees, random_state=42) 12 类作物推荐评估：per-class 分类报告 + 归一化混淆矩阵 + overall accuracy / macro F1 / micro F1",
+  "data": {
+    "file": "Crop Recommendation using Soil Properties and Weather Prediction.csv",
+    "shape": [
+      3867,
+      29
+    ],
+    "n_missing": 0,
+    "target": "label",
+    "n_classes": 12,
+    "class_order": [
+      "Barley",
+      "Bean",
+      "Dagussa",
+      "Fallow",
+      "Maize",
+      "Niger seed",
+      "Pea",
+      "Potato",
+      "Red Pepper",
+      "Sorghum",
+      "Teff",
+      "Wheat"
+    ]
+  },
+  "method": {
+    "preprocessing": [
+      "Soilcolor 规范化：小写、去空白、按 ';' 取首段、去掉括号别名、合并拼写变体（redish/reddis→reddish、darkbrown→dark brown 等）；出现次数 <20 的稀有级别统一归为 'other'；共保留 8 个级别（black, brown, dark brown, dark gray, gray, other, red, reddish brown），'other' 占 4.68%。",
+      "27 个数值特征（土壤 6 列 Ph/K/P/N/Zn/S + 天气气候 21 列）原样使用，未做标准化/变换（RF 对单调变换不敏感）。",
+      "Soilcolor 独热编码（在 DataFrame 层面 get_dummies，训练/测试共用同一 8 个级别，无泄漏）。最终特征矩阵 35 列。"
+    ],
+    "split": "train_test_split(test_size=0.2, random_state=42, stratify=y) → train 3093 / test 774",
+    "model": "RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)",
+    "metrics": "sklearn classification_report(output_dict=True, labels=class_order, zero_division=0)；accuracy_score / f1_score(average='macro'/'micro')；confusion_matrix(normalize='true')"
+  },
+  "key_results": {
+    "overall_accuracy": 0.503876,
+    "macro_f1": 0.255083,
+    "micro_f1": 0.503876,
+    "micro_f1_equals_accuracy": true,
+    "macro_precision": 0.299058,
+    "train_accuracy": 1.0,
+    "majority_class_baseline_accuracy": 0.3256,
+    "mean_diagonal_of_normalized_cm": 0.242716
+  },
+  "per_class_notes": {
+    "strong": "Teff (P .555/R .738/F1 .634, sup 252)、Maize (P .517/R .623/F1 .565, sup 146)、Wheat (F1 .449, sup 143)、Barley (F1 .411, sup 101) —— 四大类支撑 80% 测试样本，模型主要在这里表现尚可。",
+    "weak": "Bean F1 .090、Dagussa .190、Potato .143、Red Pepper .222 偏低；Fallow (sup 5)、Niger seed (sup 13)、Sorghum (sup 14) 的 precision/recall/F1 全部为 0，模型完全未识别出这三类（被相邻大类吸收）。",
+    "imbalance_effect": "12 类指标简单平均即 macro F1 = 0.255，远低于 micro F1 = accuracy = 0.504，说明性能被长尾小类严重拉低；support 极小的类（5~14 条）单次划分方差大。"
+  },
+  "misclassification_patterns": [
+    {
+      "actual": "Maize",
+      "predicted": "Teff",
+      "count": 38,
+      "share_of_actual": 0.2603
+    },
+    {
+      "actual": "Wheat",
+      "predicted": "Teff",
+      "count": 35,
+      "share_of_actual": 0.2448
+    },
+    {
+      "actual": "Teff",
+      "predicted": "Maize",
+      "count": 32,
+      "share_of_actual": 0.127
+    },
+    {
+      "actual": "Wheat",
+      "predicted": "Barley",
+      "count": 27,
+      "share_of_actual": 0.1888
+    },
+    {
+      "actual": "Barley",
+      "predicted": "Wheat",
+      "count": 25,
+      "share_of_actual": 0.2475
+    },
+    {
+      "actual": "Bean",
+      "predicted": "Teff",
+      "count": 25,
+      "share_of_actual": 0.4902
+    },
+    {
+      "actual": "Barley",
+      "predicted": "Teff",
+      "count": 20,
+      "share_of_actual": 0.198
+    },
+    {
+      "actual": "Teff",
+      "predicted": "Wheat",
+      "count": 20,
+      "share_of_actual": 0.0794
+    },
+    {
+      "actual": "Wheat",
+      "predicted": "Maize",
+      "count": 15,
+      "share_of_actual": 0.1049
+    },
+    {
+      "actual": "Pea",
+      "predicted": "Teff",
+      "count": 14,
+      "share_of_actual": 0.7368
+    }
+  ],
+  "caveats": [
+    "27 个天气列在全表只有 16 种取值组合（天气区块），常规分层随机划分会让同一区块同时进入训练集与测试集，存在信息泄漏、指标可能偏乐观；更严谨的评估应按区块做 GroupKFold。",
+    "训练集准确率 1.000（完全拟合），测试集 0.504，森林深树在小样本高噪声特征下明显过拟合；单次 hold-out 不含交叉验证，稳定性有限。",
+    "0.504 的准确率仅比多数类基线 0.326 高约 18 个百分点，说明现有土壤+天气特征对 12 类作物的可区分性有限，'稳健性' 结论应谨慎（长尾作物基本不可用）。",
+    "混淆矩阵按行（真实类别）归一化，每行和为 1（6 位小数四舍五入后存在 ±1e-6 偏差）；Fallow/Niger seed/Sorghum 行并非全 0（support>0），其对角线为 0。"
+  ],
+  "outputs": [
+    {
+      "file": "output1.csv",
+      "content": "15 行 × 4 列：12 个作物类（sorted 顺序）+ accuracy + macro avg + micro avg，列 precision/recall/f1-score/support，首列 index 名 'class'，指标保留 6 位小数，support 为整数"
+    },
+    {
+      "file": "output2.csv",
+      "content": "12×12 行归一化混淆矩阵，index 名 'Actual'、columns 名 'Predicted'，行列均为 sorted class_order，保留 6 位小数"
+    },
+    {
+      "file": "output.png",
+      "content": "Normalized Confusion Matrix - Crop Recommendation 热图（Blues, vmin=0, vmax=1）+ colorbar + 格内两位小数标注，xlabel 'Predicted'、ylabel 'Actual'，dpi=300"
+    }
+  ],
+  "validation": {
+    "output1_rows_15": true,
+    "output1_columns_match": [
+      "precision",
+      "recall",
+      "f1-score",
+      "support"
+    ],
+    "output2_shape": [
+      12,
+      12
+    ],
+    "output2_row_sums_unit": true,
+    "diag_mean_equals_mean_recall": true,
+    "micro_f1_equals_accuracy": true,
+    "support_sum_equals_n_test": 774,
+    "png_size_bytes": 261712,
+    "png_size_px": [
+      2675,
+      2366
+    ],
+    "png_dpi": 300
+  },
+  "reproducibility": {
+    "random_seed": 42,
+    "deterministic": true
+  },
+  "artifacts": [
+    "output1.csv",
+    "output2.csv",
+    "output.png",
+    "run_analysis.py",
+    "_exec_log.json"
+  ]
+}

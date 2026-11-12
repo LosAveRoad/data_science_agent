@@ -1,0 +1,355 @@
+{
+  "plan_version": "1.0",
+  "objective": "Quantify borough-level NYC yellow-taxi travel patterns and demand change from January to February 2024, and identify the borough with the largest absolute increase in average total fare (Feb - Jan).",
+  "key_questions": [
+    "How do average trip distance, average total fare and trip volume differ by pickup borough between Jan-2024 and Feb-2024?",
+    "Which borough shows the largest absolute increase in average total fare from January to February 2024?"
+  ],
+  "inputs": {
+    "trip_data": [
+      {
+        "path": "yellow_tripdata/yellow_tripdata_2024-01.parquet",
+        "rows": 2964624,
+        "month": 1,
+        "size_mb": 48.8,
+        "note": "~2.96M rows, 48.8 MB parquet -> must read column subset via pandas.read_parquet(columns=...)"
+      },
+      {
+        "path": "yellow_tripdata/yellow_tripdata_2024-02.parquet",
+        "rows": 3007526,
+        "month": 2,
+        "size_mb": 49.2,
+        "note": "~3.01M rows, 49.2 MB parquet -> same approach"
+      }
+    ],
+    "schema": {
+      "tpep_pickup_datetime": "datetime64[us]",
+      "tpep_dropoff_datetime": "datetime64[us]",
+      "PULocationID": "int32 (TLC taxi zone id, 1-265)",
+      "DOLocationID": "int32",
+      "trip_distance": "float64 (miles)",
+      "fare_amount": "float64 (USD)",
+      "total_amount": "float64 (USD, incl. taxes/surcharges/tip)",
+      "passenger_count": "float64 (140,162 nulls in Jan; not used)"
+    },
+    "columns_to_read": [
+      "tpep_pickup_datetime",
+      "PULocationID",
+      "trip_distance",
+      "fare_amount",
+      "total_amount"
+    ],
+    "zone_lookup": {
+      "path": "taxi_zones/taxi_zone_lookup.csv",
+      "rows": 265,
+      "key": "LocationID",
+      "value": "Borough",
+      "borough_counts": {
+        "Queens": 69,
+        "Manhattan": 69,
+        "Brooklyn": 61,
+        "Bronx": 43,
+        "Staten Island": 20,
+        "EWR": 1,
+        "Unknown": 1
+      },
+      "encoding_note": "read with encoding='utf-8-sig' and strip BOM/whitespace from column names",
+      "shapefile_note": "taxi_zones/taxi_zones.shp has no .dbf attribute table (geometry only, 263 records) -> cannot be used for LocationID->Borough; use the CSV lookup."
+    }
+  },
+  "data_quality_findings": {
+    "source": "data_profile.json (upstream inspection node)",
+    "issues": [
+      "Negative fare_amount: 37,448 rows (Jan) / 40,655 rows (Feb); min -899 / -999 -> removed by fare >= 0 bound.",
+      "Extreme positive values: trip_distance max 312,722 mi (Jan) / 222,478 mi (Feb); fare_amount/total_amount max 5,000 (Jan) / 9,792 (Feb) -> removed by upper bounds.",
+      "trips with trip_distance > 100 mi: 59 (Jan) / 71 (Feb); fare_amount > 1000: 7 (Jan) / 1 (Feb).",
+      "No nulls in trip_distance / fare_amount / total_amount / PULocationID; passenger_count has 140,162 / ~nulls (unused).",
+      "Out-of-file-month pickup datetimes (~30 rows, e.g. 2002-12, 2009-01, 2023-12, 2024-03): keep (task only specifies distance/fare filters); sensitivity note in robustness.",
+      "Zones labelled Unknown / N/A or not present in lookup (~11.8k Jan + ~10.9k Feb trips) -> excluded from borough aggregation.",
+      "Total drop rate from filters: 1.27% (Jan) / 1.35% (Feb) -> acceptable."
+    ]
+  },
+  "filters": {
+    "trip_distance": {
+      "min": 0,
+      "max": 100,
+      "unit": "miles",
+      "inclusive": true
+    },
+    "fare_amount": {
+      "min": 0,
+      "max": 1000,
+      "unit": "USD",
+      "inclusive": true
+    },
+    "null_handling": "drop rows with null trip_distance, fare_amount, total_amount, PULocationID",
+    "rows_after_filter": {
+      "month_1": 2927114,
+      "month_2": 2966801,
+      "total": 5893915
+    },
+    "borough_scope": [
+      "Manhattan",
+      "Queens",
+      "Brooklyn",
+      "Bronx",
+      "Staten Island",
+      "EWR"
+    ],
+    "rows_used": {
+      "month_1": 2915274,
+      "month_2": 2955858,
+      "total": 5871132
+    }
+  },
+  "transformation_steps": [
+    {
+      "step": 1,
+      "action": "Read each parquet with the 5 needed columns only (pandas.read_parquet(columns=...)); never print raw frames."
+    },
+    {
+      "step": 2,
+      "action": "Apply inclusive filters 0<=trip_distance<=100 and 0<=fare_amount<=1000 plus null drops; record before/after row counts."
+    },
+    {
+      "step": 3,
+      "action": "Map PULocationID -> Borough via taxi_zone_lookup.csv; restrict to the 6 valid borough labels (drop Unknown/N/A/unmapped)."
+    },
+    {
+      "step": 4,
+      "action": "Tag month from the source file (1 = Jan-2024, 2 = Feb-2024)."
+    },
+    {
+      "step": 5,
+      "action": "Group by (borough, month): mean(trip_distance) as avg_trip_distance, mean(total_amount) as avg_total_fare, size as trip_count."
+    },
+    {
+      "step": 6,
+      "action": "Pivot to wide per borough: absolute_increase = avg_total_fare(month 2) - avg_total_fare(month 1); broadcast the value to both monthly rows of the borough."
+    },
+    {
+      "step": 7,
+      "action": "is_max_increase = (borough's absolute_increase == max over boroughs of absolute_increase); True on both rows of the winning borough, False otherwise."
+    },
+    {
+      "step": 8,
+      "action": "Round floats to 4 decimals, trip_count to int; write output1.json sorted by borough then month."
+    },
+    {
+      "step": 9,
+      "action": "Build grouped bar chart (Jan vs Feb) with the two required subplots from output1.json; save output2.png at dpi>=150."
+    }
+  ],
+  "metric_definitions": {
+    "avg_trip_distance": "mean of trip_distance (miles) over filtered trips of that borough-month (pickup-borough basis)",
+    "avg_total_fare": "mean of total_amount (USD) over filtered trips of that borough-month",
+    "trip_count": "number of filtered trips (demand volume proxy) of that borough-month",
+    "absolute_increase": "avg_total_fare(Feb 2024) - avg_total_fare(Jan 2024) for the borough, in USD (signed; negative = decrease)",
+    "is_max_increase": "boolean flag on the borough with the largest (most positive) absolute_increase; applied to both of its month rows"
+  },
+  "interpretation_decision": {
+    "chosen": "largest positive absolute change in average total fare (max of Feb - Jan)",
+    "rationale": "task says 'largest absolute increase' -> an increase, measured in absolute USD rather than percent; the magnitude-only alternative is reported as a sensitivity check, because with this filter it selects a decrease (EWR -$10.65).",
+    "sensitivity": {
+      "magnitude_only_max": {
+        "borough": "EWR",
+        "value": -10.6509,
+        "note": "a decrease, not an increase; small sample (284/279 trips)"
+      },
+      "exclude_EWR_5_boroughs": {
+        "borough": "Bronx",
+        "value": 0.8024
+      },
+      "strict_positive_bounds": {
+        "borough": "Bronx",
+        "value": 1.158
+      },
+      "conclusion": "Bronx stays the largest increase under every variant tested."
+    }
+  },
+  "expected_reference_results": {
+    "note": "reference values already computed in data_profile.json/analysis_summary (used only as a consistency check for the execution node)",
+    "signed_increase_by_borough_usd": {
+      "Bronx": 0.8024,
+      "Brooklyn": -0.8078,
+      "EWR": -10.6509,
+      "Manhattan": 0.2862,
+      "Queens": 0.2541,
+      "Staten Island": -4.6718
+    },
+    "winning_borough": "Bronx",
+    "borough_month_stats": {
+      "Bronx|1": {
+        "avg_trip_distance": 6.5147,
+        "avg_total_fare": 35.6322,
+        "trip_count": 6845
+      },
+      "Bronx|2": {
+        "avg_trip_distance": 6.7729,
+        "avg_total_fare": 36.4347,
+        "trip_count": 6909
+      },
+      "Brooklyn|1": {
+        "avg_trip_distance": 5.4995,
+        "avg_total_fare": 33.604,
+        "trip_count": 24925
+      },
+      "Brooklyn|2": {
+        "avg_trip_distance": 5.3861,
+        "avg_total_fare": 32.7962,
+        "trip_count": 27623
+      },
+      "EWR|1": {
+        "avg_trip_distance": 1.0561,
+        "avg_total_fare": 111.0965,
+        "trip_count": 284
+      },
+      "EWR|2": {
+        "avg_trip_distance": 1.4321,
+        "avg_total_fare": 100.4456,
+        "trip_count": 279
+      },
+      "Manhattan|1": {
+        "avg_trip_distance": 2.2705,
+        "avg_total_fare": 22.8633,
+        "trip_count": 2616402
+      },
+      "Manhattan|2": {
+        "avg_trip_distance": 2.2896,
+        "avg_total_fare": 23.1495,
+        "trip_count": 2676800
+      },
+      "Queens|1": {
+        "avg_trip_distance": 12.3371,
+        "avg_total_fare": 70.9318,
+        "trip_count": 266750
+      },
+      "Queens|2": {
+        "avg_trip_distance": 12.2301,
+        "avg_total_fare": 71.1858,
+        "trip_count": 244193
+      },
+      "Staten Island|1": {
+        "avg_trip_distance": 6.7837,
+        "avg_total_fare": 59.2866,
+        "trip_count": 68
+      },
+      "Staten Island|2": {
+        "avg_trip_distance": 7.8481,
+        "avg_total_fare": 54.6148,
+        "trip_count": 54
+      }
+    }
+  },
+  "outputs": {
+    "output1.json": {
+      "format": "JSON array of objects, one per (borough, month) = 6 boroughs x 2 months = 12 objects",
+      "sort": [
+        "borough asc",
+        "month asc"
+      ],
+      "fields": [
+        {
+          "name": "borough",
+          "type": "string",
+          "note": "Manhattan, Queens, Brooklyn, Bronx, Staten Island, EWR"
+        },
+        {
+          "name": "month",
+          "type": "int",
+          "note": "1 = Jan-2024, 2 = Feb-2024"
+        },
+        {
+          "name": "avg_trip_distance",
+          "type": "float",
+          "unit": "miles",
+          "round": 4
+        },
+        {
+          "name": "avg_total_fare",
+          "type": "float",
+          "unit": "USD",
+          "round": 4
+        },
+        {
+          "name": "trip_count",
+          "type": "int"
+        },
+        {
+          "name": "absolute_increase",
+          "type": "float",
+          "unit": "USD",
+          "round": 4,
+          "note": "Feb - Jan, same value on both rows of a borough"
+        },
+        {
+          "name": "is_max_increase",
+          "type": "boolean",
+          "note": "True only for the winning borough (Bronx expected), on both of its rows"
+        }
+      ]
+    },
+    "output2.png": {
+      "type": "matplotlib figure, 2 subplots side by side, Agg backend, dpi>=150",
+      "left_subplot": {
+        "content": "grouped bars Jan vs Feb 2024 of avg_trip_distance per borough",
+        "graph_title": "Average Trip Distance by Borough (Jan vs Feb 2024)",
+        "x_label": "Borough",
+        "y_label": "Average Trip Distance (miles)",
+        "detail": "x ticks = borough names (rotated for readability), legend Jan 2024 / Feb 2024, value labels on bars"
+      },
+      "right_subplot": {
+        "content": "grouped bars Jan vs Feb 2024 of avg_total_fare per borough",
+        "graph_title": "Average Total Fare by Borough (Jan vs Feb 2024)",
+        "x_label": "Borough",
+        "y_label": "Average Total Fare ($)",
+        "detail": "same borough order as left subplot for comparability; value labels on bars"
+      }
+    },
+    "supporting": [
+      "scripts/borough_month_stats.csv (long-form intermediate stats)",
+      "scripts/analyze_trips.py (aggregation script), scripts/make_plot.py (plot script)"
+    ]
+  },
+  "validation_checks": [
+    "sum(trip_count over months) == rows_used_total (5,871,132 by reference profile)",
+    "output1.json has exactly 12 records, each borough appears exactly twice (month 1 and 2)",
+    "exactly one borough has is_max_increase == true, and it equals argmax(absolute_increase)",
+    "absolute_increase identical on both monthly rows of every borough and consistent with rounded fare difference (tolerance 1e-3)",
+    "all avg_trip_distance in [0,100], all avg_total_fare in [0,1000]; trip_count > 0",
+    "output2.png exists, >50 KB, contains both required titles and axis labels (verify by re-reading strings in the plotting script / image size)"
+  ],
+  "risks_and_caveats": [
+    "EWR is a lookup 'Borough' value but not one of the 5 NYC boroughs and has a tiny sample (284 / 279 trips): its averages are volatile and drive the magnitude-only alternative.",
+    "Staten Island also tiny (68 / 54 trips) -> unstable change (-$4.67).",
+    "Borough is assigned by pickup zone only; trips are not split/shared between boroughs.",
+    "Trip counts differ between months (Feb has ~1.4% more raw rows), so averages - not counts - are the reliable comparison; counts are reported as demand volume.",
+    "Rounding to 4 decimals may make very small differences ambiguous (Bronx +0.8024 vs Manhattan +0.2862 are far apart, so ranking is safe).",
+    "Environment note: this planning node's isolated interpreter has pandas but no pyarrow/matplotlib; the execution steps require an interpreter with pyarrow (parquet IO) and matplotlib (PNG), as already assumed by scripts/*.py."
+  ],
+  "execution_steps_for_downstream_nodes": [
+    {
+      "node": "analysis/code",
+      "script": "scripts/analyze_trips.py",
+      "produces": [
+        "output1.json",
+        "scripts/borough_month_stats.csv",
+        "data_profile.json"
+      ]
+    },
+    {
+      "node": "visualization",
+      "script": "scripts/make_plot.py",
+      "produces": [
+        "output2.png"
+      ],
+      "depends_on": [
+        "output1.json"
+      ]
+    },
+    {
+      "node": "validation",
+      "checks": "validation_checks list above"
+    }
+  ]
+}

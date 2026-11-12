@@ -1,0 +1,93 @@
+{
+  "node": "analysis_plan",
+  "version": "1.0",
+  "question": "Based on pub_fin_data.sqlite (consolidated statements only), for H1 2024 vs H1 2025, which industry has the largest year-over-year decline in net profit margin?",
+  "deliverable_of_pipeline": {
+    "file": "output.csv",
+    "columns": [
+      "industry_name"
+    ],
+    "rows_expected": 1,
+    "note": "single row: the industry whose consolidated net profit margin fell the most (in percentage points) from H1 2024 to H1 2025"
+  },
+  "data_understanding": {
+    "tables_used": [
+      "fact_income_statement (revenue, net_profit, period_date, period_type, report_type)",
+      "dim_company (industry_name, company_id)"
+    ],
+    "grain": "fact_income_statement is keyed by (company_id, period_date, period_type, report_type)",
+    "required_filters": {
+      "report_type": "合并报表  (consolidated only; 母公司报表 has 0-revenue rows in 32 records -> would pollute margins)",
+      "period_type": "H1",
+      "period_date": [
+        "2024-06-30",
+        "2025-06-30"
+      ]
+    },
+    "coverage_check": "Both H1-consolidated slices contain 172 companies and 39 industries -> balanced panel, no need for universe restriction. 2025-09-30 (Q3) only has 13 rows and is NOT used.",
+    "data_quality": "net_profit and revenue are NOT NULL and revenue>0 for every consolidated row (zero-revenue rows occur only in 母公司报表), so net_profit/revenue is safe; currency is all CNY."
+  },
+  "metric_definition": {
+    "net_profit_margin": "net_profit / revenue, expressed in percent (2 decimals) per the dataset's ratio rule",
+    "industry_aggregation": "SUM(net_profit) / SUM(revenue) per industry-period (revenue-weighted; treats the industry as one entity). This is the documented primary aggregation for industry-level margin comparisons.",
+    "yoy_decline": "delta_pp = margin_2025H1_pct - margin_2024H1_pct (negative = decline); select the industry with the minimum delta_pp (largest decline)."
+  },
+  "execution_steps": [
+    {
+      "step": 1,
+      "action": "Aggregate consolidated H1 income statements by industry and period",
+      "sql": "SELECT d.industry_name, f.period_date, SUM(f.net_profit) AS np, SUM(f.revenue) AS rev, SUM(f.net_profit)*100.0/SUM(f.revenue) AS margin_pct FROM fact_income_statement f JOIN dim_company d ON d.company_id=f.company_id WHERE f.report_type='合并报表' AND f.period_type='H1' AND f.period_date IN ('2024-06-30','2025-06-30') GROUP BY 1,2"
+    },
+    {
+      "step": 2,
+      "action": "Pivot to one row per industry with margin_2024, margin_2025, delta_pp = margin_2025 - margin_2024; sort ascending by delta_pp"
+    },
+    {
+      "step": 3,
+      "action": "Take the top row (most negative delta_pp) as the answer industry; write output.csv with header 'industry_name' and that single value"
+    }
+  ],
+  "validation_checks": [
+    "Both periods must return 39 industries and 172 distinct companies (balanced panel); if not, restrict to industries present in both periods.",
+    "Industry revenue sums > 0 in both periods for every industry (ensures no divide-by-zero).",
+    "Expected count of industries in the ranked table = 39.",
+    "Cross-check: overall (all-industry) consolidated margin must equal SUM(np)/SUM(rev) computed from the raw table for each period (should reproduce ~11.90% for 2024H1 and ~12.27% for 2025H1 from the profile's revenue/net_profit sums: 1,690,327,067,022.5/14,205,024,709,116.5 and 1,699,743,929,086.1/13,858,678,509,538.8).",
+    "Sign-direction check: max(delta_pp) should be a gainer (positive) so the ranking is not inverted."
+  ],
+  "sensitivity_and_caveats": [
+    "Equal-weight (simple mean of company margins) vs revenue-weighted changes the winner because of single-company outliers (e.g. a software company whose margin went from -13.6% to -265.2%). Equal-weight ranking puts 软件和信息技术服务业 first (-49.4pp) and 房地产业 second (-33.7pp), while the weighted ranking puts 农副食品加工业 first (-6.7pp). The documented primary method (revenue-weighted, per dataset recommendations) must be used; note the alternative in any accompanying explanation.",
+    "13 of 39 industries contain only 1-2 companies, so their industry-level conclusions are weakly representative; the winning industry should be reported with its company count and revenue weight.",
+    "Do not use 2025-09-30 data and do not mix 母公司报表 into the margin computation."
+  ],
+  "feasibility_precheck": {
+    "status": "confirmed",
+    "method_used_in_precheck": "revenue-weighted SUM(np)/SUM(rev), consolidated H1 only",
+    "industries_compared": 39,
+    "largest_decline_weighted": {
+      "industry_name": "农副食品加工业",
+      "margin_2024H1_pct": -6.03,
+      "margin_2025H1_pct": -12.69,
+      "delta_pp": -6.66,
+      "companies": 3
+    },
+    "runner_ups_weighted": [
+      {
+        "industry_name": "房地产业",
+        "delta_pp": -3.86
+      },
+      {
+        "industry_name": "铁路运输业",
+        "delta_pp": -3.76
+      },
+      {
+        "industry_name": "橡胶和塑料制品业",
+        "delta_pp": -2.33
+      }
+    ],
+    "largest_gain_weighted": {
+      "industry_name": "研究和试验发展",
+      "delta_pp": 16.81
+    },
+    "comment": "Precheck only proves the method is executable and well-defined; downstream nodes should recompute independently and round to 2 decimals before writing output.csv."
+  }
+}

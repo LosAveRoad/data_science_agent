@@ -1,0 +1,32 @@
+{
+  "experimentId": "mock-baseline-e2e",
+  "system": "baseline-pi",
+  "taskId": "healthcare_05",
+  "startedAt": "2026-11-11T18:23:10.226Z",
+  "finishedAt": "2026-11-11T18:23:10.233Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output.csv, output.png",
+  "totalSteps": 4,
+  "tokenUsage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "totalTokens": 0
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:23:10.232Z",
+      "finishedAt": "2026-11-11T18:23:10.232Z",
+      "elapsedMs": 0,
+      "error": null,
+      "steps": 4,
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

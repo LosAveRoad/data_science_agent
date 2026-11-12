@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "ecommerce_35",
+  "startedAt": "2026-11-11T18:49:36.536Z",
+  "finishedAt": "2026-11-11T18:50:48.390Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output.db, output.json",
+  "totalSteps": 47,
+  "tokenUsage": {
+    "inputTokens": 8841,
+    "outputTokens": 11182,
+    "totalTokens": 20023
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:49:36.782Z",
+      "finishedAt": "2026-11-11T18:50:48.389Z",
+      "elapsedMs": 71607,
+      "error": null,
+      "steps": 47,
+      "tokenUsage": {
+        "inputTokens": 8841,
+        "outputTokens": 11182,
+        "totalTokens": 20023
+      }
+    }
+  ]
+}

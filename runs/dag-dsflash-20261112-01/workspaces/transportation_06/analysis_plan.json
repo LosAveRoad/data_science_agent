@@ -1,0 +1,259 @@
+{
+  "node": "analysis_plan",
+  "task": "Linear regression on NYC yellow taxi (Q2 2024) fare_amount using time(hour, day_of_week) + trip(trip_distance, passenger_count) + battery of pickup/dropoff borough dummies; strict outlier filter 0<trip_distance<100 and 0<fare_amount<500; train_test_split(test_size=0.2, random_state=42); report RMSE and R2 into output.json.",
+  "inputs": {
+    "data": [
+      {
+        "path": "yellow_tripdata/yellow_tripdata_2024-04.parquet",
+        "rows": 3514289,
+        "row_groups": 4
+      },
+      {
+        "path": "yellow_tripdata/yellow_tripdata_2024-05.parquet",
+        "rows": 3723833,
+        "row_groups": 4
+      },
+      {
+        "path": "yellow_tripdata/yellow_tripdata_2024-06.parquet",
+        "rows": 3539193,
+        "row_groups": 4
+      }
+    ],
+    "total_raw_rows": 10777315,
+    "borough_lookup": {
+      "path": "taxi_zones/taxi_zone_lookup.csv",
+      "rows": 265,
+      "key": "LocationID",
+      "value": "Borough",
+      "dup_keys": 0,
+      "note": "Use this CSV for LocationID -> Borough. Do NOT attempt a spatial join on taxi_zones.shp (it has no .dbf attribute table and no CRS definition)."
+    },
+    "columns_used": [
+      "tpep_pickup_datetime",
+      "passenger_count",
+      "trip_distance",
+      "PULocationID",
+      "DOLocationID",
+      "fare_amount"
+    ],
+    "columns_forbidden": [
+      "tpep_dropoff_datetime (duration leak / not in spec)",
+      "extra",
+      "mta_tax",
+      "tip_amount",
+      "tolls_amount",
+      "improvement_surcharge",
+      "total_amount",
+      "congestion_surcharge",
+      "Airport_fee",
+      "payment_type",
+      "RatecodeID",
+      "VendorID",
+      "store_and_fwd_flag"
+    ],
+    "upstream_artifacts": {
+      "data_profile.json": "data_inspect node output; schema, quality notes, filter survival ~97.3-97.5%, recommended 6 borough dummy levels"
+    }
+  },
+  "environment_setup": {
+    "python": "3.13 isolated (-I)",
+    "must_prepend_sys_path": "sys.path.insert(0, './_libs')  # pyarrow 26.0.1 (parquet engine) lives there",
+    "verified_versions": {
+      "pandas": "3.1.1",
+      "pyarrow": "26.0.1",
+      "scikit-learn": "1.9.1",
+      "numpy": "2.5.4"
+    },
+    "hardware": {
+      "ram_gb": 17.2,
+      "cpus": 10
+    },
+    "pandas4_api_note": "Series.dt.dayofweek emits Pandas4Warning but works; prefer Series.dt.day_of_week (identical Monday=0..Sunday=6 semantics). Both map 0=Monday..6=Sunday."
+  },
+  "pipeline_steps": [
+    {
+      "step": 1,
+      "name": "Load + filter incrementally",
+      "detail": "For each of the 3 parquet files (order 04, 05, 06) iterate row groups (4 each) with pyarrow.parquet.ParquetFile(...).read_row_group(i, columns=cols) to keep peak memory low. Immediately apply the strict filter: (trip_distance > 0) & (trip_distance < 100) & (fare_amount > 0) & (fare_amount < 500). Keep only the 6 needed columns + derive features in the same pass.",
+      "expected_survival": "0.9726 - 0.9746 per file (measured by data_inspect on row group 0 and re-verified by this node on April row group 0: 0.97459)",
+      "expected_rows_after_filter": 10494853,
+      "estimated_output_rows_range": [
+        10400000,
+        10550000
+      ]
+    },
+    {
+      "step": 2,
+      "name": "Borough mapping",
+      "detail": "b = pd.read_csv('taxi_zones/taxi_zone_lookup.csv').set_index('LocationID')['Borough']; pu_boro = PULocationID.map(b); do_boro = DOLocationID.map(b).",
+      "dummy_levels": [
+        "Bronx",
+        "Brooklyn",
+        "EWR",
+        "Manhattan",
+        "Queens",
+        "Staten Island"
+      ],
+      "unmapped_behaviour": "LocationID 264 ('Unknown') and 265 (Borough NaN, 'Outside of NYC') produce all-zero dummy rows on that side. Keep them (do NOT dropna) as the implicit baseline; avoid creating dummies for 'Unknown'. Measured unmapped fraction on April row group 0: pickup 0.00019, dropoff 0.00402 -> 0.35% of rows have all-zero pickup dummies.",
+      "do_not": "Do not create borough_*_Unknown / borough_*_nan columns.",
+      "drop_first": "Keep all 6 dummies per side (no drop_first). The intercept + full set is perfectly collinear but OLS still yields unique fitted values; coefficients will not be interpretable for the baseline borough — that is acceptable and matches the spec's 'borough dummy variables' wording. If interpretable coefficients are wanted, note it as an optional variant, not the headline result."
+    },
+    {
+      "step": 3,
+      "name": "Feature construction (exactly 16 features, fixed order)",
+      "features": [
+        "hour",
+        "day_of_week",
+        "trip_distance",
+        "passenger_count",
+        "borough_pu_Bronx",
+        "borough_pu_Brooklyn",
+        "borough_pu_EWR",
+        "borough_pu_Manhattan",
+        "borough_pu_Queens",
+        "borough_pu_Staten Island",
+        "borough_do_Bronx",
+        "borough_do_Brooklyn",
+        "borough_do_EWR",
+        "borough_do_Manhattan",
+        "borough_do_Queens",
+        "borough_do_Staten Island"
+      ],
+      "derivations": {
+        "hour": "tpep_pickup_datetime.dt.hour (int, 0-23)",
+        "day_of_week": "tpep_pickup_datetime.dt.day_of_week (int, Monday=0..Sunday=6)",
+        "borough_pu_X / borough_do_X": "0/1 indicator of mapped borough"
+      },
+      "dtype": "cast the design matrix to float32 while accumulating (10.5M x 16 -> ~0.67 GB) and to float64 only inside the train slice for the solver",
+      "no_scaling_needed": "sklearn LinearRegression is scale invariant; no StandardScaler required (and it would not change RMSE/R2)."
+    },
+    {
+      "step": 4,
+      "name": "Split",
+      "detail": "train_test_split(X, y, test_size=0.2, random_state=42) — pandas/numpy default shuffle=True, so rows are shuffled with seed 42. Apply EXACTLY these arguments, no stratify, to stay reproducible.",
+      "expected_sizes": {
+        "train": 8395882,
+        "test": 2098971
+      }
+    },
+    {
+      "step": 5,
+      "name": "Fit + predict",
+      "detail": "sklearn.linear_model.LinearRegression() with defaults (fit_intercept=True, solver 'lsqr'-style least squares). Fit on train only, predict on test only."
+    },
+    {
+      "step": 6,
+      "name": "Evaluate",
+      "formulas": {
+        "RMSE": "sqrt(mean_squared_error(y_test, y_pred))",
+        "R2": "r2_score(y_test, y_pred)"
+      },
+      "report_on": "held-out test split (20%) ONLY — do not report train metrics as the headline"
+    },
+    {
+      "step": 7,
+      "name": "Write deliverable",
+      "detail": "Write output.json at workspace root containing exactly {'RMSE': <float>, 'R2': <float>} (plain JSON floats, no numpy scalar types, no extra keys needed; extra diagnostic keys should go to a separate file such as model_report.json).",
+      "example": {
+        "RMSE": 5.9,
+        "R2": 0.89
+      }
+    }
+  ],
+  "pilot_validation_done_by_this_node": {
+    "purpose": "Feasibility/sanity check of the planned pipeline — NOT the deliverable.",
+    "scope": "April file, row group 0 only (1,048,576 rows) -> 1,021,927 rows after filter; sklearn OLS on a 300k random subsample (rng seed 0), 80/20 split seed 42.",
+    "observed": {
+      "filter_survival": 0.97459,
+      "nulls_after_filter": 0,
+      "design_matrix_shape_sample": [
+        1021927,
+        16
+      ],
+      "pilot_RMSE": 5.783,
+      "pilot_R2": 0.8942,
+      "trip_distance_coef": 3.622,
+      "runtime_seconds": 0.7
+    },
+    "interpretation": "Pipeline mechanics work end-to-end and are cheap (row-group read + feature build + OLS < 1 s per row group). Distance alone explains most variance, so R2 ~0.89 on a subsample is plausible; the full-data fit with 8.4M training rows should land in a similar or slightly better range."
+  },
+  "expected_result_band": {
+    "RMSE_usd": [
+      5.0,
+      7.5
+    ],
+    "R2": [
+      0.85,
+      0.91
+    ],
+    "basis": "pilot on April row group (RMSE 5.78 / R2 0.894) plus data_inspect's 0.75-0.85 OLS prior. Values far outside this band (e.g. R2 < 0.6 or > 0.97) indicate a leakage or feature-construction bug and must be re-checked before writing output.json.",
+    "note": "These are sanity bands, not results. Report the actual computed numbers."
+  },
+  "sanity_checks_before_writing_output": [
+    "row count after filter is within [10.40M, 10.55M] and survival ~97.3-97.5% (otherwise the filter was mis-specified)",
+    "feature count == 16 and column names match the spec list exactly (hour, day_of_week, trip_distance, passenger_count, borough_pu_*, borough_do_*)",
+    "no NaN in X or y (would crash LinearRegression; the filter removes negative/zero fares but check passenger_count nulls explicitly — profile says zero nulls in samples, verify on full scan via a running isnull().sum())",
+    "hour in [0,23], day_of_week in [0,6], all dummy values are 0/1",
+    "no forbidden column reached X (grep feature names against the forbidden list)",
+    "test set is exactly 20% of filtered rows (±1 row rounding) and y_test mean/std are close to train (shuffle sanity)",
+    "R2 computed on test, not train"
+  ],
+  "risks_and_mitigations": [
+    {
+      "risk": "Memory pressure building X for 10.5M rows",
+      "severity": "low",
+      "mitigation": "Accumulate per row group as float32 (16 cols -> ~0.67 GB total). Only the 8.4M-row train slice is upcast to float64 (~1.07 GB). Total peak well under the 17 GB available. If it still fails, fall back to streaming normal equations: accumulate XtX (16x16) and Xty over train indices per row group, solve with np.linalg.solve, and store only the 2.1M test rows for prediction — mathematically identical OLS."
+    },
+    {
+      "risk": "pyarrow import failure",
+      "severity": "high if missed",
+      "mitigation": "sys.path.insert(0,'./_libs') before importing pyarrow/pandas parquet reading."
+    },
+    {
+      "risk": "Multiple dummy trap / singular matrix",
+      "severity": "low",
+      "mitigation": "lstsq-based solver handles rank deficiency; do not use np.linalg.inv on XtX with the full dummy set."
+    },
+    {
+      "risk": "Out-of-Q2 timestamps (24 rows total, min 2002, max 2026)",
+      "severity": "negligible",
+      "mitigation": "Profile shows <1e-6 fraction; the spec does not ask for a Q2 date filter, so KEEP them (filter only on distance/fare) and document this choice. Hour/day_of_week derived from them is still well-defined."
+    },
+    {
+      "risk": "Duplicate parquet rows",
+      "severity": "low",
+      "mitigation": "Spec does not request dedupe; do not dedupe (would change row count and is not reproducible against the stated filter). Optionally count duplicates for the report only."
+    },
+    {
+      "risk": "pandas 4 deprecation noise on dt.dayofweek",
+      "severity": "cosmetic",
+      "mitigation": "Use dt.day_of_week."
+    },
+    {
+      "risk": "Reporting a 'better than physically plausible' R2 by accidentally including a leak column",
+      "severity": "medium",
+      "mitigation": "Explicit assertion that X.columns == the 16 expected names before fit."
+    }
+  ],
+  "performance_budget": {
+    "read_12_row_groups_6_columns": "~10-25 s total (measured 0.7 s for 1 row group incl. feature build on sample)",
+    "fit_LinearRegression_8.4M_x_16": "~10-40 s",
+    "total_wall_clock": "well under the 120 s per-call limit if done in 2-3 run_python calls (load+filter+features to a .npy/.parquet cache, then fit+eval). Recommended: cache the design matrix to workspace (e.g. X.npy float32 + y.npy) to make the run restartable."
+  },
+  "artifact_contract": {
+    "this_node_writes": [
+      "analysis_plan.json"
+    ],
+    "downstream_node_must_write": [
+      "output.json"
+    ],
+    "output_json_schema": {
+      "RMSE": "float (dollars, held-out test)",
+      "R2": "float (-inf..1, held-out test)"
+    },
+    "optional_supporting": [
+      "model_coefficients.csv",
+      "model_report.json (rows_after_filter, train/test sizes, coefficients, intercept)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "node": "execute_analysis",
+  "status": "success",
+  "script": "pipeline.py",
+  "method": {
+    "step1_load_clean": "Unemployment CSV read with encoding='utf-8-sig'; kept [State/Area, Year, Month, 'Percent (%) of Labor Force Unemployed in State/Area']; dropped non-state rows ('Los Angeles County','New York city'); mapped 51 state names (50 states + 'District of Columbia'->DC) to 2-letter USPS (0 unmapped); rate parsed via strip + comma removal + to_numeric; month_start = to_datetime(year, month, day=1). ZHVI CSV read wide (51 states x 291 month-END columns 1996-01..2020-03), dropped 'Unnamed: 0', melted to (state=StateName already USPS, month_start, ZHVI), date labels normalized to month start via to_period('M').to_timestamp(), NaN ZHVI dropped, (state, month_start) de-duplicated by mean (0 duplicates found).",
+    "step2_zhvi_rolling": "Per state: reindex ZHVI onto gap-free month-start range 1996-01..2020-03 (needed so 2010-01 has a populated window), then rolling(12, min_periods=6).mean() and .std() -> ZHVI_Rolling_Mean / ZHVI_Rolling_Std (computed on full history, then subset to window).",
+    "step3_unemployment_rolling": "Same treatment on the 1976-01..2025-11 history -> Unemployment_Rolling_Mean / Unemployment_Rolling_Std (rolling 12, min_periods=6).",
+    "step4_cross_correlation": "Per state both rolling-mean series reindexed to the complete monthly index pd.date_range('2010-01-01','2019-12-01', freq='MS') (120 months), missing filled with .ffill().bfill(). For each lag k in -24..+24: r(k) = Pearson corr(ZHVI_Rolling_Mean[t], Unemployment_Rolling_Mean[t+k]) computed as corr(a, b.shift(-k)) over overlapping dropna pairs (>=96 obs per lag; correlation is mean/variance-normalized by construction). Sign convention: k<0 -> 'Unemployment leads ZHVI', k>0 -> 'ZHVI leads Unemployment', k==0 -> 'Synchronous'.",
+    "step5_ranking": "Per state lag_star = argmax|r(k)| (deterministic tie-break: smaller |lag|, then smaller lag), correlation, abs_correlation (4 dp), relationship label; states ranked by abs_correlation desc; significant = abs_correlation > 0.1 (strict); top 10 exported."
+  },
+  "key_intermediate_results": {
+    "states_analyzed": 51,
+    "zhvi_states": 51,
+    "unemployment_states": 51,
+    "duplicates_after_melt": 0,
+    "all_timestamps_day_1": true,
+    "zhvi_rolling_mean_nonnull_in_window_min_per_state": 120,
+    "unemployment_rolling_mean_nonnull_in_window_min_per_state": 120,
+    "negative_rolling_std_count": 0,
+    "lag_values_per_state": 49,
+    "n_obs_per_lag_range": [96, 120],
+    "nan_correlations": 0,
+    "sign_convention_selftest": {
+      "synthetic_unemployment_leads_6mo_expected_-6": -6,
+      "synthetic_zhvi_leads_6mo_expected_+6": 6,
+      "passed": true
+    },
+    "significant_relationships_found_abs_gt_0.1": 51,
+    "abs_correlation_distribution": {"min": 0.8011, "median": 0.9581, "max": 0.9989, "mean": 0.9481},
+    "lag_star_counts": {"-24": 37, "-23": 1, "-22": 2, "-21": 2, "-17": 2, "-16": 1, "-15": 2, "-14": 1, "-13": 1, "-10": 1, "-7": 1},
+    "top5": [
+      {"state": "OR", "correlation": -0.9989, "lag_months": -24},
+      {"state": "HI", "correlation": -0.9963, "lag_months": -16},
+      {"state": "FL", "correlation": -0.9939, "lag_months": -23},
+      {"state": "AZ", "correlation": -0.9938, "lag_months": -17},
+      {"state": "CA", "correlation": -0.9929, "lag_months": -14}
+    ],
+    "summary_statistics_top10": {"mean_correlation": -0.9929, "max_correlation": -0.9891, "min_correlation": -0.9989, "mean_lag_months": -19.1}
+  },
+  "caveats": [
+    "All 51 states exceed the |r| > 0.1 threshold; correlations are extremely high and negative because both series are 12-month smoothed and strongly trend over 2010-2019 (ZHVI rising, unemployment falling from its post-2009 peak).",
+    "The lag profile is nearly monotone in |lag| for most states, so 37 of 51 states hit the -24 boundary. The boundary argmax indicates the specified method cannot reliably pin down a lead time at the edge of the +/-24 search window; interior optima are more interpretable (e.g. CA -14, HI -16, AZ -17, DC -7, NV -13).",
+    "Correlations are level correlations of smoothed non-stationary series, not pre-whitened; they measure co-movement and are not evidence of causal lead-lag."
+  ],
+  "artifacts": [
+    "output.json",
+    "execute_summary.json",
+    "pipeline.py",
+    "intermediate_zhvi_rolling.csv",
+    "intermediate_unemployment_rolling.csv",
+    "intermediate_cross_correlation.csv",
+    "intermediate_state_strongest_lag.csv",
+    "intermediate_qc.json"
+  ]
+}

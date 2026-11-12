@@ -1,0 +1,189 @@
+{
+  "artifact": "verification.json",
+  "task_id": "loan_risk_8",
+  "node_role": "verify",
+  "target_file": "summary_output.csv",
+  "status": "passed",
+  "summary": "summary_output.csv exists, matches the required schema exactly (2 rows x 5 columns, no index, 4-decimal ratios) and is numerically reproducible: an independent exact-Decimal recomputation from input.csv (10000 rows, strict |new-old| > threshold, 4dp half-up) yields all 8 ratios identical to the file.",
+  "checks": [
+    {
+      "check": "file_exists",
+      "passed": true,
+      "detail": "summary_output.csv present, 149 bytes"
+    },
+    {
+      "check": "header_exact_match",
+      "passed": true,
+      "detail": "header=['score_type', 'gap_gt_1e3_ratio', 'gap_gt_1e4_ratio', 'gap_gt_1e5_ratio', 'gap_gt_1e6_ratio']"
+    },
+    {
+      "check": "row_count_is_2",
+      "passed": true,
+      "detail": "data rows=2"
+    },
+    {
+      "check": "no_index_column",
+      "passed": true,
+      "detail": "first column is score_type (no unnamed index)"
+    },
+    {
+      "check": "no_ragged_rows",
+      "passed": true,
+      "detail": "all rows have 5 fields"
+    },
+    {
+      "check": "score_type_values",
+      "passed": true,
+      "detail": "values=['score1', 'score2'] order=['score1', 'score2']"
+    },
+    {
+      "check": "four_decimal_places",
+      "passed": true,
+      "detail": "all 8 ratio cells match \\d+\\.\\d{4}; offenders=none"
+    },
+    {
+      "check": "ratios_within_0_1",
+      "passed": true,
+      "detail": "all ratios in [0,1]"
+    },
+    {
+      "check": "monotone_nesting",
+      "passed": true,
+      "detail": "ratios non-decreasing as threshold loosens: {'score1': ['0.0224', '0.0224', '0.3071', '0.8791'], 'score2': ['0.0224', '0.0224', '0.3199', '0.8807']}"
+    },
+    {
+      "check": "values_match_independent_recompute",
+      "passed": true,
+      "detail": "rows=10000 denominator=all rows, strict Decimal >: mismatches=none"
+    },
+    {
+      "check": "matches_execute_summary_ratios",
+      "passed": true,
+      "detail": "mismatches=none"
+    },
+    {
+      "check": "matches_execute_summary_counts",
+      "passed": true,
+      "detail": "mismatches=none"
+    },
+    {
+      "check": "matches_plan_precheck_values",
+      "passed": true,
+      "detail": "mismatches=none"
+    },
+    {
+      "check": "strict_counts_not_above_naive_float",
+      "passed": true,
+      "detail": "naive float counts (over-count exact-boundary gaps) reference only: {\"score1\": {\"gap_gt_1e3_ratio\": 224, \"gap_gt_1e4_ratio\": 224, \"gap_gt_1e5_ratio\": 3342, \"gap_gt_1e6_ratio\": 9370}, \"score2\": {\"gap_gt_1e3_ratio\": 224, \"gap_gt_1e4_ratio\": 224, \"gap_gt_1e5_ratio\": 3463, \"gap_gt_1e6_ratio\": 9395}}"
+    }
+  ],
+  "verified_output": {
+    "path": "summary_output.csv",
+    "n_data_rows": 2,
+    "columns": [
+      "score_type",
+      "gap_gt_1e3_ratio",
+      "gap_gt_1e4_ratio",
+      "gap_gt_1e5_ratio",
+      "gap_gt_1e6_ratio"
+    ],
+    "score_type_order": [
+      "score1",
+      "score2"
+    ],
+    "has_index_column": false,
+    "decimal_places": 4,
+    "content_rows": [
+      {
+        "score_type": "score1",
+        "gap_gt_1e3_ratio": "0.0224",
+        "gap_gt_1e4_ratio": "0.0224",
+        "gap_gt_1e5_ratio": "0.3071",
+        "gap_gt_1e6_ratio": "0.8791"
+      },
+      {
+        "score_type": "score2",
+        "gap_gt_1e3_ratio": "0.0224",
+        "gap_gt_1e4_ratio": "0.0224",
+        "gap_gt_1e5_ratio": "0.3199",
+        "gap_gt_1e6_ratio": "0.8807"
+      }
+    ],
+    "raw_lines": [
+      "score_type,gap_gt_1e3_ratio,gap_gt_1e4_ratio,gap_gt_1e5_ratio,gap_gt_1e6_ratio",
+      "score1,0.0224,0.0224,0.3071,0.8791",
+      "score2,0.0224,0.0224,0.3199,0.8807"
+    ]
+  },
+  "independent_recompute": {
+    "method": "csv module keeps score strings exact -> Decimal(new)-Decimal(old), abs(), strict > Decimal threshold",
+    "denominator": "10000 (all input.csv rows; score columns contain no nulls)",
+    "counts_strict_gt": {
+      "score1": {
+        "gap_gt_1e3_ratio": 224,
+        "gap_gt_1e4_ratio": 224,
+        "gap_gt_1e5_ratio": 3071,
+        "gap_gt_1e6_ratio": 8791
+      },
+      "score2": {
+        "gap_gt_1e3_ratio": 224,
+        "gap_gt_1e4_ratio": 224,
+        "gap_gt_1e5_ratio": 3199,
+        "gap_gt_1e6_ratio": 8807
+      }
+    },
+    "ratios_recomputed": {
+      "score1": {
+        "gap_gt_1e3_ratio": "0.0224",
+        "gap_gt_1e4_ratio": "0.0224",
+        "gap_gt_1e5_ratio": "0.3071",
+        "gap_gt_1e6_ratio": "0.8791"
+      },
+      "score2": {
+        "gap_gt_1e3_ratio": "0.0224",
+        "gap_gt_1e4_ratio": "0.0224",
+        "gap_gt_1e5_ratio": "0.3199",
+        "gap_gt_1e6_ratio": "0.8807"
+      }
+    },
+    "gaps_off_1e-6_grid": 0,
+    "grid_boundary_note": "|gap| values sit exactly on the 1e-6 grid, so plain float \">\" over-counts rows whose gap equals a threshold exactly; the file matches the correct strict-Decimal counts, not the inflated naive-float counts.",
+    "naive_float_counts_reference_only": {
+      "score1": {
+        "gap_gt_1e3_ratio": 224,
+        "gap_gt_1e4_ratio": 224,
+        "gap_gt_1e5_ratio": 3342,
+        "gap_gt_1e6_ratio": 9370
+      },
+      "score2": {
+        "gap_gt_1e3_ratio": 224,
+        "gap_gt_1e4_ratio": 224,
+        "gap_gt_1e5_ratio": 3463,
+        "gap_gt_1e6_ratio": 9395
+      }
+    }
+  },
+  "cross_checks": {
+    "matches_execute_summary_json": true,
+    "matches_analysis_plan_precheck_values": true
+  },
+  "numeric_observations": {
+    "gap_gt_1e3_equals_gap_gt_1e4_both_scores": true,
+    "explanation": "1e-3 and 1e-4 columns are both 0.0224 (224/10000) for score1 and score2 because gaps are quantized to 1e-6 and no gap falls strictly between 1e-4 and 1e-3. Genuine data property, not a duplication bug.",
+    "score2_greater_than_score1_at_fine_thresholds": true,
+    "fine_threshold_values": {
+      "score1": {
+        "1e-5": "0.3071",
+        "1e-6": "0.8791"
+      },
+      "score2": {
+        "1e-5": "0.3199",
+        "1e-6": "0.8807"
+      }
+    }
+  },
+  "issues_found": [],
+  "artifacts": [
+    "verification.json"
+  ]
+}

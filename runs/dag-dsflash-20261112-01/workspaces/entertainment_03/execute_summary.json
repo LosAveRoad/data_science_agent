@@ -1,0 +1,245 @@
+{
+ "artifact": "execute_summary.json",
+ "status": "completed",
+ "corpus": {
+  "raw_rows_total": 196487,
+  "raw_rows_by_source": {
+   "movies": 45460,
+   "books": 11123,
+   "netflix": 8807,
+   "spotify": 113999,
+   "top2017": 200,
+   "top2018": 200,
+   "top50_2020": 100,
+   "vgsales": 16598
+  },
+  "note_on_top_lists": "top lists were built twice during iteration (initial object-dtype bug + fixed version), deduped afterwards",
+  "final_docs": 145435,
+  "final_by_source": {
+   "spotify": 72396,
+   "movies": 42185,
+   "vgsales": 11493,
+   "books": 10311,
+   "netflix": 8801,
+   "top2018": 100,
+   "top2017": 99,
+   "top50_2020": 50
+  },
+  "filters": "dropped docs with <2 tokens after cleaning (=112) and exact (source_key, lower(title)) duplicates (=50940)"
+ },
+ "method": {
+  "text_recipe": "per plan: source-specific field concatenation, lowered, separators/punctuation -> space, feat./ft. removed, pure-number tokens dropped",
+  "tfidf": "TfidfVectorizer(max_features=5000, stop_words='english') on final corpus -> (145435, 5000) sparse, L2-normalized",
+  "kmeans": "KMeans(n_clusters=10, random_state=42, n_init=10) on the TF-IDF matrix; inertia=137541.85",
+  "lda": "LatentDirichletAllocation(n_components=10, random_state=42) fitted on the SAME TF-IDF matrix (non-standard input but required by the single-vectorization spec); perplexity=4261.66",
+  "dominant_topic": "argmax of the cluster-mean LDA doc-topic distribution",
+  "coherence_score": "mean cosine similarity between cluster docs and its KMeans centroid; clusters >500 docs sampled to 500 with np.random.seed(42)",
+  "representative_items": "top 5 by cosine similarity to centroid over the FULL cluster (titles deduped, '|'->'/', truncated to 120 chars), 'source: title' joined with ' | '"
+ },
+ "validation": {
+  "rows_10": true,
+  "cluster_id_0_9_unique": true,
+  "dominant_topic_in_0_9": true,
+  "coherence_in_0_1": true,
+  "each_5_keywords": true,
+  "reps_1_to_5_each_with_colon": true,
+  "tfidf_features_le_5000": true,
+  "no_empty_docs": true
+ },
+ "clusters": [
+  {
+   "cluster_id": 0,
+   "size": 59777,
+   "dom": 2,
+   "dom_mean": 0.1404,
+   "runner_up": 3,
+   "gap": 0.006,
+   "coh": 0.089,
+   "sources": {
+    "spotify": 55625,
+    "books": 2048,
+    "movies": 1039,
+    "netflix": 418
+   },
+   "dominant_topic": 2,
+   "top_topic_words": "ao,vivo,bluegrass,sleep,mpb",
+   "coherence_score": 0.089
+  },
+  {
+   "cluster_id": 1,
+   "size": 2268,
+   "dom": 2,
+   "dom_mean": 0.6628,
+   "runner_up": 1,
+   "gap": 0.5961,
+   "coh": 0.6222,
+   "sources": {
+    "spotify": 2268
+   },
+   "dominant_topic": 2,
+   "top_topic_words": "ao,vivo,bluegrass,sleep,mpb",
+   "coherence_score": 0.6222
+  },
+  {
+   "cluster_id": 2,
+   "size": 2914,
+   "dom": 3,
+   "dom_mean": 0.6208,
+   "runner_up": 1,
+   "gap": 0.566,
+   "coh": 0.6575,
+   "sources": {
+    "spotify": 2901,
+    "movies": 10,
+    "vgsales": 3
+   },
+   "dominant_topic": 3,
+   "top_topic_words": "metal,techno,afrobeat,house,black",
+   "coherence_score": 0.6575
+  },
+  {
+   "cluster_id": 3,
+   "size": 3610,
+   "dom": 4,
+   "dom_mean": 0.2416,
+   "runner_up": 6,
+   "gap": 0.0837,
+   "coh": 0.5298,
+   "sources": {
+    "spotify": 3553,
+    "movies": 38,
+    "vgsales": 10,
+    "books": 6
+   },
+   "dominant_topic": 4,
+   "top_topic_words": "malay,idol,rock,guitar,industrial",
+   "coherence_score": 0.5298
+  },
+  {
+   "cluster_id": 4,
+   "size": 4010,
+   "dom": 0,
+   "dom_mean": 0.6084,
+   "runner_up": 2,
+   "gap": 0.5506,
+   "coh": 0.5556,
+   "sources": {
+    "spotify": 4001,
+    "top50_2020": 4,
+    "vgsales": 3,
+    "movies": 2
+   },
+   "dominant_topic": 0,
+   "top_topic_words": "pop,eng,iranian,salsa,garage",
+   "coherence_score": 0.5556
+  },
+  {
+   "cluster_id": 5,
+   "size": 8389,
+   "dom": 8,
+   "dom_mean": 0.4297,
+   "runner_up": 9,
+   "gap": 0.0955,
+   "coh": 0.235,
+   "sources": {
+    "netflix": 7172,
+    "spotify": 857,
+    "movies": 354,
+    "vgsales": 4
+   },
+   "dominant_topic": 8,
+   "top_topic_words": "drama,comedy,family,films,romance",
+   "coherence_score": 0.235
+  },
+  {
+   "cluster_id": 6,
+   "size": 43848,
+   "dom": 8,
+   "dom_mean": 0.5579,
+   "runner_up": 9,
+   "gap": 0.2977,
+   "coh": 0.1398,
+   "sources": {
+    "movies": 40731,
+    "spotify": 1815,
+    "netflix": 1207,
+    "vgsales": 68
+   },
+   "dominant_topic": 8,
+   "top_topic_words": "drama,comedy,family,films,romance",
+   "coherence_score": 0.1398
+  },
+  {
+   "cluster_id": 7,
+   "size": 1372,
+   "dom": 1,
+   "dom_mean": 0.4173,
+   "runner_up": 3,
+   "gap": 0.1682,
+   "coh": 0.5206,
+   "sources": {
+    "spotify": 1369,
+    "movies": 2,
+    "netflix": 1
+   },
+   "dominant_topic": 1,
+   "top_topic_words": "cantopop,mandopop,turkish,brazil,club",
+   "coherence_score": 0.5206
+  },
+  {
+   "cluster_id": 8,
+   "size": 8242,
+   "dom": 0,
+   "dom_mean": 0.4298,
+   "runner_up": 6,
+   "gap": 0.2684,
+   "coh": 0.2782,
+   "sources": {
+    "books": 8238,
+    "spotify": 4
+   },
+   "dominant_topic": 0,
+   "top_topic_words": "pop,eng,iranian,salsa,garage",
+   "coherence_score": 0.2782
+  },
+  {
+   "cluster_id": 9,
+   "size": 11005,
+   "dom": 7,
+   "dom_mean": 0.5252,
+   "runner_up": 5,
+   "gap": 0.365,
+   "coh": 0.2232,
+   "sources": {
+    "vgsales": 10993,
+    "movies": 9,
+    "spotify": 3
+   },
+   "dominant_topic": 7,
+   "top_topic_words": "hop,electronic,grindcore,ds,acoustic",
+   "coherence_score": 0.2232
+  }
+ ],
+ "interpretation": {
+  "topic_space": "8 of 10 LDA topics are dominated by Spotify genre/language tokens (pop, cantopop, metal, malay, ao vivo, hop...), because Spotify accounts for ~50% of docs and genre tokens are repeated twice for weighting; topics 8 and 9 capture film/TV vocabulary (drama, comedy, films, documentary, tv).",
+  "clusters": "Clusters 1-4 and 7 are tight music-genre clusters (coherence 0.52-0.66). Cluster 0 is a very large, low-coherence 'generic Spotify pop/rock' bucket (0.089) that received nearly all remaining short music docs. Clusters 5/6/8/9 are the cross-source buckets (Netflix drama/comedy, movies overviews+production companies, books, video games by platform/publisher) and land on the film/TV or pop/eng topics with low-to-mid coherence, i.e. the topic space is music-skewed while the cluster space separates media types on TF-IDF vocabulary.",
+  "caveats": [
+   "LDA fitted on TF-IDF (not raw counts) is mathematically non-standard; required by spec to use one vectorization.",
+   "Dedup by (source, title) collapsed 114k Spotify rows to 72k, since identical track names by different artists were merged.",
+   "No 2017-2020 hard filtering: only ~1% of movies/books/games fall in that window and Spotify has no year column (per data_profile/plan)."
+  ]
+ },
+ "outputs": [
+  "output.csv",
+  "execute_summary.json",
+  "corpus.pkl",
+  "tfidf.npz",
+  "kmeans_labels.npy",
+  "kmeans_centers.npy",
+  "lda_doc_topic.npy",
+  "lda_components.npy",
+  "lda_topic_words.json",
+  "feature_names.json",
+  "cluster_diag.json"
+ ]
+}

@@ -1,0 +1,466 @@
+{
+ "model": "Bayesian hierarchical logistic regression: y ~ Bernoulli(logistic(alpha_g + sum_k b_k*z_k)); alpha_g ~ N(mu_alpha, sigma_alpha^2) (group-specific intercepts, 8 groups); weakly informative priors mu_alpha ~ N(0,2.5^2), sigma_alpha ~ HalfNormal(1), b_k ~ N(0,2.5^2)",
+ "n_rows": 18228,
+ "n_groups": 8,
+ "group_ids": [
+  "CKD|cad",
+  "CKD|ckd",
+  "CKD|hypertension",
+  "Diabetes|diabetes",
+  "HeartUCI|heart_disease",
+  "Stroke|heart_disease",
+  "Stroke|hypertension",
+  "Stroke|stroke"
+ ],
+ "standardisation": "within-dataset z-scores (per source dataset mean/SD of observed values); structural NaN set to 0 (cohort mean) with missing indicators retained as columns (not in mean model)",
+ "global_coefficients": {
+  "age": {
+   "posterior_mean": 0.957,
+   "ci_lower_2_5": 0.8886,
+   "ci_upper_97_5": 1.0259,
+   "posterior_sd": 0.0346,
+   "odds_ratio": 2.6038,
+   "or_ci": [
+    2.4318,
+    2.7896
+   ],
+   "rhat": 1.0004,
+   "ess": 4439,
+   "map_laplace_mean": 0.9557,
+   "map_laplace_ci": [
+    0.8888,
+    1.0255
+   ],
+   "prob_positive": 1.0,
+   "missing_rate": 0.0015
+  },
+  "bmi": {
+   "posterior_mean": 0.2258,
+   "ci_lower_2_5": 0.1587,
+   "ci_upper_97_5": 0.2919,
+   "posterior_sd": 0.034,
+   "odds_ratio": 1.2533,
+   "or_ci": [
+    1.1719,
+    1.339
+   ],
+   "rhat": 1.0009,
+   "ess": 4131,
+   "map_laplace_mean": 0.225,
+   "map_laplace_ci": [
+    0.159,
+    0.2864
+   ],
+   "prob_positive": 1.0,
+   "missing_rate": 0.15
+  },
+  "bp": {
+   "posterior_mean": 0.19,
+   "ci_lower_2_5": 0.0956,
+   "ci_upper_97_5": 0.284,
+   "posterior_sd": 0.0478,
+   "odds_ratio": 1.2092,
+   "or_ci": [
+    1.1003,
+    1.3285
+   ],
+   "rhat": 1.0005,
+   "ess": 4326,
+   "map_laplace_mean": 0.1872,
+   "map_laplace_ci": [
+    0.0945,
+    0.2801
+   ],
+   "prob_positive": 0.9999,
+   "missing_rate": 0.8483
+  },
+  "glucose": {
+   "posterior_mean": 0.3567,
+   "ci_lower_2_5": 0.3097,
+   "ci_upper_97_5": 0.4036,
+   "posterior_sd": 0.0241,
+   "odds_ratio": 1.4286,
+   "or_ci": [
+    1.363,
+    1.4972
+   ],
+   "rhat": 1.0011,
+   "ess": 4250,
+   "map_laplace_mean": 0.3561,
+   "map_laplace_ci": [
+    0.3089,
+    0.404
+   ],
+   "prob_positive": 1.0,
+   "missing_rate": 0.058
+  }
+ },
+ "group_intercepts": [
+  {
+   "group_id": "CKD|cad",
+   "mean": -2.803,
+   "ci": [
+    -3.178,
+    -2.449
+   ],
+   "rhat": 1.0015,
+   "ess": 4284
+  },
+  {
+   "group_id": "CKD|ckd",
+   "mean": 0.601,
+   "ci": [
+    0.373,
+    0.834
+   ],
+   "rhat": 1.0005,
+   "ess": 4035
+  },
+  {
+   "group_id": "CKD|hypertension",
+   "mean": -0.718,
+   "ci": [
+    -0.945,
+    -0.495
+   ],
+   "rhat": 1.0014,
+   "ess": 4167
+  },
+  {
+   "group_id": "Diabetes|diabetes",
+   "mean": -0.763,
+   "ci": [
+    -0.935,
+    -0.592
+   ],
+   "rhat": 1.0021,
+   "ess": 4207
+  },
+  {
+   "group_id": "HeartUCI|heart_disease",
+   "mean": 0.245,
+   "ci": [
+    0.102,
+    0.388
+   ],
+   "rhat": 1.0011,
+   "ess": 4404
+  },
+  {
+   "group_id": "Stroke|heart_disease",
+   "mean": -3.435,
+   "ci": [
+    -3.575,
+    -3.297
+   ],
+   "rhat": 1.0005,
+   "ess": 4312
+  },
+  {
+   "group_id": "Stroke|hypertension",
+   "mean": -2.735,
+   "ci": [
+    -2.847,
+    -2.623
+   ],
+   "rhat": 1.001,
+   "ess": 4231
+  },
+  {
+   "group_id": "Stroke|stroke",
+   "mean": -3.551,
+   "ci": [
+    -3.699,
+    -3.405
+   ],
+   "rhat": 1.0006,
+   "ess": 4218
+  }
+ ],
+ "hyperparameters": {
+  "mu_alpha": {
+   "mean": -1.5523,
+   "ci": [
+    -2.6392,
+    -0.4131
+   ],
+   "rhat": 1.0017,
+   "ess": 3418
+  },
+  "sigma_alpha": {
+   "mean": 1.6039,
+   "ci": [
+    1.0599,
+    2.4174
+   ],
+   "rhat": 1.0005,
+   "ess": 4159
+  }
+ },
+ "posterior_predictive_check": [
+  {
+   "group_id": "CKD|cad",
+   "n": 400,
+   "observed_pos_rate": 0.085,
+   "predicted_mean": 0.0867,
+   "predicted_ci": [
+    0.0631,
+    0.1163
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "CKD|ckd",
+   "n": 400,
+   "observed_pos_rate": 0.625,
+   "predicted_mean": 0.623,
+   "predicted_ci": [
+    0.5807,
+    0.6674
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "CKD|hypertension",
+   "n": 400,
+   "observed_pos_rate": 0.3675,
+   "predicted_mean": 0.3652,
+   "predicted_ci": [
+    0.3222,
+    0.4067
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "Diabetes|diabetes",
+   "n": 778,
+   "observed_pos_rate": 0.3496,
+   "predicted_mean": 0.3496,
+   "predicted_ci": [
+    0.3224,
+    0.3809
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "HeartUCI|heart_disease",
+   "n": 920,
+   "observed_pos_rate": 0.5533,
+   "predicted_mean": 0.5523,
+   "predicted_ci": [
+    0.5233,
+    0.5817
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "Stroke|heart_disease",
+   "n": 5110,
+   "observed_pos_rate": 0.054,
+   "predicted_mean": 0.0542,
+   "predicted_ci": [
+    0.0483,
+    0.0605
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "Stroke|hypertension",
+   "n": 5110,
+   "observed_pos_rate": 0.0975,
+   "predicted_mean": 0.0976,
+   "predicted_ci": [
+    0.0901,
+    0.1052
+   ],
+   "within_ci": true
+  },
+  {
+   "group_id": "Stroke|stroke",
+   "n": 5110,
+   "observed_pos_rate": 0.0487,
+   "predicted_mean": 0.0487,
+   "predicted_ci": [
+    0.0431,
+    0.0543
+   ],
+   "within_ci": true
+  }
+ ],
+ "diagnostics": {
+  "chains": 6,
+  "iterations": 40000,
+  "burn_in": 10000,
+  "thin": 10,
+  "retained_per_chain": 3000,
+  "proposal": "random-walk Metropolis with Laplace-covariance proposal; Robbins-Monro scale adaptation during burn-in (target acceptance 0.234)",
+  "acceptance_rates": [
+   0.273,
+   0.232,
+   0.249,
+   0.264,
+   0.235,
+   0.244
+  ],
+  "all_rhat_below_1_05": true,
+  "all_ess_above_400": true,
+  "map_vs_mcmc": "posterior means within 0.5 posterior SD of Laplace MAP estimates for all four betas",
+  "ppc_all_groups_within_ci": true
+ },
+ "sensitivity": {
+  "S1_primary_MAPLaplace": {
+   "age": {
+    "mean": 0.9555,
+    "lo": 0.8886,
+    "hi": 1.0248
+   },
+   "bmi": {
+    "mean": 0.2261,
+    "lo": 0.1607,
+    "hi": 0.2922
+   },
+   "bp": {
+    "mean": 0.1888,
+    "lo": 0.0949,
+    "hi": 0.2804
+   },
+   "glucose": {
+    "mean": 0.3562,
+    "lo": 0.3098,
+    "hi": 0.4033
+   }
+  },
+  "S2_completecase_bp": {
+   "age": {
+    "mean": 0.533,
+    "lo": 0.437,
+    "hi": 0.6257
+   },
+   "bmi": {
+    "mean": 0.5006,
+    "lo": 0.2956,
+    "hi": 0.6966
+   },
+   "bp": {
+    "mean": 0.206,
+    "lo": 0.1124,
+    "hi": 0.3012
+   },
+   "glucose": {
+    "mean": 0.9203,
+    "lo": 0.7802,
+    "hi": 1.0668
+   }
+  },
+  "S4_equal_group_weight": {
+   "age": {
+    "mean": 0.6176,
+    "lo": 0.5722,
+    "hi": 0.6646
+   },
+   "bmi": {
+    "mean": 0.3005,
+    "lo": 0.2289,
+    "hi": 0.3736
+   },
+   "bp": {
+    "mean": 0.2919,
+    "lo": 0.2434,
+    "hi": 0.3395
+   },
+   "glucose": {
+    "mean": 0.6563,
+    "lo": 0.6102,
+    "hi": 0.7034
+   }
+  },
+  "S5_drop_Stroke": {
+   "age": {
+    "mean": 0.5105,
+    "lo": 0.4188,
+    "hi": 0.5989
+   },
+   "bmi": {
+    "mean": 0.5039,
+    "lo": 0.3052,
+    "hi": 0.694
+   },
+   "bp": {
+    "mean": 0.2096,
+    "lo": 0.1162,
+    "hi": 0.3048
+   },
+   "glucose": {
+    "mean": 0.9249,
+    "lo": 0.7875,
+    "hi": 1.068
+   }
+  },
+  "S5_drop_CKD": {
+   "age": {
+    "mean": 1.0302,
+    "lo": 0.956,
+    "hi": 1.1018
+   },
+   "bmi": {
+    "mean": 0.247,
+    "lo": 0.1785,
+    "hi": 0.3127
+   },
+   "bp": {
+    "mean": -0.0053,
+    "lo": -0.1205,
+    "hi": 0.1119
+   },
+   "glucose": {
+    "mean": 0.309,
+    "lo": 0.2598,
+    "hi": 0.3597
+   }
+  },
+  "S5_drop_Diabetes": {
+   "age": {
+    "mean": 1.0751,
+    "lo": 0.9996,
+    "hi": 1.1525
+   },
+   "bmi": {
+    "mean": 0.1812,
+    "lo": 0.1052,
+    "hi": 0.2548
+   },
+   "bp": {
+    "mean": 0.2598,
+    "lo": 0.1508,
+    "hi": 0.3686
+   },
+   "glucose": {
+    "mean": 0.3016,
+    "lo": 0.2537,
+    "hi": 0.3511
+   }
+  },
+  "S5_drop_HeartUCI": {
+   "age": {
+    "mean": 1.0484,
+    "lo": 0.9711,
+    "hi": 1.1276
+   },
+   "bmi": {
+    "mean": 0.2318,
+    "lo": 0.1633,
+    "hi": 0.2993
+   },
+   "bp": {
+    "mean": 0.2772,
+    "lo": 0.159,
+    "hi": 0.3945
+   },
+   "glucose": {
+    "mean": 0.3442,
+    "lo": 0.298,
+    "hi": 0.3918
+   }
+  }
+ }
+}

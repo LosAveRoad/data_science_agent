@@ -1,0 +1,1037 @@
+{
+  "data_file": {
+    "path": "Crop Recommendation using Soil Properties and Weather Prediction.csv",
+    "bytes": 861663,
+    "format": "csv",
+    "delimiter": ",",
+    "n_rows": 3867,
+    "n_columns": 29,
+    "encoding_hint": "utf-8"
+  },
+  "task_context": {
+    "problem_type": "多分类（12 个作物类别）",
+    "target_column": "label",
+    "n_features": 28,
+    "feature_groups": {
+      "numeric_weather_climate": [
+        "QV2M-W",
+        "QV2M-Sp",
+        "QV2M-Su",
+        "QV2M-Au",
+        "T2M_MAX-W",
+        "T2M_MAX-Sp",
+        "T2M_MAX-Su",
+        "T2M_MAX-Au",
+        "T2M_MIN-W",
+        "T2M_MIN-Sp",
+        "T2M_MIN-Su",
+        "T2M_MIN-Au",
+        "PRECTOTCORR-W",
+        "PRECTOTCORR-Sp",
+        "PRECTOTCORR-Su",
+        "PRECTOTCORR-Au",
+        "WD10M",
+        "GWETTOP",
+        "CLOUD_AMT",
+        "WS2M_RANGE",
+        "PS"
+      ],
+      "numeric_soil_property": [
+        "Ph",
+        "K",
+        "P",
+        "N",
+        "Zn",
+        "S"
+      ],
+      "categorical_text": [
+        "Soilcolor"
+      ]
+    },
+    "requested_model": "RandomForestClassifier(n_estimators=100, random_state=42)",
+    "random_seed": 42,
+    "expected_outputs": [
+      "output1.csv (classification report)",
+      "output2.csv (normalized confusion matrix)",
+      "output.png (Normalized Confusion Matrix - Crop Recommendation)"
+    ]
+  },
+  "schema": [
+    {
+      "name": "Soilcolor",
+      "dtype": "str",
+      "role": "categorical_feature",
+      "n_missing": 0,
+      "n_unique": 45,
+      "group": "soil_type_text",
+      "n_unique_normalized": 33
+    },
+    {
+      "name": "Ph",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 281,
+      "min": 4.3,
+      "q1": 5.39,
+      "median": 5.78,
+      "mean": 5.857295,
+      "q3": 6.2,
+      "max": 8.5,
+      "std": 0.67669,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "K",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 1206,
+      "min": 41.134,
+      "q1": 191.0,
+      "median": 282.0,
+      "mean": 324.28477,
+      "q3": 405.0,
+      "max": 2119.0,
+      "std": 202.250133,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "P",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 957,
+      "min": 0.0,
+      "q1": 2.0,
+      "median": 4.0,
+      "mean": 11.349588,
+      "q3": 7.92,
+      "max": 782.0,
+      "std": 34.141864,
+      "n_zero": 1,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "N",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 1348,
+      "min": 0.000262,
+      "q1": 0.1312,
+      "median": 0.179884,
+      "mean": 0.179153,
+      "q3": 0.23,
+      "max": 0.6956,
+      "std": 0.066476,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "Zn",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 624,
+      "min": 0.1,
+      "q1": 1.1,
+      "median": 1.5,
+      "mean": 1.774094,
+      "q3": 2.06,
+      "max": 45.5,
+      "std": 1.460809,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "S",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 805,
+      "min": 0.05,
+      "q1": 7.305,
+      "median": 10.7,
+      "mean": 11.311625,
+      "q3": 14.1955,
+      "max": 118.347,
+      "std": 5.542094,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "soil_property"
+    },
+    {
+      "name": "QV2M-W",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 7.183333,
+      "q1": 7.933333,
+      "median": 8.383333,
+      "mean": 8.34687,
+      "q3": 8.91,
+      "max": 9.723333,
+      "std": 0.613948,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "QV2M-Sp",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 7.65,
+      "q1": 8.403333,
+      "median": 9.34,
+      "mean": 9.082508,
+      "q3": 9.48,
+      "max": 10.703333,
+      "std": 0.790654,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "QV2M-Su",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 10.476667,
+      "q1": 11.43,
+      "median": 12.166667,
+      "mean": 12.23202,
+      "q3": 12.836667,
+      "max": 13.853333,
+      "std": 0.89497,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "QV2M-Au",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 14,
+      "min": 9.07,
+      "q1": 10.15,
+      "median": 10.926667,
+      "mean": 10.990747,
+      "q3": 11.433333,
+      "max": 12.8,
+      "std": 0.993861,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MAX-W",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 9.03,
+      "q1": 25.206667,
+      "median": 25.343333,
+      "mean": 25.557973,
+      "q3": 28.113333,
+      "max": 30.826667,
+      "std": 4.250256,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MAX-Sp",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 25.146667,
+      "q1": 28.87,
+      "median": 29.713333,
+      "mean": 29.803876,
+      "q3": 31.156667,
+      "max": 33.973333,
+      "std": 2.317511,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MAX-Su",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 14,
+      "min": 23.06,
+      "q1": 23.533333,
+      "median": 23.65,
+      "mean": 24.686049,
+      "q3": 25.643333,
+      "max": 28.243333,
+      "std": 1.585957,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MAX-Au",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 20.616667,
+      "q1": 22.28,
+      "median": 22.8,
+      "mean": 23.282298,
+      "q3": 24.43,
+      "max": 26.52,
+      "std": 1.609512,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MIN-W",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 2.053333,
+      "q1": 5.76,
+      "median": 6.253333,
+      "mean": 6.65886,
+      "q3": 8.533333,
+      "max": 11.39,
+      "std": 1.933357,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MIN-Sp",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 4.816667,
+      "q1": 9.296667,
+      "median": 9.81,
+      "mean": 10.346157,
+      "q3": 12.253333,
+      "max": 15.656667,
+      "std": 2.304823,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MIN-Su",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 8.433333,
+      "q1": 10.933333,
+      "median": 11.206667,
+      "mean": 11.582037,
+      "q3": 12.976667,
+      "max": 14.726667,
+      "std": 1.459263,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "T2M_MIN-Au",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 3.98,
+      "q1": 8.26,
+      "median": 8.38,
+      "mean": 8.934315,
+      "q3": 10.7,
+      "max": 13.643333,
+      "std": 2.046221,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "PRECTOTCORR-W",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 0.0,
+      "q1": 0.91,
+      "median": 1.736667,
+      "mean": 1.555862,
+      "q3": 2.073333,
+      "max": 2.78,
+      "std": 0.691682,
+      "n_zero": 46,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "PRECTOTCORR-Sp",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 1.94,
+      "q1": 3.246667,
+      "median": 4.41,
+      "mean": 4.023404,
+      "q3": 5.203333,
+      "max": 5.66,
+      "std": 1.117531,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "PRECTOTCORR-Su",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 4.836667,
+      "q1": 11.866667,
+      "median": 16.62,
+      "mean": 14.5175,
+      "q3": 17.816667,
+      "max": 19.92,
+      "std": 4.111199,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "PRECTOTCORR-Au",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 2.156667,
+      "q1": 3.463333,
+      "median": 5.43,
+      "mean": 4.762687,
+      "q3": 5.823333,
+      "max": 7.42,
+      "std": 1.394398,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "WD10M",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 14,
+      "min": 0.06,
+      "q1": 36.06,
+      "median": 68.94,
+      "mean": 71.579444,
+      "q3": 88.31,
+      "max": 354.88,
+      "std": 80.929898,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "GWETTOP",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 11,
+      "min": 0.52,
+      "q1": 0.69,
+      "median": 0.73,
+      "mean": 0.709028,
+      "q3": 0.74,
+      "max": 0.8,
+      "std": 0.055355,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "CLOUD_AMT",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 9,
+      "min": 0.46,
+      "q1": 48.62,
+      "median": 59.11,
+      "mean": 51.630709,
+      "q3": 59.11,
+      "max": 59.11,
+      "std": 16.328656,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "WS2M_RANGE",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 4.86,
+      "q1": 5.41,
+      "median": 6.01,
+      "mean": 8.262413,
+      "q3": 6.24,
+      "max": 46.1,
+      "std": 9.661188,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "PS",
+      "dtype": "float64",
+      "role": "numeric_feature",
+      "n_missing": 0,
+      "n_unique": 15,
+      "min": 74.17,
+      "q1": 77.15,
+      "median": 78.25,
+      "mean": 78.426168,
+      "q3": 79.61,
+      "max": 83.76,
+      "std": 2.38038,
+      "n_zero": 0,
+      "n_negative": 0,
+      "group": "weather_climate"
+    },
+    {
+      "name": "label",
+      "dtype": "str",
+      "role": "target",
+      "n_missing": 0,
+      "n_unique": 12
+    }
+  ],
+  "target_profile": {
+    "name": "label",
+    "n_classes": 12,
+    "dtype": "str",
+    "n_missing": 0,
+    "classes": [
+      {
+        "label": "Teff",
+        "count": 1260,
+        "pct": 32.58
+      },
+      {
+        "label": "Maize",
+        "count": 732,
+        "pct": 18.93
+      },
+      {
+        "label": "Wheat",
+        "count": 715,
+        "pct": 18.49
+      },
+      {
+        "label": "Barley",
+        "count": 503,
+        "pct": 13.01
+      },
+      {
+        "label": "Bean",
+        "count": 253,
+        "pct": 6.54
+      },
+      {
+        "label": "Pea",
+        "count": 94,
+        "pct": 2.43
+      },
+      {
+        "label": "Sorghum",
+        "count": 72,
+        "pct": 1.86
+      },
+      {
+        "label": "Dagussa",
+        "count": 71,
+        "pct": 1.84
+      },
+      {
+        "label": "Niger seed",
+        "count": 64,
+        "pct": 1.66
+      },
+      {
+        "label": "Potato",
+        "count": 48,
+        "pct": 1.24
+      },
+      {
+        "label": "Red Pepper",
+        "count": 29,
+        "pct": 0.75
+      },
+      {
+        "label": "Fallow",
+        "count": 26,
+        "pct": 0.67
+      }
+    ],
+    "imbalance": {
+      "majority": "Teff",
+      "majority_pct": 32.58,
+      "minority": "Fallow",
+      "minority_count": 26,
+      "minority_pct": 0.67,
+      "majority_to_minority_ratio": 48.46,
+      "n_classes_under_50_samples": 3,
+      "n_classes_under_100_samples": 7
+    }
+  },
+  "categorical_feature_profile": {
+    "name": "Soilcolor",
+    "n_raw_levels": 45,
+    "n_normalized_levels": 33,
+    "top_levels": [
+      {
+        "value": "brown",
+        "count": 1297,
+        "pct": 33.54
+      },
+      {
+        "value": "red",
+        "count": 1195,
+        "pct": 30.9
+      },
+      {
+        "value": "black",
+        "count": 860,
+        "pct": 22.24
+      },
+      {
+        "value": "other",
+        "count": 128,
+        "pct": 3.31
+      },
+      {
+        "value": "gray",
+        "count": 88,
+        "pct": 2.28
+      },
+      {
+        "value": "reddish brown",
+        "count": 85,
+        "pct": 2.2
+      },
+      {
+        "value": "dark brown",
+        "count": 51,
+        "pct": 1.32
+      },
+      {
+        "value": "dark gray",
+        "count": 35,
+        "pct": 0.91
+      },
+      {
+        "value": "Reddish brown",
+        "count": 14,
+        "pct": 0.36
+      },
+      {
+        "value": "dark reddish brown",
+        "count": 13,
+        "pct": 0.34
+      },
+      {
+        "value": "Red",
+        "count": 11,
+        "pct": 0.28
+      },
+      {
+        "value": "Dark brown",
+        "count": 9,
+        "pct": 0.23
+      }
+    ],
+    "levels_once": [
+      "Red brown",
+      "Grayish Brown",
+      "Light red",
+      "perl brown",
+      "black;vertisol",
+      "Redish Brown",
+      "Yellowish Brown",
+      "Grayish brown (GB)",
+      "Reddish",
+      "Dark greyish brown",
+      "dark grayish",
+      "Reddish broown",
+      "grayish brown",
+      "replacement of inaccessible target red;luvisols",
+      "reddish brown;moist",
+      "Dark red",
+      "Lihgtish brown",
+      "Redishbrown"
+    ],
+    "notes": "自由文本土壤颜色字段：大小写/拼写不一致（如 brown/Brown、reddish brown/Redish broown、darkbrown/dark brown）、含注释文本（如 'red;luvisols'、'black;vertisol'、'replacement of inaccessible target red;luvisols'）以及长尾单例类别；需要规范化或分组后再编码，或直接剔除。"
+  },
+  "feature_signal": [
+    {
+      "feature": "QV2M-Au",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2929,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "T2M_MIN-Au",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2825,
+      "iqr_outlier_frac": 0.061
+    },
+    {
+      "feature": "T2M_MIN-W",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2714,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "QV2M-Su",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2707,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "T2M_MAX-Sp",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2602,
+      "iqr_outlier_frac": 0.0484
+    },
+    {
+      "feature": "T2M_MIN-Sp",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2598,
+      "iqr_outlier_frac": 0.061
+    },
+    {
+      "feature": "T2M_MIN-Su",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2366,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "PS",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.2165,
+      "iqr_outlier_frac": 0.0313
+    },
+    {
+      "feature": "T2M_MAX-W",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1907,
+      "iqr_outlier_frac": 0.0484
+    },
+    {
+      "feature": "PRECTOTCORR-Su",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1639,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "QV2M-Sp",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1627,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "T2M_MAX-Au",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1429,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "N",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.1401,
+      "iqr_outlier_frac": 0.0054
+    },
+    {
+      "feature": "WS2M_RANGE",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1301,
+      "iqr_outlier_frac": 0.0727
+    },
+    {
+      "feature": "QV2M-W",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1171,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "PRECTOTCORR-Au",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.1116,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "PRECTOTCORR-Sp",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.098,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "Ph",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.0903,
+      "iqr_outlier_frac": 0.0341
+    },
+    {
+      "feature": "CLOUD_AMT",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.0649,
+      "iqr_outlier_frac": 0.0923
+    },
+    {
+      "feature": "PRECTOTCORR-W",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.0619,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "S",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.0486,
+      "iqr_outlier_frac": 0.0137
+    },
+    {
+      "feature": "K",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.0444,
+      "iqr_outlier_frac": 0.0403
+    },
+    {
+      "feature": "WD10M",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.0389,
+      "iqr_outlier_frac": 0.0693
+    },
+    {
+      "feature": "T2M_MAX-Su",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.0331,
+      "iqr_outlier_frac": 0.0
+    },
+    {
+      "feature": "GWETTOP",
+      "group": "weather_climate",
+      "eta_squared_vs_label": 0.0237,
+      "iqr_outlier_frac": 0.0334
+    },
+    {
+      "feature": "Zn",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.0187,
+      "iqr_outlier_frac": 0.0572
+    },
+    {
+      "feature": "P",
+      "group": "soil_property",
+      "eta_squared_vs_label": 0.014,
+      "iqr_outlier_frac": 0.1177
+    }
+  ],
+  "structure_findings": {
+    "weather_block_count": 16,
+    "weather_blocks": [
+      {
+        "weather_block_id": 0,
+        "n_rows": 17,
+        "n_distinct_labels": 1,
+        "top_label": "Barley",
+        "top_label_count": 17
+      },
+      {
+        "weather_block_id": 1,
+        "n_rows": 187,
+        "n_distinct_labels": 3,
+        "top_label": "Wheat",
+        "top_label_count": 81
+      },
+      {
+        "weather_block_id": 2,
+        "n_rows": 236,
+        "n_distinct_labels": 3,
+        "top_label": "Barley",
+        "top_label_count": 122
+      },
+      {
+        "weather_block_id": 3,
+        "n_rows": 231,
+        "n_distinct_labels": 11,
+        "top_label": "Maize",
+        "top_label_count": 111
+      },
+      {
+        "weather_block_id": 4,
+        "n_rows": 693,
+        "n_distinct_labels": 11,
+        "top_label": "Teff",
+        "top_label_count": 237
+      },
+      {
+        "weather_block_id": 5,
+        "n_rows": 622,
+        "n_distinct_labels": 12,
+        "top_label": "Teff",
+        "top_label_count": 177
+      },
+      {
+        "weather_block_id": 6,
+        "n_rows": 462,
+        "n_distinct_labels": 10,
+        "top_label": "Teff",
+        "top_label_count": 247
+      },
+      {
+        "weather_block_id": 7,
+        "n_rows": 121,
+        "n_distinct_labels": 7,
+        "top_label": "Teff",
+        "top_label_count": 59
+      },
+      {
+        "weather_block_id": 8,
+        "n_rows": 177,
+        "n_distinct_labels": 9,
+        "top_label": "Teff",
+        "top_label_count": 122
+      },
+      {
+        "weather_block_id": 9,
+        "n_rows": 287,
+        "n_distinct_labels": 10,
+        "top_label": "Teff",
+        "top_label_count": 132
+      },
+      {
+        "weather_block_id": 10,
+        "n_rows": 98,
+        "n_distinct_labels": 11,
+        "top_label": "Wheat",
+        "top_label_count": 26
+      },
+      {
+        "weather_block_id": 11,
+        "n_rows": 292,
+        "n_distinct_labels": 10,
+        "top_label": "Teff",
+        "top_label_count": 139
+      },
+      {
+        "weather_block_id": 12,
+        "n_rows": 353,
+        "n_distinct_labels": 10,
+        "top_label": "Maize",
+        "top_label_count": 219
+      },
+      {
+        "weather_block_id": 13,
+        "n_rows": 8,
+        "n_distinct_labels": 4,
+        "top_label": "Bean",
+        "top_label_count": 4
+      },
+      {
+        "weather_block_id": 14,
+        "n_rows": 46,
+        "n_distinct_labels": 2,
+        "top_label": "Wheat",
+        "top_label_count": 42
+      },
+      {
+        "weather_block_id": 15,
+        "n_rows": 37,
+        "n_distinct_labels": 4,
+        "top_label": "Teff",
+        "top_label_count": 17
+      }
+    ],
+    "n_duplicate_soil_property_vectors": 0,
+    "soil_property_columns": [
+      "Ph",
+      "K",
+      "P",
+      "N",
+      "Zn",
+      "S"
+    ]
+  },
+  "data_quality_issues": [
+    {
+      "type": "no_missing_values",
+      "detail": "所有 29 列均无缺失值（0 missing）。"
+    },
+    {
+      "type": "no_duplicate_rows",
+      "detail": "整行完全重复记录 0 条；仅按特征列（不含 label）比对也无重复。"
+    },
+    {
+      "type": "grouped_weather_features",
+      "detail": "21 个天气/气候列（QV2M_*, T2M_*, PRECTOTCORR_*, WD10M, GWETTOP, CLOUD_AMT, WS2M_RANGE, PS）在全表中只有 16 种不同取值组合（即 16 个'天气区块'），单区块行数 8~693，说明天气变量是站点/区域级常量而非逐样本观测。因此随机划分训练/测试集会让同一天气区块同时出现在两侧，存在信息泄漏风险，评估结果可能偏乐观；若追求严谨可考虑按天气区块分组划分（GroupKFold），本次任务按题目要求使用常规随机划分 random_state=42 即可，但需在报告中提示该局限。"
+    },
+    {
+      "type": "small_classes",
+      "detail": "类别高度不平衡：Teff 占 32.58%，而 Fallow 仅 26 条（0.67%）、Red Pepper 29 条、Potato 48 条；使用 20% 测试集时个别小类在测试集中可能只有 5~6 个样本，报告中的 precision/recall/F1 对其波动很大；建议分层划分（stratify）并在 classification report 中显式列出全部 12 类（含测试集未出现的类，support=0）。"
+    },
+    {
+      "type": "dirty_categorical",
+      "detail": "Soilcolor 有 46 个原始取值、规范化后 33 个，存在大小写/拼写/注释噪声与 20+ 个单例类别，直接 One-Hot 会引入大量稀疏列；建议规范化合并（或分组为 brown/red/black/gray/other 等）后编码，或作为低重要度特征忽略。"
+    },
+    {
+      "type": "heavy_tailed_features",
+      "detail": "P（偏度极高，117.7% IQR 离群，均值≈中位数 4 但最大值 782）、K（最大 2119）、Zn（最大 45.5）、WS2M_RANGE（最大 46.1）、WD10M（最大 354.88，且为角度量，存在 0~360 环绕问题）为长尾/离群特征；树模型对单调变换不敏感，一般无需标准化，但报告可提及。"
+    },
+    {
+      "type": "weather_dominant_signal",
+      "detail": "按 eta^2（组间方差占比）衡量，与标签关联最强的多为天气变量（QV2M-Au 0.293、T2M_MIN-Au 0.283、T2M_MIN-W 0.271），土壤属性中 N（0.140）与 Ph（0.090）最强，P（0.014）与 Zn（0.019）最弱；这与'天气区块共享'的结构一致，进一步说明潜在泄漏。"
+    }
+  ],
+  "downstream_notes": [
+    "目标列 label 为字符串类别，共 12 类；sklearn 中可取 sorted(labels) 作为固定类别顺序以保证 output1/output2 行列顺序稳定。",
+    "缺失值为 0、无重复行，因此不需要 imputation；只需处理 Soilcolor 编码（编码为数值或做规范化/剔除）。",
+    "建议 80/20 分层划分（train_test_split(test_size=0.2, stratify=y, random_state=42)），模型 RandomForestClassifier(n_estimators=100, random_state=42)。",
+    "标准化混淆矩阵应按真实标签行归一化（normalize='true'），行和=1；CSV 中数值保留 6 位小数。",
+    "classification report 需包含 accuracy、macro avg、micro avg 三行：macro 为各类别指标的简单平均，micro 等于 overall accuracy（多分类单标签情形），support 分别为样本总数/样本总数。",
+    "若测试集中某小类样本数为 0，需在报告中保留该类并以 0 填充，避免下游解析缺行。",
+    "图片需 matplotlib 非交互后端（Agg），标题/坐标轴标签按题目要求设置。"
+  ],
+  "reproducibility": {
+    "random_seed": 42,
+    "sklearn_version": "1.9.1",
+    "pandas_version": "3.1.1",
+    "numpy_version": "2.5.4"
+  }
+}

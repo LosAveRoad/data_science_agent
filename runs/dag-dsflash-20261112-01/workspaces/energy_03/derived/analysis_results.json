@@ -1,0 +1,216 @@
+{
+ "state_level_2017": {
+  "n_states": 51,
+  "pca_explained_variance_pct": [
+   40.84,
+   23.01,
+   17.11
+  ],
+  "pca_loadings_PC1": {
+   "log_kw_total": -0.3869,
+   "yearly_sunlight_kwh_median": -0.3699,
+   "renew_share": 0.6004,
+   "res_price": 0.1207,
+   "fossil_share": -0.5818
+  },
+  "pca_loadings_PC2": {
+   "log_kw_total": 0.46,
+   "yearly_sunlight_kwh_median": 0.3249,
+   "renew_share": 0.3202,
+   "res_price": -0.689,
+   "fossil_share": -0.325
+  },
+  "headline_correlations": {
+   "renew_share~fossil_share": {
+    "pearson_r": -0.746,
+    "spearman_r": -0.606
+   },
+   "res_price~deploy_per_1k": {
+    "pearson_r": 0.631,
+    "spearman_r": 0.353
+   },
+   "sunlight~percent_qualified": {
+    "pearson_r": 0.798,
+    "spearman_r": 0.865
+   },
+   "sunlight~deploy_per_1k": {
+    "pearson_r": 0.493,
+    "spearman_r": -0.009
+   },
+   "sunlight~res_price": {
+    "pearson_r": -0.094,
+    "spearman_r": -0.5
+   },
+   "fossil_share~sunlight": {
+    "pearson_r": 0.301,
+    "spearman_r": 0.3
+   },
+   "log_kw_total~renew_share": {
+    "pearson_r": -0.363,
+    "spearman_r": -0.312
+   },
+   "log_kw_total~sunlight": {
+    "pearson_r": 0.282,
+    "spearman_r": 0.211
+   }
+  },
+  "extreme_PC1": {
+   "positive": {
+    "state": "Vermont",
+    "score": 4.62
+   },
+   "negative": {
+    "state": "Florida",
+    "score": -2.58
+   }
+  },
+  "priority_variantB_top10": [
+   {
+    "state": "New Mexico",
+    "score": 3.62,
+    "sunlight_kwh": 18834.0,
+    "fossil_share": 82.1,
+    "renew_share": 17.9,
+    "deploy_per_1k": 11.0
+   },
+   {
+    "state": "Mississippi",
+    "score": 3.22,
+    "sunlight_kwh": 13343.0,
+    "fossil_share": 85.0,
+    "renew_share": 2.6,
+    "deploy_per_1k": 1.24
+   },
+   {
+    "state": "Florida",
+    "score": 2.94,
+    "sunlight_kwh": 17250.0,
+    "fossil_share": 83.9,
+    "renew_share": 2.6,
+    "deploy_per_1k": 28.27
+   },
+   {
+    "state": "Louisiana",
+    "score": 2.69,
+    "sunlight_kwh": 14140.0,
+    "fossil_share": 79.9,
+    "renew_share": 3.7,
+    "deploy_per_1k": 10.99
+   },
+   {
+    "state": "Delaware",
+    "score": 2.64,
+    "sunlight_kwh": 9747.0,
+    "fossil_share": 98.4,
+    "renew_share": 1.6,
+    "deploy_per_1k": 3.24
+   },
+   {
+    "state": "Wyoming",
+    "score": 2.23,
+    "sunlight_kwh": 10645.0,
+    "fossil_share": 88.3,
+    "renew_share": 11.6,
+    "deploy_per_1k": 0.6
+   },
+   {
+    "state": "Arizona",
+    "score": 2.21,
+    "sunlight_kwh": 18975.0,
+    "fossil_share": 57.7,
+    "renew_share": 11.8,
+    "deploy_per_1k": 24.13
+   },
+   {
+    "state": "Missouri",
+    "score": 2.2,
+    "sunlight_kwh": 10279.0,
+    "fossil_share": 86.0,
+    "renew_share": 4.0,
+    "deploy_per_1k": 3.06
+   },
+   {
+    "state": "Arkansas",
+    "score": 2.14,
+    "sunlight_kwh": 12100.0,
+    "fossil_share": 71.8,
+    "renew_share": 7.3,
+    "deploy_per_1k": 0.74
+   },
+   {
+    "state": "Indiana",
+    "score": 2.13,
+    "sunlight_kwh": 8955.0,
+    "fossil_share": 93.5,
+    "renew_share": 6.2,
+    "deploy_per_1k": 1.14
+   }
+  ],
+  "priority_variantA_top10": [
+   "New Mexico",
+   "Rhode Island",
+   "Delaware",
+   "Mississippi",
+   "Florida",
+   "Hawaii",
+   "Arizona",
+   "Indiana",
+   "Wyoming",
+   "Missouri"
+  ],
+  "robust_core_top10_intersection": [
+   "New Mexico",
+   "Mississippi",
+   "Florida",
+   "Delaware",
+   "Wyoming",
+   "Arizona",
+   "Missouri",
+   "Indiana"
+  ],
+  "lowest5_variantB": [
+   "Vermont",
+   "District of Columbia",
+   "Washington",
+   "Maine",
+   "Oregon"
+  ]
+ },
+ "global_2019": {
+  "n_countries": 172,
+  "max_co2_per_capita": {
+   "country": "Qatar",
+   "value": 36.25,
+   "note": "clipped by required ylim [0,30]"
+  }
+ },
+ "steel_2018": {
+  "load_type_counts": {
+   "Light_Load": 18072,
+   "Medium_Load": 9696,
+   "Maximum_Load": 7272
+  },
+  "sampled_points": 672,
+  "sample_mean_kwh": 27.15,
+  "sample_max_kwh": 147.46
+ },
+ "granularity_kw_totals": {
+  "State": 832455286.75,
+  "County": 819518132.5,
+  "City": 819015380.75,
+  "Postal Code": 829809383.25
+ },
+ "top10_fossil_2017_mwh": {
+  "Texas": 341796033.0,
+  "Florida": 200085136.0,
+  "Pennsylvania": 120939213.0,
+  "Ohio": 99170101.0,
+  "Indiana": 92477193.0,
+  "California": 90095382.0,
+  "Georgia": 85492334.0,
+  "Alabama": 84468599.0,
+  "Louisiana": 78029837.0,
+  "North Carolina": 73301346.0
+ },
+ "output_file": "output.png"
+}

@@ -1,0 +1,25 @@
+{
+ "rmse": 6.207019013461763,
+ "r2": 0.8734134270097986,
+ "coefs": {
+  "hour": 0.02902068942785263,
+  "day_of_week": -0.06233730539679527,
+  "trip_distance": 3.597437620162964,
+  "passenger_count": 0.11096977442502975,
+  "borough_pu_Bronx": 2.695310592651367,
+  "borough_pu_Brooklyn": 5.2522969245910645,
+  "borough_pu_EWR": 47.471107482910156,
+  "borough_pu_Manhattan": 5.330214023590088,
+  "borough_pu_Queens": 5.519981861114502,
+  "borough_pu_Staten Island": -8.596805572509766,
+  "borough_do_Bronx": -14.459221839904785,
+  "borough_do_Brooklyn": -12.321573257446289,
+  "borough_do_EWR": 9.369537353515625,
+  "borough_do_Manhattan": -13.969429016113281,
+  "borough_do_Queens": -12.94122314453125,
+  "borough_do_Staten Island": -14.445854187011719
+ },
+ "intercept": 15.544109344482422,
+ "n_train": 8366574,
+ "n_test": 2091644
+}

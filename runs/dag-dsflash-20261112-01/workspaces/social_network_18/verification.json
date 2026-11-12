@@ -1,0 +1,208 @@
+{
+  "node": "verify",
+  "status": "pass",
+  "artifact_under_verification": [
+    "output.csv",
+    "negative_reasons.csv"
+  ],
+  "verified_against": {
+    "source_db": "Twitter_US_Airline_Sentiment.sqlite (table Tweets)",
+    "baselines": "data_profile.json, analysis_plan.json, execute_summary.json",
+    "method": "full independent recomputation in pandas/sqlite from source DB, compared cell-by-cell with the delivered CSVs"
+  },
+  "files": [
+    {
+      "file": "output.csv",
+      "exists": true,
+      "bytes": 548,
+      "data_rows": 18,
+      "columns": [
+        "airline",
+        "sentiment",
+        "count",
+        "percentage"
+      ],
+      "schema_ok": true,
+      "encoding": "UTF-8, LF, no BOM, trailing newline present"
+    },
+    {
+      "file": "negative_reasons.csv",
+      "exists": true,
+      "bytes": 847,
+      "data_rows": 42,
+      "columns": [
+        "airline",
+        "reasons",
+        "count"
+      ],
+      "schema_ok": true,
+      "encoding": "UTF-8, LF, no BOM, trailing newline present"
+    }
+  ],
+  "checks": [
+    {
+      "id": "C1",
+      "check": "extraction integrity",
+      "result": "pass",
+      "evidence": "14485 source rows; 0 NULL/blank airline, airline_sentiment or text; 14485 records retained (0 dropped); 6 airlines; sentiment domain == {positive, negative, neutral}"
+    },
+    {
+      "id": "C2",
+      "check": "output.csv completeness",
+      "result": "pass",
+      "evidence": "18 rows == 6 airlines x 3 sentiments; 0 duplicate (airline, sentiment) keys; every sentiment value in {positive,negative,neutral}"
+    },
+    {
+      "id": "C3",
+      "check": "output.csv counts",
+      "result": "pass",
+      "evidence": "sum(count)=14485 == source rows; per-airline counts match data_profile.json exactly (American 2604, Delta 2222, Southwest 2420, US Airways 2913, United 3822, Virgin America 504); global sentiment split negative 9082 / neutral 3069 / positive 2334 matches baseline"
+    },
+    {
+      "id": "C4",
+      "check": "percentage correctness & format",
+      "result": "pass",
+      "evidence": "all 18 values match ^\\d+\\.\\d{2}$; recomputed count/airline_total*100 rounded to 2dp agrees on 18/18 rows (0 mismatches, max abs diff 0.0); Decimal ROUND_HALF_UP recomputation also 0 mismatches; per-airline percentage sums == 100.00 for all 6 airlines; airline-level denominator confirmed (not global 14485)"
+    },
+    {
+      "id": "C5",
+      "check": "negative scope",
+      "result": "pass",
+      "evidence": "reason analysis restricted to airline_sentiment=='negative' (9082 tweets); negative counts in output.csv match the negative scope per airline"
+    },
+    {
+      "id": "C6",
+      "check": "negative_reasons.csv structure",
+      "result": "pass",
+      "evidence": "42 rows == 6 airlines x 7 categories, full grid present (no missing/extra combos); 0 duplicate (airline, reasons) keys; reason labels == [baggage, cancel, delay, food, other, seat, service]; counts are non-negative integers, 0 zero-valued combos"
+    },
+    {
+      "id": "C7",
+      "check": "negative_reasons.csv values",
+      "result": "pass",
+      "evidence": "independent recomputation of case-insensitive substring tagging agrees on 42/42 (airline, reasons) cells (0 mismatches); per-category totals delay 2112, service 1395, baggage 1080, cancel 864, seat 404, food 120, other 4239 match data_profile.json; multi-label totals exceed 9082 as expected"
+    },
+    {
+      "id": "C8",
+      "check": "'other' definition & identity",
+      "result": "pass",
+      "evidence": "other == 9082 - 4843 (union of the six keyword categories) = 4239 globally, and other == negative_total - union per airline for all 6 airlines"
+    },
+    {
+      "id": "C9",
+      "check": "case-insensitivity",
+      "result": "pass",
+      "evidence": "text lowercased before matching; every case-sensitive hit set is a strict subset of the lowercase hit set (mismatches: 0 for 'DELAY' 9->861, 'Late' 383->383, 'Rude' 12->141)"
+    },
+    {
+      "id": "C10",
+      "check": "multi-label handling",
+      "result": "pass",
+      "evidence": "negative tweets by #matched categories: 0:4239, 1:3824, 2:914, 3:98, 4:6, 5:1 -> multi-label double counting preserved (named-category sum 5975 > union 4843); no de-duplication inside a category"
+    },
+    {
+      "id": "C11",
+      "check": "determinism / ordering",
+      "result": "pass",
+      "evidence": "output.csv: airlines ascending, then positive/negative/neutral; negative_reasons.csv: airlines ascending, then reasons alphabetical -> byte-stable and consistent with analysis_plan.json step 5"
+    },
+    {
+      "id": "C12",
+      "check": "cross-artifact consistency",
+      "result": "pass",
+      "evidence": "execute_summary.json reported totals (sentiment_totals, airline_totals, negative_reason_totals_multilabel, dominant driver per airline) all reproduce exactly from the DB"
+    }
+  ],
+  "results_recap": {
+    "sentiment_totals": {
+      "negative": 9082,
+      "neutral": 3069,
+      "positive": 2334
+    },
+    "airline_totals": {
+      "American": 2604,
+      "Delta": 2222,
+      "Southwest": 2420,
+      "US Airways": 2913,
+      "United": 3822,
+      "Virgin America": 504
+    },
+    "negative_share_worst_first": [
+      {
+        "airline": "US Airways",
+        "negative_count": 2263,
+        "negative_pct": 77.69
+      },
+      {
+        "airline": "American",
+        "negative_count": 1864,
+        "negative_pct": 71.58
+      },
+      {
+        "airline": "United",
+        "negative_count": 2633,
+        "negative_pct": 68.89
+      },
+      {
+        "airline": "Southwest",
+        "negative_count": 1186,
+        "negative_pct": 49.01
+      },
+      {
+        "airline": "Delta",
+        "negative_count": 955,
+        "negative_pct": 42.98
+      },
+      {
+        "airline": "Virgin America",
+        "negative_count": 181,
+        "negative_pct": 35.91
+      }
+    ],
+    "negative_reason_totals": {
+      "other": 4239,
+      "delay": 2112,
+      "service": 1395,
+      "baggage": 1080,
+      "cancel": 864,
+      "seat": 404,
+      "food": 120
+    },
+    "named_keyword_union": 4843,
+    "named_keyword_multilabel_sum": 5975,
+    "dominant_named_reason_per_airline": {
+      "American": {
+        "reason": "delay",
+        "count": 387
+      },
+      "Delta": {
+        "reason": "delay",
+        "count": 244
+      },
+      "Southwest": {
+        "reason": "delay",
+        "count": 246
+      },
+      "US Airways": {
+        "reason": "delay",
+        "count": 588
+      },
+      "United": {
+        "reason": "delay",
+        "count": 624
+      },
+      "Virgin America": {
+        "reason": "delay",
+        "count": 23
+      }
+    }
+  },
+  "notes": [
+    "Minor definitional difference, not an error: execute_summary.json's 'multi_label_sum' 10214 sums all 7 buckets including 'other'; the named-category multi-label sum is 5975 (5975 + 4239 = 10214).",
+    "'other' is the largest bucket (4239 = 46.7% of negative tweets), so named-category volumes are lower bounds on true complaint counts; this is disclosed in upstream artifacts rather than hidden.",
+    "Keyword matching is substring-based per the task spec, so tokens such as 'wait', 'hours', 'bag' and 'late' also fire in unrelated contexts (word-boundary matching would give delay 1964 / service 1093 / baggage 869 / seat 239 / food 95 / other 4785 per data_profile.json sensitivity).",
+    "Virgin America has only 504 tweets (181 negative), so its percentages carry low precision and should not be over-interpreted.",
+    "No row filtering was required: the source data has no missing airline/sentiment/text values, so there is no silent data loss between source and outputs."
+  ],
+  "conclusion": "Both deliverables are structurally valid, complete, and numerically reproducible from the source database (0 mismatches across 60 verified data cells); no corrections needed."
+}

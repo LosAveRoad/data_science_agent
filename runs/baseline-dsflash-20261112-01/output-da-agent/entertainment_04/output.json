@@ -1,0 +1,37 @@
+{
+  "music_features": {
+    "danceability_2017_mean": 0.69682,
+    "danceability_2017_std": 0.12507972245610785,
+    "danceability_2018_mean": 0.71646,
+    "danceability_2018_std": 0.1310701423750742,
+    "danceability_2020_mean": 0.71672,
+    "danceability_2020_std": 0.12497526939032248,
+    "energy_2017_mean": 0.66069,
+    "energy_2017_std": 0.13920718481109481,
+    "energy_2018_mean": 0.6590600000000001,
+    "energy_2018_std": 0.1450671610397102,
+    "energy_2020_mean": 0.6093,
+    "energy_2020_std": 0.15434816857629746,
+    "valence_2017_mean": 0.517049,
+    "valence_2017_std": 0.21643606586022235,
+    "valence_2018_mean": 0.48444299999999996,
+    "valence_2018_std": 0.20614516374720906,
+    "valence_2020_mean": 0.5557099999999999,
+    "valence_2020_std": 0.21638641951615264
+  },
+  "anova": {
+    "danceability_f_statistic": 0.7182730772011929,
+    "danceability_p_value": 0.4886091413327076,
+    "energy_f_statistic": 2.4475755586534786,
+    "energy_p_value": 0.08859872893059248,
+    "valence_f_statistic": 1.9291537776820669,
+    "valence_p_value": 0.14745363009444656
+  },
+  "game_market_hhi": 0.07903074458270239,
+  "ratings": {
+    "books_mean": 3.9340753393868564,
+    "books_median": 3.96,
+    "movies_mean": 5.618207215134184,
+    "movies_median": 6.0
+  }
+}

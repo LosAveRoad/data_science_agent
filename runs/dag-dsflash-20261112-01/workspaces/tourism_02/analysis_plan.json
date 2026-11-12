@@ -1,0 +1,263 @@
+{
+  "plan_version": "1.0",
+  "objective": "Quantify how international tourists from different continents rate 17 attraction types in Indonesia (destination), expressed as mean transaction Rating per (AttractionType, Continent) group, then annotate every row with Indonesia's macro context (GDP per capita, Henley visa-free score) so that rating differences can be interpreted against destination-level macro conditions.",
+  "destination_country": "Indonesia",
+  "data_inventory": [
+    {
+      "file": "TripAdvisor Indonesia Tourism/Transaction.xlsx",
+      "grain": "1 row = 1 review",
+      "key": "TransactionId",
+      "rows_expected": 52930,
+      "fields": [
+        "TransactionId",
+        "UserId",
+        "VisitYear",
+        "VisitMonth",
+        "VisitMode",
+        "AttractionId",
+        "Rating"
+      ],
+      "role": "fact table - supplies the Rating being averaged"
+    },
+    {
+      "file": "TripAdvisor Indonesia Tourism/User.xlsx",
+      "grain": "1 row = 1 reviewer",
+      "key": "UserId",
+      "rows_expected": 33530,
+      "fields": [
+        "UserId",
+        "ContenentId",
+        "RegionId",
+        "CountryId",
+        "CityId"
+      ],
+      "role": "dimension - maps reviewer to continent of origin (note misspelling 'ContenentId')"
+    },
+    {
+      "file": "TripAdvisor Indonesia Tourism/Continent.xlsx",
+      "grain": "continent lookup",
+      "key": "ContenentId",
+      "rows_expected": 6,
+      "fields": [
+        "ContenentId",
+        "Contenent"
+      ],
+      "role": "decode ContenentId -> continent label; id 0 = '-' placeholder and is unused by User"
+    },
+    {
+      "file": "TripAdvisor Indonesia Tourism/Item.xlsx",
+      "grain": "1 row = 1 attraction",
+      "key": "AttractionId",
+      "rows_expected": 30,
+      "fields": [
+        "AttractionId",
+        "AttractionCityId",
+        "AttractionTypeId",
+        "Attraction",
+        "AttractionAddress"
+      ],
+      "role": "dimension - maps attraction to its type id"
+    },
+    {
+      "file": "TripAdvisor Indonesia Tourism/Type.xlsx",
+      "grain": "attraction type lookup",
+      "key": "AttractionTypeId",
+      "rows_expected": 17,
+      "fields": [
+        "AttractionTypeId",
+        "AttractionType"
+      ],
+      "role": "decode AttractionTypeId -> AttractionType label"
+    },
+    {
+      "file": "countries of the world.csv",
+      "grain": "1 row = 1 country",
+      "key": "Country (has trailing whitespace)",
+      "fields_note": "column names carry odd characters/units, e.g. 'GDP ($ per capita)'; Country must be .str.strip() before matching",
+      "role": "macro source for Country_GDP_per_Capita (Indonesia = 3200 USD per capita, World-Bank ~2006 snapshot)"
+    },
+    {
+      "file": "henley_passport_index_2025_new.csv",
+      "grain": "1 row = 1 country",
+      "key": "Country",
+      "fields": [
+        "Rank",
+        "Country",
+        "Visa_Free_Score"
+      ],
+      "role": "macro source for Visa_Free_Score (Indonesia -> Rank 66, Visa_Free_Score 74)"
+    }
+  ],
+  "evaluation_units": {
+    "group_keys": [
+      "AttractionType",
+      "Continent"
+    ],
+    "theoretical_combos": "17 types x 5 continents = 85",
+    "expected_output_rows": 78,
+    "reason_for_78": "7 combos have zero reviews (6 Africa-type combos + Spas/America) and are therefore absent, not zero-filled"
+  },
+  "pipeline_steps": [
+    {
+      "step": 1,
+      "name": "load",
+      "detail": "Read the 5 xlsx sheets with xlsx_reader.read_xlsx (pure-python zip/XML parser, no openpyxl dependency) and the 2 CSVs with pandas; cast Rating/Ids to int."
+    },
+    {
+      "step": 2,
+      "name": "conform keys",
+      "detail": "Strip whitespace on both country columns; rename Transaction.AttractionId -> Item.AttractionId; keep User.ContenentId spelling as-is."
+    },
+    {
+      "step": 3,
+      "name": "build fact view",
+      "detail": "Transaction --(UserId)--> User --(ContenentId)--> Continent gives Continent; Transaction --(AttractionId)--> Item --(AttractionTypeId)--> Type gives AttractionType. Inner-join chain; expect 0% row loss (verified)."
+    },
+    {
+      "step": 4,
+      "name": "aggregate",
+      "detail": "Avg_Rating = mean(Rating) grouped by (AttractionType, Continent); round to 4 decimals; also keep n_reviews internally for the reliability flag."
+    },
+    {
+      "step": 5,
+      "name": "attach macro",
+      "detail": "Look up 'Indonesia' in both macro tables and broadcast the two scalars onto every row (left-join on a constant destination key)."
+    },
+    {
+      "step": 6,
+      "name": "order & write",
+      "detail": "Sort by AttractionType then Continent for reproducibility; write output.csv with exactly the 5 required columns; UTF-8, no index."
+    }
+  ],
+  "macro_attachment": {
+    "Country_GDP_per_Capita": {
+      "value": 3200.0,
+      "source": "countries of the world.csv -> 'GDP ($ per capita)'",
+      "comment": "constant across rows (single destination)"
+    },
+    "Visa_Free_Score": {
+      "value": 74,
+      "source": "henley_passport_index_2025_new.csv -> Visa_Free_Score (Rank 66)",
+      "comment": "constant across rows; measures outbound visa-free access of the Indonesian passport, i.e. demand-side/mobility context - NOT visa openness of Indonesia toward inbound tourists"
+    }
+  },
+  "validation_checks": [
+    {
+      "check": "row count equals 0-filled pivot width",
+      "expected": "78 rows; 85-78=7 missing combos all have zero transactions"
+    },
+    {
+      "check": "no nulls in any output column",
+      "expected": "0 nulls"
+    },
+    {
+      "check": "Avg_Rating within [1,5]",
+      "expected": "min 3.3333 / max 5.0 observed"
+    },
+    {
+      "check": "weighted mean of Avg_Rating (weight = reviews per group) reconciles with raw Rating mean 4.1577",
+      "expected": "abs diff < 1e-6"
+    },
+    {
+      "check": "Visa_Free_Score integer, Country_GDP_per_Capita float, both constant",
+      "expected": "nunique == 1 each"
+    },
+    {
+      "check": "group sizes reported; groups with n<5 flagged as low-confidence (8 such groups had n<5)",
+      "expected": "no filtering, only flagging - task requires all combos present in data"
+    }
+  ],
+  "output_schema": {
+    "path": "output.csv",
+    "columns": [
+      {
+        "name": "AttractionType",
+        "dtype": "string",
+        "source": "Type.AttractionType"
+      },
+      {
+        "name": "Continent",
+        "dtype": "string",
+        "source": "Continent.Contenent"
+      },
+      {
+        "name": "Avg_Rating",
+        "dtype": "float",
+        "source": "mean(Transaction.Rating) per group, round 4"
+      },
+      {
+        "name": "Country_GDP_per_Capita",
+        "dtype": "float",
+        "source": "Indonesia GDP per capita = 3200.0"
+      },
+      {
+        "name": "Visa_Free_Score",
+        "dtype": "int",
+        "source": "Indonesia Henley score = 74"
+      }
+    ]
+  },
+  "analysis_angle_for_interpretation": [
+    "Cross-continent variance per attraction type: which types are polarising (large spread across continents) vs universally liked.",
+    "Continent marginal means (weighted): Australia & Oceania 4.2124 > America 4.1634 > Asia 4.1557 > Europe 4.1001 > Africa 4.088 - spread ~0.12, small relative to type-level spread, so attraction type dominates continent effects.",
+    "Type marginal means: Water Parks 4.65, Spas 4.57, Caverns & Caves 4.50, National Parks 4.42 top; lowest types around 3.3-3.9.",
+    "Macro linkage: with GDP per capita 3200 USD and Henley score 74 (Rank 66), Indonesia sits in the mid-tier of both development and outbound mobility; the macro columns are contextual constants, so they support narrative interpretation (price/value, accessibility, infrastructure maturity) rather than statistical variation within this table."
+  ],
+  "risks_and_caveats": [
+    "Both macro columns are constant -> they cannot explain within-table variance; any correlation with Avg_Rating is structurally zero. Treat them as annotation only.",
+    "Sparse groups (n<5, 8 groups) produce unstable means (e.g. min 3.3333 likely from a 3-review group); interpret with review counts.",
+    "'GDP ($ per capita)' in countries of the world.csv is an old (mid-2000s) snapshot and country names have trailing spaces; wrong matching would silently produce NaN.",
+    "VisitMode/VisitYear/VisitMonth not required by the deliverable but available for robustness slicing (e.g. exclude low-review masks) if a deeper node needs it.",
+    "Africa is heavily under-represented (593 reviewers) so its extremes carry the most noise."
+  ],
+  "upstream_artifact_status": {
+    "output.csv": "already present in workspace and consistent with this plan (78 rows, 5 columns, no nulls, Avg_Rating in [3.3333, 5.0]); a downstream execution node can regenerate it from the steps above if a rerun is required."
+  },
+  "execution_notes": {
+    "code_deps": [
+      "xlsx_reader.py (built-in)",
+      "pandas",
+      "csv",
+      "json"
+    ],
+    "runtime_estimate_sec": "<10",
+    "deterministic": true
+  },
+  "self_verification": {
+    "performed": "light-weight re-derivation of the aggregation chain to confirm plan numbers",
+    "joined_rows": 52930,
+    "join_loss": 0,
+    "groups_produced": 78,
+    "weighted_mean_vs_raw_mean": {
+      "weighted": 4.157699,
+      "raw": 4.1577,
+      "abs_diff": 0.0
+    },
+    "groups_with_n_lt_5": 8,
+    "min_group_n": 1,
+    "continent_means_weighted": {
+      "Africa": 4.088,
+      "America": 4.1634,
+      "Asia": 4.1557,
+      "Australia & Oceania": 4.2124,
+      "Europe": 4.1001
+    },
+    "top_attraction_types_weighted": {
+      "Water Parks": 4.6466,
+      "Spas": 4.5714,
+      "Caverns & Caves": 4.5037,
+      "National Parks": 4.4168,
+      "Neighborhoods": 4.3182
+    },
+    "macro_lookup_confirmed": {
+      "Country_GDP_per_Capita": 3200.0,
+      "Visa_Free_Score": 74,
+      "henley_rank": 66
+    },
+    "reconciliation_with_existing_output_csv": {
+      "rows_matched": 78,
+      "max_abs_diff_Avg_Rating": 0.0,
+      "nulls": 0
+    }
+  }
+}

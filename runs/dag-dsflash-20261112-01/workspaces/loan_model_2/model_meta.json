@@ -1,0 +1,59 @@
+{
+ "cut_time": 20231024,
+ "split_rule": "train = time < 70th percentile(time); all rows of cut date in test",
+ "train_rows": 34591,
+ "test_rows": 15319,
+ "train_row_share": 0.6931,
+ "train_time_range": [
+  20230701,
+  20231023
+ ],
+ "test_time_range": [
+  20231024,
+  20231130
+ ],
+ "train_pos_rate": 0.09534271920441734,
+ "test_pos_rate": 0.08825641360402114,
+ "inner_val_cut_time": 20231006,
+ "inner_val_rows": 9257,
+ "best_rounds": 121,
+ "inner_val_auc": 0.6444963700872128,
+ "params": {
+  "learning_rate": 0.05,
+  "max_depth": 3,
+  "subsample": 0.8,
+  "colsample_bytree": 0.8,
+  "min_child_weight": 20,
+  "reg_lambda": 5.0,
+  "objective": "binary:logistic",
+  "eval_metric": "auc",
+  "tree_method": "hist",
+  "random_state": 42,
+  "n_jobs": 4
+ },
+ "remaining_feature_count": 56,
+ "train_auc": 0.6859840471397349,
+ "test_auc": 0.6323843491187808,
+ "top_importance_gain": {
+  "f5": 156.565689,
+  "f10": 132.921875,
+  "f34": 61.528053,
+  "f46": 43.134319,
+  "f2": 34.472561,
+  "f11": 30.913244,
+  "f36": 27.02364,
+  "f3": 20.731989,
+  "f33": 20.320082,
+  "f13": 15.597095,
+  "f39": 13.47408,
+  "f12": 13.471335,
+  "f42": 12.815987,
+  "f1": 12.773013,
+  "f49": 12.642443,
+  "f14": 12.4552,
+  "f22": 12.231589,
+  "f55": 12.17334,
+  "f18": 12.035593,
+  "f47": 11.707485
+ }
+}

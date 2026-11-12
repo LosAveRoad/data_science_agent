@@ -1,0 +1,112 @@
+{
+  "node": "executor",
+  "status": "completed",
+  "methods": {
+    "data_unification": {
+      "Diabetes": "Healthcare-Diabetes.csv: Age -> age, Glucose -> glucose_mgdl (0 treated as missing sentinel; 18 zeros in raw, 8 remain after age filter)",
+      "Stroke": "healthcare-dataset-stroke-data.csv: age -> age, avg_glucose_level -> glucose_mgdl",
+      "CKD": "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff: age -> age, bgr -> glucose_mgdl; '?' -> NaN; 25 @attribute names parsed from header; 3 rows with 26 fields repaired (trailing/embedded empty field) before parsing",
+      "unit_assumption": "all three glucose columns already mg/dL; no rescaling applied"
+    },
+    "filters": "age non-missing and 30 <= age <= 70 inclusive; glucose non-missing and != 0",
+    "overall_test": "scipy.stats.kruskal on the three independent groups (two-sided Kruskal-Wallis H)",
+    "post_hoc": "Dunn's test: ranks computed on POOLED sample with average ties; variance sigma^2 = N(N+1)/12 - sum(t^3-t)/(12(N-1)); z = (mean_rank_i - mean_rank_j)/sqrt(sigma^2*(1/n_i+1/n_j)); two-sided p = 2*norm.sf(|z|) (sf used to avoid underflow); Bonferroni correction p_adj = min(1, p*3)",
+    "visualization": "matplotlib Agg; overlaid density histograms bins=50, alpha=0.6, density=True; Diabetes red / Stroke blue / CKD green; KW H and p annotated on axes; figsize (15,9) dpi 100 -> 1500x900 px"
+  },
+  "row_counts": {
+    "raw": {
+      "Diabetes": 2768,
+      "Stroke": 5110,
+      "CKD": 400,
+      "total": 8278
+    },
+    "after_filters": {
+      "Diabetes": 1306,
+      "Stroke": 2885,
+      "CKD": 273,
+      "total": 4464
+    },
+    "excluded": {
+      "glucose_missing_or_zero": 62,
+      "age_missing": 9,
+      "age_out_of_range": 3743
+    }
+  },
+  "group_stats": {
+    "Diabetes": {
+      "n": 1306,
+      "mean": 129.5207,
+      "median": 125.0,
+      "std": 32.1568,
+      "min": 44.0,
+      "max": 197.0
+    },
+    "Stroke": {
+      "n": 2885,
+      "mean": 107.8992,
+      "median": 92.23,
+      "std": 46.9639,
+      "min": 55.22,
+      "max": 271.74
+    },
+    "CKD": {
+      "n": 273,
+      "mean": 151.1795,
+      "median": 123.0,
+      "std": 80.6114,
+      "min": 70.0,
+      "max": 490.0
+    }
+  },
+  "test_results": {
+    "kruskal_wallis": {
+      "H": 628.1297472880678,
+      "p": 4.011976834982009e-137,
+      "significant": true
+    },
+    "dunn_post_hoc": [
+      {
+        "comparison": "Diabetes vs Stroke",
+        "z": 23.369292894117425,
+        "p_adj": 2.632308557413407e-120,
+        "significant": true
+      },
+      {
+        "comparison": "Diabetes vs CKD",
+        "z": -0.43762135560234433,
+        "p_adj": 1.0,
+        "significant": false
+      },
+      {
+        "comparison": "Stroke vs CKD",
+        "z": -12.768506131789152,
+        "p_adj": 7.3748159242587045e-37,
+        "significant": true
+      }
+    ]
+  },
+  "cross_check_vs_analysis_plan": {
+    "kruskal_H_match": true,
+    "kruskal_p_match": true,
+    "z_values_match": true,
+    "row_counts_match": "1306/2885/273 = 4464 identical to analysis_plan.json expected_counts"
+  },
+  "key_conclusions": [
+    "Kruskal-Wallis H = 628.13, p = 4.01e-137 < 0.05: blood glucose distributions differ significantly across the three cohorts.",
+    "Dunn + Bonferroni: Diabetes vs Stroke (z=23.37, p_adj=2.63e-120) and Stroke vs CKD (z=-12.77, p_adj=7.37e-37) are significant; Diabetes vs CKD is not (z=-0.44, p_adj=1.0).",
+    "Medians: Diabetes 125.0, CKD 123.0, Stroke 92.23 mg/dL — Diabetes and CKD are statistically indistinguishable from each other but both are markedly higher than Stroke.",
+    "CKD has the largest spread (std 80.6, range 70-490 mg/dL) driven by a small n (273)."
+  ],
+  "caveats": [
+    "Glucose is a single random/point measurement per record; no fasting-status harmonization across sources is possible.",
+    "Cohorts differ in age composition (mean age Diabetes 42.6 vs Stroke 49.7 vs CKD 52.9) even within the 30-70 window, and differ in disease context, so between-cohort differences are not causal.",
+    "CKD bgr has heavy missingness in the raw ARFF (44/400 missing), so the CKD group is a smaller and possibly selected subset.",
+    "Age-filter counts use inclusive bounds [30,70]; 3 malformed ARFF rows were repaired but all fall outside the analysis windows."
+  ],
+  "output_files": [
+    "output.csv",
+    "output.png",
+    "glucose_unified.csv",
+    "execute_summary.json"
+  ]
+}

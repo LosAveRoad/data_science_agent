@@ -1,0 +1,115 @@
+{
+  "node": "execute",
+  "task": "Zillow state-level 8 house-type CAGR (2010-12-31 -> 2019-12-31) and within-state growth-rate disparity, Top5 output",
+  "method": {
+    "data_loading": "Read 8 Zillow state-level CSV files (State_Zhvi_{1bedroom,2bedroom,3bedroom,4bedroom,5BedroomOrMore,AllHomes,Condominum,SingleFamilyResidence}.csv) with pandas, usecols=['RegionName','RegionType','StateName','2010-12-31','2019-12-31']. Verified by header scan that both target date columns exist in every file at identical positions (0-based index 185 and 293 respectively, 297 cols total, 291 monthly date columns 1996-01..2020-03).",
+    "property_type_mapping": "Derived from file names: 1 bedroom / 2 bedroom / 3 bedroom / 4 bedroom / 5 bedroom or more / All homes / Condominium / Single family residence (property type is not a column in the source data).",
+    "cagr": "cagr = (value_2019_12_31 / value_2010_12_31)^(1/9) - 1, exponent 9 = annual intervals 2011..2019; applied only where both values > 0.",
+    "disparity": "For each of the 51 regions (50 states + District of Columbia): growth_rate_diff = max(cagr over 8 types) - min(cagr over 8 types); sorted descending (ties by region_name asc), rank 1..51.",
+    "unit_convention": "growth_rate_diff stored as decimal CAGR in state_cagr_disparity.csv, reported as percentage points (x100, 4 dp) in top5_cagr_disparity.csv to match the upstream result convention.",
+    "top5_selection": "First 5 rows after descending sort on growth_rate_diff."
+  },
+  "validation": {
+    "files_checked": 8,
+    "rows_per_file": 51,
+    "total_observations": 408,
+    "expected_ten_eight": 408,
+    "duplicated_region_rows": 0,
+    "regiontype_values": [
+      "State"
+    ],
+    "unique_regions": 51,
+    "types_per_region": 8,
+    "nan_on_target_dates": 0,
+    "non_positive_on_target_dates": 0,
+    "skipped_cagr_rows": 0,
+    "cagr_range": {
+      "min": -0.009687,
+      "max": 0.089836
+    },
+    "negative_cagr_rows": 6,
+    "negative_cagr_note": "Only Connecticut shows a slight nominal decline in one property type over the period.",
+    "spot_checks": {
+      "District of Columbia 3 bedroom": [
+        380702.0,
+        682763.0,
+        0.067056
+      ],
+      "District of Columbia 1 bedroom": [
+        335108.0,
+        417679.0,
+        0.024775
+      ],
+      "Nevada 1 bedroom": [
+        62471.0,
+        135497.0,
+        0.089836
+      ],
+      "Nevada All homes": [
+        150642.0,
+        304731.0,
+        0.081426
+      ],
+      "note": "[value_2010_12_31, value_2019_12_31, recomputed cagr]; all match the pipeline output."
+    },
+    "reproduces_upstream_artifact": "Independent recomputation from the raw CSVs reproduced the existing top5_cagr_disparity.csv byte-for-byte in content (same 5 regions and same 4-dp values)."
+  },
+  "key_intermediate_results": {
+    "all_state_type_cagr_rows": 408,
+    "national_mean_cagr_by_type": {
+      "1 bedroom": 0.0344,
+      "2 bedroom": 0.0349,
+      "3 bedroom": 0.0364,
+      "4 bedroom": 0.0338,
+      "5 bedroom or more": 0.0315,
+      "All homes": 0.0352,
+      "Condominium": 0.0324,
+      "Single family residence": 0.0354
+    },
+    "disparity_distribution_pp": {
+      "min": 0.3351,
+      "median": 1.0904,
+      "max": 4.2281
+    },
+    "top5": [
+      {
+        "region name": "District of Columbia",
+        "growth rate difference": 4.2281
+      },
+      {
+        "region name": "Florida",
+        "growth rate difference": 2.7633
+      },
+      {
+        "region name": "Nevada",
+        "growth rate difference": 2.6992
+      },
+      {
+        "region name": "Georgia",
+        "growth rate difference": 2.6926
+      },
+      {
+        "region name": "Kansas",
+        "growth rate difference": 2.4172
+      }
+    ],
+    "rank6_for_reference": {
+      "region": "Texas",
+      "growth_rate_diff_pp": 2.1623,
+      "gap_to_rank5_pp": 0.2549
+    },
+    "drivers": "In Florida, Nevada and Georgia the fastest-growing type is 1 bedroom and the slowest is 5 bedroom or more; in District of Columbia and Kansas the extremes are 1 bedroom vs 3/4 bedroom, i.e. small vs large unit size drives the dispersion rather than condominium vs single-family."
+  },
+  "limitations": [
+    "Nominal ZHVI growth; not inflation-adjusted.",
+    "Property type inferred from filenames.",
+    "District of Columbia included although not a state (as in Zillow's state files).",
+    "CAGR endpoints are single monthly observations (2010-12-31, 2019-12-31), so results are sensitive to endpoint noise."
+  ],
+  "produced_files": [
+    "top5_cagr_disparity.csv",
+    "execute_summary.json",
+    "all_state_type_cagr.csv",
+    "state_cagr_disparity.csv"
+  ]
+}

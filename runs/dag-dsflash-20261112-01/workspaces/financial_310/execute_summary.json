@@ -1,0 +1,78 @@
+{
+  "node": "execute",
+  "question": "Which industry has the largest YoY decline in net profit margin (consolidated statements) from H1 2024 to H1 2025?",
+  "method": {
+    "source_table": "fact_income_statement JOIN dim_company ON company_id",
+    "filters": {
+      "report_type": "合并报表 (consolidated only)",
+      "period_type": "H1",
+      "period_date": [
+        "2024-06-30",
+        "2025-06-30"
+      ]
+    },
+    "metric": "net_profit_margin_pct = SUM(net_profit)/SUM(revenue)*100 per industry-period (revenue-weighted, industry treated as one entity)",
+    "yoy_decline": "delta_pp = margin_2025H1_pct - margin_2024H1_pct; smallest (most negative) delta_pp wins",
+    "rounding": "margins and delta kept/compared at 2 decimals per dataset ratio rule"
+  },
+  "data_quality_checks": {
+    "panel_balance": "172 companies and 39 industries in BOTH H1-2024 and H1-2025 consolidated slices -> balanced panel, no universe restriction needed",
+    "no_missing": "revenue and net_profit non-null everywhere; revenue>0 for all consolidated H1 rows (zero-revenue rows exist only in 母公司报表, excluded)",
+    "currency": "all CNY",
+    "industry_count_ranked": 39,
+    "no_nan_in_pivot": true,
+    "cross_check_total": "all-industry consolidated margin reproduced from raw sums: 2024H1 = 1,690,327,067,022.5/14,205,024,709,116.5 = 11.90%; 2025H1 = 1,699,743,929,086.1/13,858,678,509,538.8 = 12.27% -> matches profile",
+    "sign_direction": "max(delta_pp) positive (研究和试验发展 +16.81pp) so ranking is not inverted"
+  },
+  "key_results": {
+    "answer_industry": "农副食品加工业",
+    "margin_2024H1_pct": -6.03,
+    "margin_2025H1_pct": -12.69,
+    "delta_pp": -6.66,
+    "top5_decliners": [
+      {
+        "industry_name": "农副食品加工业",
+        "margin_2024H1_pct": -6.03,
+        "margin_2025H1_pct": -12.69,
+        "delta_pp": -6.66
+      },
+      {
+        "industry_name": "房地产业",
+        "margin_2024H1_pct": -1.7,
+        "margin_2025H1_pct": -5.56,
+        "delta_pp": -3.86
+      },
+      {
+        "industry_name": "铁路运输业",
+        "margin_2024H1_pct": 15.59,
+        "margin_2025H1_pct": 11.83,
+        "delta_pp": -3.76
+      },
+      {
+        "industry_name": "橡胶和塑料制品业",
+        "margin_2024H1_pct": 3.78,
+        "margin_2025H1_pct": 1.44,
+        "delta_pp": -2.33
+      },
+      {
+        "industry_name": "煤炭开采和洗选业",
+        "margin_2024H1_pct": 17.98,
+        "margin_2025H1_pct": 16.05,
+        "delta_pp": -1.93
+      }
+    ],
+    "largest_gain": {
+      "industry_name": "研究和试验发展",
+      "delta_pp": 16.81
+    }
+  },
+  "driver_check": "In 农副食品加工业 only 3 companies; the margin drop is driven by a single large-revenue company (CN000048): revenue 43.8bn->40.5bn while net profit -3.64bn->-6.10bn, pushing industry margin from -6.03% to -12.69%",
+  "sensitivity": {
+    "equal_weight_alternative": "Simple average of company margins ranks 软件和信息技术服务业 first (-49.42pp) then 房地产业 (-33.65pp), driven by a single software company margin collapsing to -265%; documented/revenue-weighted method (industry as one entity) is reported as the answer per the dataset's industry-level convention"
+  },
+  "output_files": [
+    "output.csv",
+    "industry_margin_weighted.csv",
+    "execute_summary.json"
+  ]
+}

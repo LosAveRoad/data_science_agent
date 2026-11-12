@@ -1,0 +1,494 @@
+{
+ "meta": {
+  "node": "analysis_planner",
+  "task": "US 2017 energy indicators (solar potential / renewable deployment / electricity price / carbon intensity) -> correlation assessment -> federal incentive priority; deliver a 2x3 multi-source figure 'output.png'",
+  "generated_at": "2026-11-12T03:08:28",
+  "upstream_artifacts": [
+   "data_profile.json",
+   "derived/state_2017_features.csv"
+  ],
+  "env_note": "pandas 3.1.1 / numpy 2.5.4 / matplotlib 3.11.2 available; run_python uses -I so `sys.path.append('/Users/mac/Library/Python/3.13/lib/python/site-packages')` is required before imports. Use matplotlib 'Agg' backend explicitly.",
+  "plotting_constraints": [
+   "matplotlib.use('Agg')",
+   "no seaborn (not verified available)",
+   "figsize=(20,11), dpi=150",
+   "tight_layout(rect=[0,0,1,0.96])",
+   "suptitle y=0.995"
+  ]
+ },
+ "objective": {
+  "policy_question": "Which states should receive priority federal solar incentives in 2017, given the interplay of solar resource, existing renewable deployment, retail electricity price and fossil (carbon-intensive) generation mix?",
+  "analysis_questions": [
+   "Q1: How do the five state-level indicators co-vary (correlation structure), and which axes summarize them (PCA)?",
+   "Q2: Is solar resource aligned with high electricity prices (the classic incentive-justification argument)? (verified: NO, r=-0.09)",
+   "Q3: Are the sunniest states also the most fossil-dependent (abatement leverage)? (verified: r=+0.30)",
+   "Q4: What is the unit-consistent, rank-robust way to score states for incentive priority?"
+  ],
+  "answer_strategy": "Two-track: (a) national/global context panels (world CO2 vs renewables, steel-plant load profiles) illustrate the multi-dimensional framing; (b) the state-level evidence (PCA + correlation + top-10 fossil) drives the priority ranking. The ranking must be reported with its four underlying indicators, not as a black-box score."
+ },
+ "data_inventory_verified": {
+  "derived/state_2017_features.csv": {
+   "rows": 51,
+   "cols": 29,
+   "grain": "one row per state + DC, calendar 2017",
+   "model_columns_no_null": [
+    "kw_total",
+    "yearly_sunlight_kwh_median",
+    "renew_share",
+    "res_price",
+    "fossil_share",
+    "deploy_per_1k",
+    "log_kw_total",
+    "percent_qualified",
+    "count_qualified",
+    "kw_median"
+   ],
+   "note": "175 nulls exist only in raw per-source generation columns (e.g. Geothermal 44, Pumped Storage 33, Other Gases 29) where the state has no such source; treat as 0 for any stacked/summed use, never for shares (shares already computed upstream)."
+  },
+  "Google Project Sunroof/*": {
+   "state": "52 raw rows -> 51 real regions",
+   "county": "910 rows",
+   "city": "7930 rows",
+   "postal_code": "10621 rows",
+   "verified_kw_total_millions": {
+    "State": 832.5,
+    "County": 819.5,
+    "City": 819.1,
+    "Postal Code": 829.8
+   },
+   "note": "Each file contains 1-2 rows with NaN region_name -> dropna(subset=['region_name']) before summing; totals agree within ~1.6% so aggregation is effectively additive across granularities."
+  },
+  "Steel_industry_data.csv": {
+   "rows": 35040,
+   "grain": "15-min interval, 2018-01-01 00:00 .. 2018-12-31 23:45, no gaps",
+   "verified_load_type_counts": {
+    "Light_Load": 18072,
+    "Medium_Load": 9696,
+    "Maximum_Load": 7272
+   },
+   "note": "date must be parsed day-first: pd.to_datetime(..., format='%d/%m/%Y %H:%M')."
+  },
+  "U.S._Electricity_Prices.csv": {
+   "rows": 85870,
+   "stateDescription_unique": 62,
+   "verified": "62 = 51 states+DC + 10 census divisions (New England, Middle Atlantic, East North Central, West North Central, South Atlantic, East South Central, West South Central, Mountain, Pacific Contiguous, Pacific Noncontiguous) + 'U.S. Total'; 744 monthly 2017 residential observations = 62 labels x 12 months",
+   "rule": "MUST whitelist the 51 real state names before any state-level aggregation, otherwise 11 aggregate rows silently inflate results. res_price = mean of 12 monthly values of sectorName=='residential', year==2017 (cents/kWh)."
+  },
+  "US_Energy_Generation_2001-2022.csv": {
+   "rows": 496774,
+   "grain": "monthly x state x producer type x energy source",
+   "verified": "TYPE OF PRODUCER has 6 values -> keep only 'Total Electric Power Industry'; 14 ENERGY SOURCE values incl. 'Total'; STATE includes 'US-TOTAL' which must be dropped (2017 total fossil 2.536e9 MWh national)",
+   "rule": "fossil = Coal+Petroleum+Natural Gas+Other Gases summed over MONTH for YEAR==2017; do not add CHP sub-producers (double counting)."
+  },
+  "global-data-on-sustainable-energy.csv + owid-co2-data.csv": {
+   "verified_join": "Year 2019 inner join on Entity==country with iso_code.notna() and all three of (renewable share, co2_per_capita, population) non-null -> exactly 172 countries; renewable share 0.0-95.03 %, co2_per_capita 0.056-36.25 t",
+   "note": "Only 1 country (Qatar) exceeds the required ylim upper bound of 30 -> it will be clipped by ylim, which is acceptable per spec; mention clipping in the caption/answer."
+  }
+ },
+ "pipeline_steps": [
+  {
+   "step": 1,
+   "name": "load_state_table",
+   "action": "pd.read_csv('derived/state_2017_features.csv'); assert len==51 and no nulls in model columns"
+  },
+  {
+   "step": 2,
+   "name": "correlation_matrix",
+   "action": "Pearson r on ['log_kw_total','yearly_sunlight_kwh_median','renew_share','res_price','fossil_share','deploy_per_1k','percent_qualified']; store full matrix + the 7 headline pairs"
+  },
+  {
+   "step": 3,
+   "name": "pca",
+   "action": "z-score (ddof=0) the 5 features ['log_kw_total','yearly_sunlight_kwh_median','renew_share','res_price','fossil_share']; SVD; keep PC1/PC2 scores; fix eigenvector sign so PC1.renew_share>0 and PC2.res_price<0 (reproduce upstream orientation)"
+  },
+  {
+   "step": 4,
+   "name": "global_bubble_data",
+   "action": "build the 172-country 2019 frame described above"
+  },
+  {
+   "step": 5,
+   "name": "steel_data",
+   "action": "Load_Type counts for pie; first 672 rows (7 days) sorted by parsed date for the sampled time series"
+  },
+  {
+   "step": 6,
+   "name": "granularity_totals",
+   "action": "sum kw_total per Project Sunroof granularity after dropna(region_name)"
+  },
+  {
+   "step": 7,
+   "name": "top10_fossil",
+   "action": "2017 fossil MWh by state, drop US-TOTAL, sort desc, take 10"
+  },
+  {
+   "step": 8,
+   "name": "priority_score",
+   "action": "composite z-score ranking, 2 variants + robustness intersection"
+  },
+  {
+   "step": 9,
+   "name": "render_figure",
+   "action": "2x3 gridspec, fixed panel order 1-6, suptitle, save 'output.png' dpi=150, bbox/layout as specified"
+  },
+  {
+   "step": 10,
+   "name": "validate_output",
+   "action": "assert output.png exists and >200 KB; assert all 6 axes titles/labels equal the required strings; assert axes count == 6"
+  }
+ ],
+ "panel_specs": [
+  {
+   "id": 1,
+   "name": "pca_scatter",
+   "row": 0,
+   "col": 0,
+   "title": "U.S. States: PCA Analysis of Energy Indicators (colored by electricity price)",
+   "xlabel": "Principal Component 1",
+   "ylabel": "Principal Component 2",
+   "colorbar_label": "Residential Electricity Price (cents/kWh)",
+   "data": "derived/state_2017_features.csv (51 rows) -> PC1/PC2 scores from z-scored 5 features",
+   "plot": "ax.scatter(PC1, PC2, c=res_price, cmap='RdYlBu_r', s=80, edgecolor='k', linewidth=0.5, alpha=0.85)",
+   "extras": [
+    "colorbar with the exact label",
+    "annotate 4-6 extreme states: e.g. HI (max price), NM/AZ (max sunlight), TX (max capacity), VT/ME (right end of PC1)",
+    "add axhline/axvline at 0 in light grey",
+    "note in-axes text: PC1 40.8% / PC2 23.0% variance (cum. 63.8%)"
+   ],
+   "expected_axis_reading": "PC1(+) = clean/renewable & fossil-light (VT, ME, SD, DC); PC1(-) = fossil-heavy + large installed capacity (FL, LA, TX, AZ, NM). PC2 is dominated by cheap electricity (res_price loading -0.69) and capacity (+0.46).",
+   "verified": {
+    "explained_variance_pct": {
+     "PC1": 40.84,
+     "PC2": 23.01,
+     "PC3": 17.11
+    },
+    "cumulative_PC1_PC2": 63.85,
+    "loadings_PC1_oriented": {
+     "log_kw_total": -0.387,
+     "yearly_sunlight_kwh_median": -0.37,
+     "renew_share": 0.6,
+     "res_price": 0.121,
+     "fossil_share": -0.582
+    },
+    "loadings_PC2_oriented": {
+     "log_kw_total": 0.46,
+     "yearly_sunlight_kwh_median": 0.325,
+     "renew_share": 0.32,
+     "res_price": -0.689,
+     "fossil_share": -0.325
+    }
+   }
+  },
+  {
+   "id": 2,
+   "name": "global_bubble",
+   "row": 0,
+   "col": 1,
+   "title": "Global: CO2 Per Capita vs Renewable Energy Share (bubble=population)",
+   "xlabel": "Renewable Energy Share (%)",
+   "ylabel": "CO2 Per Capita (tons)",
+   "xlim": [
+    0,
+    100
+   ],
+   "ylim": [
+    0,
+    30
+   ],
+   "data": "global-data-on-sustainable-energy.csv (2019 renewable share) INNER JOIN owid-co2-data.csv (2019 co2_per_capita, population) on country name, iso_code notna -> 172 points",
+   "plot": "ax.scatter(ren_share, co2_per_capita, s=population/1.5e6 + 20, alpha=0.5, edgecolor='k', linewidth=0.4, color='#2c7fb8'); ax.set_xlim(0,100); ax.set_ylim(0,30)",
+   "extras": [
+    "light grid",
+    "annotate 5 largest bubbles (China, India, United States, Indonesia, Russia) if x<100 and y<30",
+    "note clipped Qatar (36.3 t > ylim)"
+   ],
+   "expected": "Negative but loose relationship; the mass sits below 20 t at 10-60% renewable share; a handful of high-co2/low-renewable Gulf states at bottom-right of the clip."
+  },
+  {
+   "id": 3,
+   "name": "steel_load_pie",
+   "row": 0,
+   "col": 2,
+   "title": "Steel Industry: Load Type Distribution (2018)",
+   "xlabel": null,
+   "ylabel": null,
+   "data": "Steel_industry_data.csv, value_counts of Load_Type over all 35040 intervals",
+   "plot": "ax.pie(counts, labels=['Light_Load','Medium_Load','Maximum_Load'], autopct='%1.1f%%', startangle=90, colors=['#66c2a5','#fc8d62','#8da0cb'], wedgeprops={'edgecolor':'w'})",
+   "verified_counts": {
+    "Light_Load": 18072,
+    "Medium_Load": 9696,
+    "Maximum_Load": 7272,
+    "shares_pct": {
+     "Light_Load": 51.58,
+     "Medium_Load": 27.67,
+     "Maximum_Load": 20.75
+    }
+   },
+   "extras": [
+    "ax.set_title(...)",
+    "aspect ratio equal (default for pie)",
+    "put counts in the legend or labels"
+   ],
+   "why_in_figure": "Illustrates that >half of plant operating time is light-load -> efficiency measures at light load matter as much as peak-shaving; supports the 'demand-side' leg of the multi-dimensional framing."
+  },
+  {
+   "id": 4,
+   "name": "granularity_bar",
+   "row": 1,
+   "col": 0,
+   "title": "Solar Potential Comparison by Geographic Granularity",
+   "xlabel": "Geographic Granularity (State, County, City, Postal Code)",
+   "ylabel": "Total Solar Potential (kW)",
+   "data": "sum of kw_total in each Project Sunroof file after dropna(subset=['region_name'])",
+   "verified_values_kw": {
+    "State": 832455286.75,
+    "County": 819518132.5,
+    "City": 819015380.75,
+    "Postal Code": 829809383.25
+   },
+   "plot": "ax.bar(['State','County','City','Postal Code'], totals, color=['#2b8cbe','#4eb3d3','#7bccc4','#a8ddb5'], edgecolor='k')",
+   "extras": [
+    "annotate each bar with value in millions of kW (e.g. '832.5M')",
+    "ax.set_ylim(0, max*1.15) so differences are not exaggerated by truncation",
+    "note that totals agree within ~1.6% => additive aggregation"
+   ],
+   "use_full_precision": true,
+   "dropna_rows": {
+    "State": 51,
+    "County": 909,
+    "City": 7928,
+    "Postal Code": 10620
+   }
+  },
+  {
+   "id": 5,
+   "name": "top10_fossil_hbar",
+   "row": 1,
+   "col": 1,
+   "title": "Top 10 U.S. States: Fossil Fuel Generation (2017)",
+   "xlabel": "Fossil Fuel Generation (MWh)",
+   "ylabel": "State",
+   "data": "US_Energy_Generation_2001-2022.csv: YEAR==2017, TYPE OF PRODUCER=='Total Electric Power Industry', ENERGY SOURCE in [Coal, Petroleum, Natural Gas, Other Gases], sum over MONTH, drop STATE=='US-TOTAL', top 10",
+   "verified_values_mwh": {
+    "Texas": 341796033.0,
+    "Florida": 200085136.0,
+    "Pennsylvania": 120939213.0,
+    "Ohio": 99170101.0,
+    "Indiana": 92477193.0,
+    "California": 90095382.0,
+    "Georgia": 85492334.0,
+    "Alabama": 84468599.0,
+    "Louisiana": 78029837.0,
+    "North Carolina": 73301346.0
+   },
+   "plot": "ax.barh(states[::-1], values[::-1], color='#b30000' with alpha ramp) so the largest bar is on top",
+   "extras": [
+    "ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x,p: f'{x/1e6:.0f}M'))",
+    "annotate values",
+    "note: 11th is Illinois 73.2M (nearly tied with NC) -> mention tie sensitivity"
+   ],
+   "policy_link": "These are the highest absolute abatement pools; crossing with fossil_share identifies states where solar substitution actually displaces carbon (TX, FL, PA, OH, IN overlap with the priority list only when combined with high solar resource)."
+  },
+  {
+   "id": 6,
+   "name": "steel_timeseries",
+   "row": 1,
+   "col": 2,
+   "title": "Steel Industry: Energy Usage Patterns (sampled)",
+   "xlabel": "Time (sampled points)",
+   "ylabel": "Energy Usage (kWh)",
+   "data": "Steel_industry_data.csv, parse date day-first, sort, take first 672 rows = 2018-01-01 00:00 .. 2018-01-07 23:45 (7 days at 15-min)",
+   "plot": "ax.plot(np.arange(672), usage[:672], lw=0.9, color='#1f78b4')",
+   "extras": [
+    "mark weekends (indices 288-479 = Sat+Sun) with axvspan in light grey",
+    "ax.grid(alpha=0.3)",
+    "caption in answer: mean 27.15 kWh, max 147.5 kWh, visible weekday/weekend cycle"
+   ],
+   "note": "672 points is chosen over the 35040-point full series for legibility in a small panel; alternative df.iloc[::24] (1460 pts) is noisier."
+  }
+ ],
+ "figure_spec": {
+  "grid": "2 rows x 3 cols (fig, axes = plt.subplots(2, 3, figsize=(20, 11)))",
+  "suptitle": "Comprehensive Energy Analysis: Multi-dimensional Perspective",
+  "suptitle_kwargs": {
+   "fontsize": 20,
+   "fontweight": "bold",
+   "y": 0.995
+  },
+  "dpi": 150,
+  "layout": "fig.tight_layout(rect=[0, 0, 1, 0.96])",
+  "save": "fig.savefig('output.png', dpi=150, bbox_inches='tight')",
+  "output_filename": "output.png",
+  "mandatory_report": "The final answer must state that the visualization file is named 'output.png'."
+ },
+ "correlation_analysis_plan": {
+  "method": "Pearson r on 51 states, 2017; report absolute MWh alongside share-based metrics",
+  "headline_pairs_verified": {
+   "renew_share~fossil_share": {
+    "r": -0.745,
+    "reading": "partly mechanical (same 'Total' denominator) -> treat as one 'clean vs fossil mix' axis, do not over-interpret"
+   },
+   "res_price~deploy_per_1k": {
+    "r": 0.631,
+    "reading": "adoption is economics-driven: expensive states install more -> price is the effective incentive signal"
+   },
+   "yearly_sunlight_kwh_median~percent_qualified": {
+    "r": 0.798,
+    "reading": "sunnier states have a larger roof-qualified stock"
+   },
+   "yearly_sunlight_kwh_median~deploy_per_1k": {
+    "r": 0.493,
+    "reading": "resource drives deployment but only moderately"
+   },
+   "yearly_sunlight_kwh_median~res_price": {
+    "r": -0.094,
+    "reading": "KEY NEGATIVE FINDING: resource and price are decoupled -> a price-only federal signal misses the sunniest states"
+   },
+   "fossil_share~yearly_sunlight_kwh_median": {
+    "r": 0.301,
+    "reading": "sunniest states are also fossil-heavy -> highest abatement leverage"
+   },
+   "log_kw_total~renew_share": {
+    "r": -0.363,
+    "reading": "absolute installable capacity is concentrated in large fossil-heavy states"
+   },
+   "kw_median~yearly_sunlight_kwh_median": {
+    "r": 0.944,
+    "reading": "median system size is a good potential-intensity proxy"
+   }
+  },
+  "interpretation_rules": [
+   "|r|>=0.7 strong, 0.4-0.7 moderate, 0.2-0.4 weak, <0.2 negligible",
+   "always flag mechanical/share-denominator correlations",
+   "prefer rank-robust checks (Spearman) for small n=51 if a pair is borderline"
+  ]
+ },
+ "priority_framework": {
+  "rationale": "Federal dollars should go where (i) the physical resource is high, (ii) the displaced generation is carbon intensive, and (iii) current deployment is low relative to the qualified roof stock. Price enters as a STRESS TEST, not as a core driver, because resource and price are decoupled (r=-0.09).",
+  "formula_core_variantB": "score_B = z(yearly_sunlight_kwh_median) + z(fossil_share) - z(deploy_per_1k) - z(renew_share)",
+  "formula_price_variantA": "score_A = score_B + z(res_price)",
+  "z_score_convention": "population sd (ddof=0) over the 51 rows",
+  "verified_top10_variantB": [
+   "New Mexico (3.62)",
+   "Mississippi (3.22)",
+   "Florida (2.94)",
+   "Louisiana (2.69)",
+   "Delaware (2.64)",
+   "Wyoming (2.23)",
+   "Arizona (2.21)",
+   "Missouri (2.20)",
+   "Arkansas (2.14)",
+   "Indiana (2.13)"
+  ],
+  "verified_top10_variantA": [
+   "New Mexico (3.43)",
+   "Rhode Island (2.85)",
+   "Delaware (2.61)",
+   "Mississippi (2.56)",
+   "Florida (2.41)",
+   "Hawaii (1.91)",
+   "Arizona (1.88)",
+   "Indiana (1.80)",
+   "Wyoming (1.66)",
+   "Missouri (1.66)"
+  ],
+  "verified_lowest5_variantB": [
+   "Vermont (-6.41)",
+   "District of Columbia (-4.59)",
+   "Washington (-4.54)",
+   "Maine (-4.46)",
+   "Oregon (-3.83)"
+  ],
+  "robust_core_top10_intersection": [
+   "New Mexico",
+   "Mississippi",
+   "Florida",
+   "Louisiana",
+   "Delaware",
+   "Wyoming",
+   "Arizona",
+   "Missouri",
+   "Arkansas",
+   "Indiana"
+  ],
+  "tier_assignment": {
+   "Tier 1 (robust, both variants)": "New Mexico, Mississippi, Florida, Delaware, Arizona, and (borderline) Louisiana/Wyoming/Missouri/Arkansas/Indiana",
+   "Tier 2 (price-driven entries)": "Rhode Island, Hawaii - enter only via the price term while irradiance is low; support should be efficiency/equity-targeted rather than utility-scale solar",
+   "Tier 3 (low priority)": "VT, DC, WA, ME, OR - already clean and/or low irradiance"
+  },
+  "sensitivity_tests_required": [
+   "weight the resource term x2 (does NM/FL/AZ stay?), drop the price term (variant B), Spearman instead of Pearson for the ranking inputs",
+   "report the 4 raw indicators per state next to the score (sunlight, fossil_share, renew_share, deploy_per_1k)"
+  ],
+  "caveats": [
+   "weights are judgement calls -> report the score AND its components",
+   "carbon intensity is proxied by fossil generation share; no state-level emissions data exists in the workspace (owid-co2 has no per-state rows)",
+   "Project Sunroof kW totals are modelled installable capacity on qualified roofs, not realised generation"
+  ]
+ },
+ "national_and_global_context_plan": {
+  "us_2017_headline_numbers_to_use": {
+   "states_covered": 51,
+   "res_price_range_cents": [
+    9.7,
+    29.53
+   ],
+   "mean_res_price_cents": 13.56,
+   "sunlight_median_kwh_per_kw_range": [
+    5156,
+    19005
+   ],
+   "renew_share_range_pct": [
+    1.58,
+    99.58
+   ],
+   "fossil_share_range_pct": [
+    0.42,
+    98.42
+   ],
+   "deploy_per_1k_range": [
+    0.32,
+    131.23
+   ],
+   "total_installable_kw": 832500000.0
+  },
+  "global_2019": {
+   "countries": 172,
+   "note": "bubble panel is context only - it must not be used to rank US states"
+  },
+  "steel_2018": {
+   "note": "single-plant illustrative data - explicitly will not enter the state priority score"
+  }
+ },
+ "validation_checks": [
+  "len(states)==51 and model columns have zero nulls",
+  "PCA explained variance equals [40.84, 23.01, 17.11] (+-0.1) and positive loadings on renew_share in PC1",
+  "global join yields exactly 172 rows; xlim [0,100] and ylim [0,30] set exactly",
+  "steel Load_Type counts == {Light 18072, Medium 9696, Maximum 7272} (sum 35040)",
+  "granularity totals == [832.5, 819.5, 819.1, 829.8] million kW",
+  "top10 fossil starts with Texas 341.8M MWh and contains no 'US-TOTAL'",
+  "output.png exists, 6 axes, suptitle and all 12 required axis titles/labels match the required strings verbatim",
+  "the final answer explicitly names 'output.png'"
+ ],
+ "risks": [
+  "share-vs-share correlations are mechanically inflated by a common denominator",
+  "no direct state carbon-intensity variable -> fossil_share proxy, disclosed",
+  "census-division rows in U.S._Electricity_Prices.csv would corrupt state means if not whitelisted",
+  "steel panel is 2018 single-plant data, and the 672-point sample is a deliberate readability choice",
+  "one country (Qatar) is clipped by the required ylim [0,30]; mention it rather than changing the limits",
+  "priority ranking is weight-sensitive (variant A vs B differ by 3 states: RI, HI, LA/AR); never present a single ordering without the sensitivity note"
+ ],
+ "deliverables": [
+  {
+   "path": "output.png",
+   "type": "figure",
+   "content": "2x3 subplot grid, suptitle 'Comprehensive Energy Analysis: Multi-dimensional Perspective', panels 1-6 exactly as specified",
+   "note": "the final answer must name this file"
+  },
+  {
+   "path": "analysis_notes (in final answer text)",
+   "type": "narrative",
+   "content": "correlation findings, PCA reading, priority tiers, caveats"
+  }
+ ]
+}

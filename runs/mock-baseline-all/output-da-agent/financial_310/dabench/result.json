@@ -1,0 +1,35 @@
+{
+  "finished": true,
+  "steps": 2,
+  "result": "任务完成，产出 1 个文件: output.csv",
+  "result_files": {
+    "added_files": [
+      "output.csv"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 output.csv",
+      "observation": "写出 output.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.001
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.001
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

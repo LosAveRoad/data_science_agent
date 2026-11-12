@@ -1,0 +1,60 @@
+{
+ "node": "modeling_execute",
+ "method": "OLS linear regression (sklearn LinearRegression) on NYC yellow taxi Q2-2024 (Apr+May+Jun parquet, 10,777,315 raw rows). Row-group-wise read with pyarrow -> strict filter (0<trip_distance<100, 0<fare_amount<500) -> 16 features: hour, day_of_week, trip_distance, passenger_count, 6 borough_pu_* + 6 borough_do_* dummies (Bronx/Brooklyn/EWR/Manhattan/Queens/Staten Island, mapped from PULocationID/DOLocationID via taxi_zone_lookup.csv, no drop_first, Unknown/Outside-NYC zones -> all-zero baseline). train_test_split(test_size=0.2, random_state=42) -> fit on train, evaluate on held-out test.",
+ "key_intermediate_results": {
+  "raw_rows": 10777315,
+  "rows_after_strict_filter": 10458218,
+  "filter_survival": 0.97039,
+  "n_features": 16,
+  "n_train": 8366574,
+  "n_test": 2091644,
+  "test_share": 0.2,
+  "nan_check": "no NaN in X or y after handling; passenger_count had 1,224,023 nulls raw / 1,161,287 after filter -> imputed with 1 (mode/median) to keep the spec-defined row set",
+  "range_checks": "hour in [0,23], day_of_week in [0,6], dummies in {0,1}, all-zero dummy rows: 0.33% pickup / 0.82% dropoff",
+  "y_test_mean_std": [
+   19.8497,
+   17.4457
+  ],
+  "y_train_mean_std": [
+   19.8522,
+   17.4688
+  ],
+  "trip_distance_coef": 3.597,
+  "intercept": 15.544
+ },
+ "headline_metrics_test": {
+  "RMSE": 6.207019,
+  "R2": 0.873413
+ },
+ "robustness": {
+  "drop_rows_with_null_passenger_count": {
+   "n": 9296931,
+   "RMSE": 6.0176,
+   "R2": 0.888723
+  },
+  "impute_passenger_count_0": {
+   "n": 10458218,
+   "RMSE": 6.2064,
+   "R2": 0.873437
+  },
+  "impute_passenger_count_median": {
+   "n": 10458218,
+   "RMSE": 6.207,
+   "R2": 0.873413
+  },
+  "note": "All variants stay inside the plan sanity band (RMSE 5.0-7.5, R2 0.85-0.91); headline keeps the filter-defined row set (10.46M) as the plan expected ~10.49M rows."
+ },
+ "sanity_band_check": "RMSE 6.207 within [5.0,7.5]; R2 0.8734 within [0.85,0.91] -> no leakage signal (train RMSE 6.185 / train R2 0.8747, i.e. no overfitting)",
+ "outputs": [
+  "output.json",
+  "model_report.json",
+  "cache_meta.json",
+  "variants.json",
+  "fit_main.json"
+ ],
+ "intermediate_caches": [
+  "X_cache.npy",
+  "y_cache.npy",
+  "nan_pc_cache.npy"
+ ]
+}

@@ -1,0 +1,131 @@
+{
+  "table": "Tweets",
+  "columns": [
+    {
+      "name": "tweet_id",
+      "type": "INTEGER"
+    },
+    {
+      "name": "airline_sentiment",
+      "type": "TEXT"
+    },
+    {
+      "name": "airline_sentiment_confidence",
+      "type": "NUMERIC"
+    },
+    {
+      "name": "negativereason",
+      "type": "TEXT"
+    },
+    {
+      "name": "negativereason_confidence",
+      "type": "NUMERIC"
+    },
+    {
+      "name": "airline",
+      "type": "TEXT"
+    },
+    {
+      "name": "airline_sentiment_gold",
+      "type": "TEXT"
+    },
+    {
+      "name": "name",
+      "type": "TEXT"
+    },
+    {
+      "name": "negativereason_gold",
+      "type": "TEXT"
+    },
+    {
+      "name": "retweet_count",
+      "type": "INTEGER"
+    },
+    {
+      "name": "text",
+      "type": "TEXT"
+    },
+    {
+      "name": "tweet_coord",
+      "type": "TEXT"
+    },
+    {
+      "name": "tweet_created",
+      "type": "TEXT"
+    },
+    {
+      "name": "tweet_location",
+      "type": "TEXT"
+    },
+    {
+      "name": "user_timezone",
+      "type": "TEXT"
+    }
+  ],
+  "row_count": 14485,
+  "date_range": [
+    "2015-02-16 23:36:05 -0800",
+    "2015-02-24 11:53:37 -0800"
+  ],
+  "null_counts": {
+    "text": 0,
+    "airline": 0,
+    "airline_sentiment": 0
+  },
+  "distinct_airlines": [
+    "American",
+    "Delta",
+    "Southwest",
+    "US Airways",
+    "United",
+    "Virgin America"
+  ],
+  "airline_counts": {
+    "American": 2604,
+    "Delta": 2222,
+    "Southwest": 2420,
+    "US Airways": 2913,
+    "United": 3822,
+    "Virgin America": 504
+  },
+  "sentiment_counts": {
+    "negative": 9082,
+    "neutral": 3069,
+    "positive": 2334
+  },
+  "negativereason_raw_values": {
+    "": 5403,
+    "Bad Flight": 575,
+    "Can't Tell": 1176,
+    "Cancelled Flight": 829,
+    "Customer Service Issue": 2885,
+    "Damaged Luggage": 73,
+    "Flight Attendant Complaints": 475,
+    "Flight Booking Problems": 523,
+    "Late Flight": 1650,
+    "Lost Luggage": 719,
+    "longlines": 177
+  },
+  "notes": {
+    "text_analysis": "case-insensitive substring keyword matching on lowercased tweet text; a tweet may match multiple categories; duplicate keyword \"lost\" in baggage list deduplicated",
+    "negative_scope": "reason analysis restricted to airline_sentiment == \"negative\" (9082 tweets)",
+    "other": "negative tweets matching none of the 6 keyword categories",
+    "percentage": "percentage = count / total tweets for that airline * 100, rounded to 2 decimals (rows sum to 100 per airline)"
+  },
+  "outputs": {
+    "output.csv": "18 rows = 6 airlines x 3 sentiments",
+    "negative_reasons.csv": "42 rows = 6 airlines x 7 reason categories"
+  },
+  "top_level_negative_category_totals": {
+    "delay": 2112,
+    "service": 1395,
+    "baggage": 1080,
+    "cancel": 864,
+    "seat": 404,
+    "food": 120,
+    "other": 4239
+  },
+  "sensitivity": {
+    "note": "if word-boundary regex matching were used instead of substring, counts would be delay 1964, service 1093, baggage 869, cancel 864, seat 239, food 95, other 4785; substring matching retained as literal reading of the spec"
+  }
+}

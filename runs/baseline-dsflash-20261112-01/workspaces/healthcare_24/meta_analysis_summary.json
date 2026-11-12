@@ -1,0 +1,21 @@
+{
+  "total_associations_analyzed": 6,
+  "confidence_level_distribution": {
+    "high": 3,
+    "medium": 2,
+    "low": 1
+  },
+  "multi_study_associations": 1,
+  "single_study_associations": 5,
+  "total_study_level_estimates": 9,
+  "total_participants": 19001,
+  "fdr_method": "Benjamini-Hochberg",
+  "fdr_threshold_high": 0.01,
+  "effect_threshold_high": 0.5,
+  "fdr_threshold_medium": 0.05,
+  "effect_threshold_medium": 0.3,
+  "meta_model": "Inverse-variance weighted fixed-effect (single-study pairs: z-test on Cohen d)",
+  "significant_fdr_0_05": 6,
+  "min_fdr_p": 3.381400437379185e-165,
+  "max_fdr_p": 0.0029817992628155183
+}

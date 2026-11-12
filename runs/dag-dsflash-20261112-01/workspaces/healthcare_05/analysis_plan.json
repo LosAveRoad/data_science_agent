@@ -1,0 +1,193 @@
+{
+  "plan_version": "1.0",
+  "objective": "Quantify and statistically test differences in blood glucose levels across three patient cohorts (Diabetes, Stroke, CKD) restricted to ages 30-70 with valid (non-zero, non-missing) glucose; report Kruskal-Wallis H result and, if significant, Dunn post-hoc pairwise comparisons with Bonferroni correction.",
+  "input_data": {
+    "Diabetes": {
+      "file": "Healthcare-Diabetes.csv",
+      "glucose_col": "Glucose",
+      "age_col": "Age",
+      "unit": "mg/dL (plasma glucose)",
+      "raw_rows": 2768,
+      "glucose_zero_placeholder_rows": 18
+    },
+    "Stroke": {
+      "file": "healthcare-dataset-stroke-data.csv",
+      "glucose_col": "avg_glucose_level",
+      "age_col": "age",
+      "unit": "mg/dL (average glucose level)",
+      "raw_rows": 5110,
+      "glucose_missing_rows": 0
+    },
+    "CKD": {
+      "file": "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff",
+      "glucose_col": "bgr",
+      "age_col": "age",
+      "unit": "mg/dL (blood glucose random)",
+      "raw_rows": 400,
+      "glucose_missing_rows": 44,
+      "missing_marker": "?"
+    },
+    "unit_compatibility": "All three glucose fields are mg/dL -> directly poolable without rescaling."
+  },
+  "harmonization_spec": {
+    "unified_columns": [
+      "age",
+      "glucose",
+      "source"
+    ],
+    "group_label_column": "source",
+    "group_labels": [
+      "Diabetes",
+      "Stroke",
+      "CKD"
+    ],
+    "column_mapping": {
+      "glucose": {
+        "Diabetes": "Glucose",
+        "Stroke": "avg_glucose_level",
+        "CKD": "bgr"
+      },
+      "age": {
+        "Diabetes": "Age",
+        "Stroke": "age",
+        "CKD": "age"
+      }
+    },
+    "arff_parsing": "Parse @data block manually; treat '?' as NaN; drop blank fields from rows with malformed field counts (1 such row, age/bgr unaffected).",
+    "reference_artifact": "harmonized_glucose_filtered.csv already exists upstream (4464 rows) and should be consumed as-is / re-verified, not regenerated with different rules."
+  },
+  "filtering_rules": {
+    "age": "keep 30 <= age <= 70 (inclusive)",
+    "glucose": "drop rows where glucose is 0 or missing/NaN",
+    "application_order": "convert -> coerce numeric (errors='coerce') -> drop NaN age/glucose -> apply age window -> drop glucose <= 0",
+    "expected_shapes": {
+      "Diabetes": 1306,
+      "Stroke": 2885,
+      "CKD": 273,
+      "total": 4464
+    }
+  },
+  "data_qc_checks": [
+    "row counts per source match expected_shapes above (Diabetes 1306, Stroke 2885, CKD 273)",
+    "no NaN and no <=0 values in glucose after filtering",
+    "age min == 30.0 and age max == 70.0",
+    "glucose dtypes numeric; source only takes the three allowed labels",
+    "CKD filter drop = 400 - 90(out of age) - 44(missing bgr) - overlaps -> expect 273"
+  ],
+  "statistical_analysis": {
+    "overall_test": {
+      "name": "Kruskal-Wallis",
+      "label_for_output": "Kruskal-Wallis",
+      "comparison_label": "all",
+      "implementation": "scipy.stats.kruskal(glucose[Diabetes], glucose[Stroke], glucose[CKD])",
+      "rationale": "Non-parametric 3-group comparison; glucose distributions are right-skewed and heteroscedastic, so ANOVA assumptions do not hold.",
+      "decision_rule": "if p < 0.05 proceed to post-hoc; record statistic (H) and p_value"
+    },
+    "posthoc": {
+      "name": "Dunn post-hoc",
+      "label_for_output": "Dunn post-hoc",
+      "implementation": "Dunn (1964) z statistic on pooled ranks (scipy.stats.rankdata with average ties), per-group tie correction; z = (mean_rank_i - mean_rank_j)/sqrt((N(N+1)/12 - ties/(12(N-1))) * (1/n_i + 1/n_j))",
+      "p_value": "two-sided normal (math.erfc(|z|/sqrt(2)))",
+      "pairs": [
+        [
+          "Diabetes",
+          "Stroke"
+        ],
+        [
+          "Diabetes",
+          "CKD"
+        ],
+        [
+          "Stroke",
+          "CKD"
+        ]
+      ],
+      "comparison_format": "{Group1} vs {Group2}",
+      "multiple_comparison_correction": "Bonferroni: p_adj = min(1, p * 3)",
+      "reported_p_value": "Bonferroni-adjusted p in output.csv p_value column; 'significant' flag = p_adj < 0.05",
+      "contingency": "Skipped entirely if Kruskal-Wallis p >= 0.05 (unlikely per upstream run)"
+    },
+    "significance_level": 0.05
+  },
+  "observed_group_profile_for_sanity_check": {
+    "CKD": {
+      "count": 273,
+      "median": 123.0,
+      "mean": 151.18,
+      "std": 80.61,
+      "min": 70.0,
+      "max": 490.0
+    },
+    "Diabetes": {
+      "count": 1306,
+      "median": 125.0,
+      "mean": 129.52,
+      "std": 32.16,
+      "min": 44.0,
+      "max": 197.0
+    },
+    "Stroke": {
+      "count": 2885,
+      "median": 92.23,
+      "mean": 107.9,
+      "std": 46.96,
+      "min": 55.22,
+      "max": 271.74
+    }
+  },
+  "deliverables": {
+    "output.csv": {
+      "columns": [
+        "test",
+        "comparison",
+        "statistic",
+        "p_value",
+        "significant"
+      ],
+      "rows": 4,
+      "row_spec": [
+        {
+          "test": "Kruskal-Wallis",
+          "comparison": "all"
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Diabetes vs Stroke"
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Diabetes vs CKD"
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Stroke vs CKD"
+        }
+      ],
+      "formatting": "significant serialized as literal True/False; float statistics/p-values full precision, no rounding to 0"
+    },
+    "output.png": {
+      "plot_type": "overlaid density histogram (hist with density/normalized=True)",
+      "bins": 50,
+      "alpha": 0.6,
+      "colors": {
+        "Diabetes": "red",
+        "Stroke": "blue",
+        "CKD": "green"
+      },
+      "annotation": "Kruskal-Wallis p-value text on figure (scientific notation), plus title/legend/axis labels; axis label 'Blood Glucose (mg/dL)', x-limits clipped to pooled 0.5-99.5 percentile for readability, dpi>=150"
+    }
+  },
+  "validation_checks": [
+    "output.csv has exactly 4 data rows with the 5 required columns and exact label strings",
+    "3 pairwise rows + 1 overall row; significant column values in {True, False}",
+    "output.png exists, >20KB, non-blank, three distinct colored series rendered",
+    "results reproducible: re-run yields identical statistic/p_value (no randomness involved)",
+    "narrative conclusions (which cohort has highest median glucose) must match observed_group_profile_for_sanity_check, not be invented"
+  ],
+  "risks_and_notes": [
+    "CKD 'bgr' is a random (non-fasting) glucose reading while Diabetes 'Glucose' is a 2h OGTT plasma value and Stroke 'avg_glucose_level' is a long-run average; unit harmonization is exact (mg/dL) but measurement semantics differ -> significant differences partly reflect measurement protocol, must be stated as a limitation.",
+    "Stroke cohort dominates sample size (2885/4464, 65%); with such large N tiny differences become significant, so effect sizes / median differences should accompany p-values.",
+    "Diabetes glucose capped at 199 in source data (truncation), which compresses its upper tail and can bias the test.",
+    "Zero glucose in the Diabetes file are missing-value placeholders, not true zeros -> excluding them is required, not optional."
+  ]
+}

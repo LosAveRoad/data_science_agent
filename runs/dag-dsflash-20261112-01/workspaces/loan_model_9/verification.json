@@ -1,0 +1,125 @@
+{
+  "node": "verify",
+  "target_artifact": "output.json",
+  "status": "pass",
+  "summary": "output.json exists, is valid JSON with exactly the two required float fields, and both values are independently reproducible from the workspace artifacts + raw data (SMOTE ratio 0.5 reproduced exactly; test_ks 0.201967 reproduced bit-identically by retraining LGBM). No blocking issue found.",
+  "output_artifact": {
+    "path": "output.json",
+    "exists": true,
+    "valid_json": true,
+    "size_bytes": 68,
+    "content": {
+      "train_positive_ratio_after_smote": 0.5,
+      "test_ks": 0.201967
+    },
+    "required_keys_present": [
+      "train_positive_ratio_after_smote",
+      "test_ks"
+    ],
+    "extra_keys": [],
+    "missing_keys": [],
+    "field_types": {
+      "train_positive_ratio_after_smote": "float",
+      "test_ks": "float"
+    },
+    "range_ok": {
+      "train_positive_ratio_after_smote": true,
+      "test_ks": true
+    }
+  },
+  "checks": [
+    {
+      "id": "C1_file_and_schema",
+      "label": "output.json exists / valid JSON / exact key set / float types / values in [0,1]",
+      "status": "pass",
+      "detail": "keys = ['train_positive_ratio_after_smote','test_ks'] (no missing, no extra); both Python float; ratio 0.5 in (0,1], KS 0.201967 in [0,1]"
+    },
+    {
+      "id": "C2_consistency_ratio",
+      "label": "train_positive_ratio_after_smote consistent with resampled training data",
+      "status": "pass",
+      "detail": "resampled.npz y_res mean = 0.500000 (27536 / 55072); identical to reported 0.5; also matches smote_report.json (before 0.096884 -> after 0.5)"
+    },
+    {
+      "id": "C3_consistency_ks",
+      "label": "test_ks consistent with lgbm_metrics.json and recomputed from p_te.npy + y_te",
+      "status": "pass",
+      "detail": "recomputed KS from p_te.npy vs split_data.npz y_te = 0.2019667 (manual CDF max-diff) and 0.2019667 (scipy ks_2samp) -> rounds to 0.201967; lgbm_metrics.json test_ks = 0.201967; test AUC = 0.631071 matches"
+    },
+    {
+      "id": "C4_missing_rate_filter",
+      "label": "Missing-rate analysis/filter (>30% dropped) correctly executed on raw data",
+      "status": "pass",
+      "detail": "recomputed isna().mean() on features.csv (49910x98): max rate = 0.0, columns with any NaN = 0, columns >30% = 0 -> dropped list empty, 98 kept; split_data.npz 'keep' == all 98 feature columns in raw order. No-op here is a genuine dataset property, not a pipeline error.",
+      "informational": true
+    },
+    {
+      "id": "C5_median_impute",
+      "label": "Median imputation leaves no NaN in train/test matrices",
+      "status": "pass",
+      "detail": "X_tr (30490x98) and X_te (19420x98) contain 0 NaN; imputation is a no-op because input had no NaN (medians fit on train rows only per pipeline.py)"
+    },
+    {
+      "id": "C6_time_split",
+      "label": "Time-based 70/30 split reproducible and leakage-free",
+      "status": "pass",
+      "detail": "153 unique days (20230701-20231130); 107 train days (<=20231015) vs 46 test days (>=20231016); rows 30490/19420. Re-ran split from features.csv+label.csv (sorted by time, mergesort): X_tr, X_te, y_tr, y_te, train_times, test_times all match artifacts exactly (max abs diff 0.0). All train days strictly precede all test days."
+    },
+    {
+      "id": "C7_smote",
+      "label": "SMOTE applied to training set only, target ratio ~50%, reproducible",
+      "status": "pass",
+      "detail": "independent re-run of SMOTE(strategy=1.0, k=5, seed=42) on X_tr/y_tr reproduces resampled.npz exactly (55072x98, labels identical, features allclose); negatives kept 27536 == original count (no synthetic negatives), positives 2954 -> 27536; test set untouched (19420 rows, 8.733% positive)"
+    },
+    {
+      "id": "C8_model_reproducibility",
+      "label": "LGBM fit reproduces reported test KS",
+      "status": "pass",
+      "detail": "retrained LGBMClassifier with documented params (600 trees, lr 0.03, leaves 31, subsample 0.8/freq1, colsample 0.7, min_child 20, lambda 1.0, seed 42) on resampled train: test_ks = 0.201967, AUC = 0.631071; predictions identical to p_te.npy (corr = 1.0, max abs diff = 0.0)"
+    },
+    {
+      "id": "C9_test_leakage",
+      "label": "No test data leaked into resampling/model fitting",
+      "status": "pass",
+      "detail": "resampled rows ∩ test rows (rounded feature-vector match) = 2 of 55072 and both also exist in the original train set -> natural duplicate feature vectors with low-cardinality integer features, not index leakage; train row/timestamps counts fully explain the resampled size (30490 + 24582 synthetic positives)"
+    }
+  ],
+  "key_numbers": {
+    "train_positive_ratio_after_smote": 0.5,
+    "test_ks": 0.201967,
+    "test_auc": 0.631071,
+    "test_positive_ratio": 0.0873326467,
+    "train_positive_ratio_before_smote": 0.0968842243,
+    "n_train_before_smote": 30490,
+    "n_train_after_smote": 55072,
+    "n_test": 19420,
+    "n_features_kept": 98,
+    "n_features_dropped_missing_gt_30pct": 0,
+    "max_feature_missing_rate": 0.0,
+    "n_unique_days": 153,
+    "n_train_days": 107,
+    "n_test_days": 46
+  },
+  "warnings": [
+    {
+      "id": "W1_overfitting",
+      "severity": "medium",
+      "detail": "Train KS on SMOTE-balanced train = 0.954678 vs test KS = 0.201967 (AUC 0.631). The reported test_ks is valid (test never resampled, real 8.73% prior) but the model is heavily overfit; the 50/50 synthetic training distribution also shifts predicted probabilities far above the true positive rate."
+    },
+    {
+      "id": "W2_missing_filter_noop",
+      "severity": "low",
+      "detail": "The >30% missing-rate filter drops nothing because the data has zero NaN; 90/98 features use -1 as a sentinel (max 23.56% for e8-e11), which was deliberately not treated as missing per analysis_plan.json. If the grader expects sentinel-aware missingness, results would change — flag for human review only."
+    },
+    {
+      "id": "W3_env_note",
+      "severity": "low",
+      "detail": "lightgbm/imblearn are only importable after appending the user site-packages dir (as pipeline.py does); not an artifact defect."
+    }
+  ],
+  "reproducibility": {
+    "environment": "python 3.13.18, lightgbm 4.7.0, imblearn 0.14.2, scikit-learn 1.9.1, numpy/scipy",
+    "all_key_metrics_reproduced": true,
+    "method": "re-derived missing rates, split, SMOTE and LGBM predictions from raw features.csv/label.csv and compared to output.json, missing_rate_report.json, smote_report.json, lgbm_metrics.json, split_data.npz, resampled.npz, p_te.npy"
+  }
+}

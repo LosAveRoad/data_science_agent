@@ -1,0 +1,369 @@
+{
+  "inputs": {
+    "athlete_events.csv": "271116 rows",
+    "noc_regions.csv": "230 rows",
+    "NBA Database/common_player_info.csv": "4171 rows",
+    "NBA Database/team.csv": "30 rows"
+  },
+  "steps": {
+    "S1_olympic_filter": "Year in [1980,2016] & Medal notna -> 21926 medalist records (Summer+Winter)",
+    "S2_country_map": "NOC->region via noc_regions; 8 rows with unmapped NOC (SGP) dropped -> 21918 records. Alias fixes applied both ways.",
+    "S3_height_imputation": "383 of 21926 medalist heights null; imputed with sport-level median of the 1980-2016 medalist subset (global median 178.0 fallback, unused). Imputed range 161-193 cm.",
+    "S4_nba_filter": "team.csv year_founded > 1970 -> 13 teams (Cleveland Cavaliers, LA Clippers, Portland Trail Blazers founded exactly 1970 excluded). team_id inner join -> 911 players; 1 player with null country excluded from country set.",
+    "S5_nba_height": "feet-inches parsed as (ft*12+in)*2.54; 0 nulls inside filter, so position-group median imputation was a no-op. Range 165.1-228.6 cm.",
+    "S6_nba_country_std": "strip whitespace + alias map (Antigua and Barbuda->Antigua, Cabo Verde->Cape Verde, Congo->Republic of Congo, DRC->Democratic Republic of the Congo, St. Vincent & Grenadines->Saint Vincent, Trinidad and Tobago->Trinidad, US Virgin Islands->Virgin Islands, US, United Kingdom->UK). Unmatched NBA labels: Belize, Bosnia and Herzegovina, Republic of Congo, Saint Lucia, Scotland (no 1980-2016 Olympic medalist rows).",
+    "S7_shared_and_median": "shared countries = 42; NBA median height computed over the 905 qualifying NBA players from shared countries = 200.66 cm (identical to median over all 911 qualified players).",
+    "S8_probability": "denominator = 16243 Olympic medalist records from shared countries; numerator = 460 records with height_cm > 200.66; ties = 0; probability = 460/16243 = 0.028319 -> 0.0283."
+  },
+  "results": {
+    "probability": 0.0283,
+    "shared_countries_count": 42,
+    "nba_median_height": 200.66,
+    "olympic_athletes_count": 16243
+  },
+  "sensitivity_checks": {
+    "drop_null_heights_instead_of_imputation": "den 16050, num 460, p 0.0287",
+    "global_median_imputation": "num 460, p 0.0283",
+    "median_over_all_qualified_nba": "200.66 cm, p 0.0283 (unchanged)",
+    "include_ties": "0 ties at exactly 200.66 cm, p unchanged",
+    "sgp_manual_mapping": "+8 rows, Singapore has 0 NBA players in the qualified set, so unaffected"
+  },
+  "per_country_table": [
+    {
+      "region": "USA",
+      "olympic_medal_rows": 2786,
+      "rows_above_median": 91,
+      "share_above": 0.0327,
+      "nba_players": 771,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Russia",
+      "olympic_medal_rows": 2345,
+      "rows_above_median": 74,
+      "share_above": 0.0316,
+      "nba_players": 3,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Germany",
+      "olympic_medal_rows": 2120,
+      "rows_above_median": 45,
+      "share_above": 0.0212,
+      "nba_players": 4,
+      "nba_median_cm": 205.74
+    },
+    {
+      "region": "Australia",
+      "olympic_medal_rows": 989,
+      "rows_above_median": 2,
+      "share_above": 0.002,
+      "nba_players": 11,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Canada",
+      "olympic_medal_rows": 864,
+      "rows_above_median": 2,
+      "share_above": 0.0023,
+      "nba_players": 17,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Italy",
+      "olympic_medal_rows": 744,
+      "rows_above_median": 34,
+      "share_above": 0.0457,
+      "nba_players": 3,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "UK",
+      "olympic_medal_rows": 739,
+      "rows_above_median": 7,
+      "share_above": 0.0095,
+      "nba_players": 3,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "France",
+      "olympic_medal_rows": 713,
+      "rows_above_median": 20,
+      "share_above": 0.0281,
+      "nba_players": 11,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Netherlands",
+      "olympic_medal_rows": 622,
+      "rows_above_median": 21,
+      "share_above": 0.0338,
+      "nba_players": 1,
+      "nba_median_cm": 213.36
+    },
+    {
+      "region": "Japan",
+      "olympic_medal_rows": 553,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 190.5
+    },
+    {
+      "region": "Spain",
+      "olympic_medal_rows": 434,
+      "rows_above_median": 26,
+      "share_above": 0.0599,
+      "nba_players": 3,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Brazil",
+      "olympic_medal_rows": 420,
+      "rows_above_median": 25,
+      "share_above": 0.0595,
+      "nba_players": 3,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Serbia",
+      "olympic_medal_rows": 363,
+      "rows_above_median": 51,
+      "share_above": 0.1405,
+      "nba_players": 10,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Finland",
+      "olympic_medal_rows": 354,
+      "rows_above_median": 2,
+      "share_above": 0.0056,
+      "nba_players": 1,
+      "nba_median_cm": 213.36
+    },
+    {
+      "region": "Cuba",
+      "olympic_medal_rows": 343,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Poland",
+      "olympic_medal_rows": 246,
+      "rows_above_median": 4,
+      "share_above": 0.0163,
+      "nba_players": 2,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Austria",
+      "olympic_medal_rows": 220,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 215.9
+    },
+    {
+      "region": "Ukraine",
+      "olympic_medal_rows": 199,
+      "rows_above_median": 2,
+      "share_above": 0.0101,
+      "nba_players": 2,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Argentina",
+      "olympic_medal_rows": 196,
+      "rows_above_median": 12,
+      "share_above": 0.0612,
+      "nba_players": 2,
+      "nba_median_cm": 198.12
+    },
+    {
+      "region": "New Zealand",
+      "olympic_medal_rows": 160,
+      "rows_above_median": 2,
+      "share_above": 0.0125,
+      "nba_players": 1,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Croatia",
+      "olympic_medal_rows": 149,
+      "rows_above_median": 21,
+      "share_above": 0.1409,
+      "nba_players": 8,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Jamaica",
+      "olympic_medal_rows": 142,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 213.36
+    },
+    {
+      "region": "Nigeria",
+      "olympic_medal_rows": 97,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 4,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Mexico",
+      "olympic_medal_rows": 63,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 196.85
+    },
+    {
+      "region": "Lithuania",
+      "olympic_medal_rows": 61,
+      "rows_above_median": 19,
+      "share_above": 0.3115,
+      "nba_players": 4,
+      "nba_median_cm": 205.74
+    },
+    {
+      "region": "Turkey",
+      "olympic_medal_rows": 53,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 3,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Slovenia",
+      "olympic_medal_rows": 48,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 6,
+      "nba_median_cm": 207.01
+    },
+    {
+      "region": "Iran",
+      "olympic_medal_rows": 39,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 218.44
+    },
+    {
+      "region": "Bahamas",
+      "olympic_medal_rows": 36,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 201.93
+    },
+    {
+      "region": "Latvia",
+      "olympic_medal_rows": 32,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 3,
+      "nba_median_cm": 198.12
+    },
+    {
+      "region": "Georgia",
+      "olympic_medal_rows": 32,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 3,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Estonia",
+      "olympic_medal_rows": 25,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 205.74
+    },
+    {
+      "region": "Cameroon",
+      "olympic_medal_rows": 21,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Montenegro",
+      "olympic_medal_rows": 14,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 210.82
+    },
+    {
+      "region": "Dominican Republic",
+      "olympic_medal_rows": 7,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 195.58
+    },
+    {
+      "region": "Puerto Rico",
+      "olympic_medal_rows": 7,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 2,
+      "nba_median_cm": 182.88
+    },
+    {
+      "region": "Tanzania",
+      "olympic_medal_rows": 2,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 220.98
+    },
+    {
+      "region": "Gabon",
+      "olympic_medal_rows": 1,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 203.2
+    },
+    {
+      "region": "Sudan",
+      "olympic_medal_rows": 1,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 218.44
+    },
+    {
+      "region": "Senegal",
+      "olympic_medal_rows": 1,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 3,
+      "nba_median_cm": 208.28
+    },
+    {
+      "region": "Panama",
+      "olympic_medal_rows": 1,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 200.66
+    },
+    {
+      "region": "Virgin Islands, US",
+      "olympic_medal_rows": 1,
+      "rows_above_median": 0,
+      "share_above": 0.0,
+      "nba_players": 1,
+      "nba_median_cm": 210.82
+    }
+  ]
+}

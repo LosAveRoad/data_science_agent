@@ -1,0 +1,111 @@
+{
+  "artifact": "analysis_plan.json",
+  "generated_at": "2026-11-12",
+  "stage": "planning",
+  "objective": "用 8 个娱乐媒体数据源（电影、图书、Netflix、Spotify、2017/2018/2020 音乐榜单、电子游戏）构建统一文本文档语料，执行 TF-IDF + K-Means(10) + LDA(10) 的跨源文本聚类与主题分析，输出每个簇的主导主题、主题关键词、内聚度与代表条目到 output.csv（10 行）。",
+  "inputs": {
+    "upstream_artifacts": ["data_profile.json"],
+    "data_files": [
+      {"path": "The Movies Dataset/movies_metadata.csv", "rows": 45466, "title_field": "title", "text_fields": ["title", "overview", "tagline", "genres", "production_companies"]},
+      {"path": "books.csv", "rows": 11123, "title_field": "title", "text_fields": ["title", "authors", "publisher", "language_code"], "note": "列名 '  num_pages' 有前导空格"},
+      {"path": "netflix_titles.csv", "rows": 8807, "title_field": "title", "text_fields": ["title", "listed_in", "description", "cast", "director", "type"]},
+      {"path": "spotify_tracks.csv", "rows": 114000, "title_field": "track_name", "text_fields": ["track_name", "artists", "album_name", "track_genre"], "note": "首列 'Unnamed: 0'；按 genre 分块排序，需先 shuffle"},
+      {"path": "top2017.csv", "rows": 100, "title_field": "name", "text_fields": ["name", "artists"]},
+      {"path": "top2018.csv", "rows": 100, "title_field": "name", "text_fields": ["name", "artists"]},
+      {"path": "top50_2020.csv", "rows": 50, "title_field": "track_name", "text_fields": ["track_name", "artist", "album", "genre"], "note": "genre 含多余空白，需 strip/normalize"},
+      {"path": "vgsales.csv", "rows": 16598, "title_field": "Name", "text_fields": ["Name", "Genre", "Publisher", "Platform"]}
+    ]
+  },
+  "step_1_corpus_construction": {
+    "unit": "一个 item = 一条文档，字段为 source_key / title / text",
+    "expected_docs": 161244,
+    "source_key_values": ["movies", "books", "netflix", "spotify", "top2017", "top2018", "top50_2020", "vgsales"],
+    "text_recipe": {
+      "movies": "title + overview + tagline + genres(用 ast.literal_eval 提取 name) + production_companies(同上)；on_bad_lines='skip', low_memory=False",
+      "books": "title + authors('/' 换空格) + publisher + language_code",
+      "netflix": "title + listed_in + description + cast + director + type",
+      "spotify": "track_name + artists(';' 换空格) + album_name + track_genre(genre token 重复2次以增权)",
+      "top2017": "name + artists",
+      "top2018": "name + artists",
+      "top50_2020": "track_name + artist + album + genre(先 strip 并压缩连续空格)",
+      "vgsales": "Name + Genre + Publisher + Platform"
+    },
+    "cleaning_rules": [
+      "全部字段先 fillna('') 再拼接，字符串化",
+      "统一小写；将 '/', ';', '&', '_', '|' 等分隔符替换为空格（避免 'a/b' 变成 'a/b' 单一 token）",
+      "去除 'feat.'/'ft.' 及标点（正则 [^a-z0-9\\s] -> 空格），压缩空白",
+      "去掉纯数字 token 与 language_code 噪音（如 'eng' 保留在 books 文本中但依赖英文 stop_words 无碍；纯数字直接丢弃）",
+      "丢弃清洗后 token 数 < 2 的空文档",
+      "去重：按 (source_key, lower(title)) 去重（vgsales 同游戏多平台重复、spotify 同曲多 genre 只保留一条）"
+    ],
+    "year_policy": "不做 2017–2020 硬过滤。依据 data_profile：movies 仅 1.2%、books 0.17%、vgsales 0.02% 落在该区间，spotify 无年份列；硬过滤会只剩约 4.7k 文档（几乎全是 Netflix），跨源聚类失去意义。因此在文档中标注年份覆盖情况，语料采用全量跨源池化（与 data_profile 的 combined_corpus_plan 一致）。",
+    "output": "corpus.parquet / corpus.csv（doc_id, source_key, title, text）"
+  },
+  "step_2_vectorization": {
+    "vectorizer": "TfidfVectorizer(max_features=5000, stop_words='english')",
+    "fit_on": "全量清洗后语料 text",
+    "outputs": ["tfidf_matrix (scipy sparse, float64, L2 归一化默认 norm='l2')", "feature_names (5000)"],
+    "note": "默认 min_df=1, ngram_range=(1,1), sublinear_tf=False；保证簇心余弦相似度计算与 TF-IDF 归一化一致"
+  },
+  "step_3_kmeans": {
+    "model": "KMeans(n_clusters=10, random_state=42)",
+    "n_init": "默认（sklearn>=1.4 为 'auto'，实际 10）；显式设置 n_init=10 保证可复现",
+    "outputs": ["labels (n_docs)", "cluster_centers_ (10 x 5000, 稀疏输入下仍为密集 ndarray)"],
+    "diagnostics": ["簇大小分布", "inertia", "各簇 top TF-IDF 特征词（辅助人工校验）"]
+  },
+  "step_4_lda": {
+    "model": "LatentDirichletAllocation(n_components=10, random_state=42)",
+    "input_matrix": "与 K-Means 相同的 TF-IDF 矩阵（单一向量化步骤，保证主题与簇空间可比；记录该选择，若收敛异常可回退 CountVectorizer 复算并在此说明）",
+    "topic_word": "model.components_ (10 x 5000)",
+    "doc_topic": "model.transform(tfidf_matrix) -> (n_docs x 10)，LDA 文档-主题分布",
+    "per_topic_keywords": "每个主题取 components_ 前 5 个特征词（feature_names），用于 top_topic_words",
+    "display": "top_topic_words 以逗号分隔，如 'family,friends,love,life,young'（逗号分隔；写 CSV 时由 csv 模块自动加引号）"
+  },
+  "step_5_cluster_metrics": {
+    "dominant_topic": "对每个簇 c：取该簇所有文档的 doc_topic 分布均值 (len(c) x 10).mean(axis=0)，argmax 即 dominant_topic（int 0-9）；同时记录该均值与次高值的差距作为置信度参考",
+    "top_topic_words": "dominant_topic 对应的 5 个关键词，空格清理后逗号连接",
+    "coherence_score": {
+      "definition": "簇内文档 TF-IDF 向量与 K-Means 簇心向量之间的平均余弦相似度",
+      "sampling": "若簇大小 > 500：np.random.seed(42) 后 np.random.choice(len(cluster_docs), 500, replace=False) 随机抽样 500 条；否则用全簇",
+      "formula": "cosine_similarity(X_sample, centroid.reshape(1,-1)).mean()",
+      "rounding": "round(float(value), 4)"
+    },
+    "representative_items": {
+      "rule": "按与簇心余弦相似度降序取前 5 条（去重 title），保持原始文档（全簇计算，不用抽样）",
+      "format": "'{source}: {title}'，用 ' | ' 连接；title 中的 '|' 替换为 '/'，超长 title 截断到 120 字符，避免破坏分隔符",
+      "fallback": "簇内不足 5 条则全部输出"
+    }
+  },
+  "step_6_output": {
+    "path": "output.csv",
+    "schema": [
+      {"column": "cluster_id", "dtype": "int", "range": "0-9", "order": "按 cluster_id 升序"},
+      {"column": "dominant_topic", "dtype": "int", "range": "0-9"},
+      {"column": "top_topic_words", "dtype": "str", "format": "逗号分隔的 5 个关键词"},
+      {"column": "coherence_score", "dtype": "float", "format": "4 位小数"},
+      {"column": "representative_items", "dtype": "str", "format": "'source: title' 用 ' | ' 连接"}
+    ],
+    "rows": 10,
+    "writer": "pandas.DataFrame.to_csv(index=False, quoting=csv.QUOTE_MINIMAL)"
+  },
+  "validation_checks": [
+    "output.csv 行数 == 10，cluster_id 为 0..9 全覆盖且唯一",
+    "dominant_topic 全部落在 0..9",
+    "coherence_score 在 [0,1] 且与小数位 4 位一致",
+    "top_topic_words 每行恰好 5 个非空词",
+    "representative_items 每行 1-5 条、每条含一个 ': '、条目数不超过 5",
+    "TF-IDF 矩阵 shape[1] <= 5000；labels 数 == 文档数；无空文档"
+  ],
+  "risks": [
+    "spotify 占语料约 71%，且按 genre 分块 -> 抽样前必须 shuffle（np.random.seed(42)），否则 coherence 抽样会偏向单一 genre",
+    "文本长度差异大（movies ~390 字符 vs 榜单 ~30 字符），TF-IDF 的 L2 归一化可部分缓解；短文本源主要靠 genre/artist/publisher 类 token 提供信号，短文档簇的 coherence 可能偏低，属预期",
+    "LDA 输入为 TF-IDF（非原始计数）在数学上非标准，但任务明确只要求一次 TF-IDF 向量化；该处理会让主题分布更尖锐，需在报告中说明",
+    "KMeans 在稀疏 16 万 x 5000 矩阵上耗时可控（预计 < 2 分钟），但需注意内存；scripts 中分步落盘中间结果（corpus -> tfidf .npz -> labels/topics .npy）",
+    "movies CSV 为多行引号包裹，必须 on_bad_lines='skip' + low_memory=False，否则行数错位"
+  ],
+  "execution_plan": [
+    "build_corpus.py -> corpus.parquet（含文档数、来源分布、去重与丢弃统计）",
+    "vectorize_cluster.py -> tfidf.npz + feature_names.json + kmeans_labels.npy + lda_doc_topic.npy + lda_topic_words.json（分段落盘，每段 < 120 秒）",
+    "cluster_report.py -> output.csv + analysis_summary.json（含 validation 结果）"
+  ]
+}

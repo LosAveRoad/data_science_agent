@@ -1,0 +1,93 @@
+{
+ "model": "OLS linear regression (sklearn LinearRegression, fit_intercept=True)",
+ "target": "fare_amount (USD)",
+ "features": [
+  "hour",
+  "day_of_week",
+  "trip_distance",
+  "passenger_count",
+  "borough_pu_Bronx",
+  "borough_pu_Brooklyn",
+  "borough_pu_EWR",
+  "borough_pu_Manhattan",
+  "borough_pu_Queens",
+  "borough_pu_Staten Island",
+  "borough_do_Bronx",
+  "borough_do_Brooklyn",
+  "borough_do_EWR",
+  "borough_do_Manhattan",
+  "borough_do_Queens",
+  "borough_do_Staten Island"
+ ],
+ "n_features": 16,
+ "data": {
+  "files": [
+   "yellow_tripdata_2024-04",
+   "yellow_tripdata_2024-05",
+   "yellow_tripdata_2024-06"
+  ],
+  "raw_rows": 10777315,
+  "rows_after_filter": 10458218,
+  "filter_survival": 0.970392,
+  "filter": "(0 < trip_distance < 100) & (0 < fare_amount < 500)"
+ },
+ "split": {
+  "test_size": 0.2,
+  "random_state": 42,
+  "n_train": 8366574,
+  "n_test": 2091644
+ },
+ "metrics_test": {
+  "RMSE": 6.207019,
+  "R2": 0.873413
+ },
+ "missing_value_handling": "passenger_count has 1,224,023 nulls in raw data (some row groups are entirely null); 1,161,287 nulls remain after the distance/fare filter. Spec filter is only on distance/fare, so rows were KEPT and passenger_count nulls imputed with 1 (its mode/median); see robustness variants.",
+ "n_passenger_count_imputed": 1161287,
+ "intercept": 15.544109,
+ "coefficients": {
+  "hour": 0.029021,
+  "day_of_week": -0.062337,
+  "trip_distance": 3.597438,
+  "passenger_count": 0.11097,
+  "borough_pu_Bronx": 2.695311,
+  "borough_pu_Brooklyn": 5.252297,
+  "borough_pu_EWR": 47.471107,
+  "borough_pu_Manhattan": 5.330214,
+  "borough_pu_Queens": 5.519982,
+  "borough_pu_Staten Island": -8.596806,
+  "borough_do_Bronx": -14.459222,
+  "borough_do_Brooklyn": -12.321573,
+  "borough_do_EWR": 9.369537,
+  "borough_do_Manhattan": -13.969429,
+  "borough_do_Queens": -12.941223,
+  "borough_do_Staten Island": -14.445854
+ },
+ "robustness_variants": {
+  "main_impute1": {
+   "n": 10458218.0,
+   "RMSE": 6.207019013461763,
+   "R2": 0.8734134270097986
+  },
+  "drop_nan_pc": {
+   "n": 9296931.0,
+   "RMSE": 6.0175682406080995,
+   "R2": 0.8887226887968301
+  },
+  "impute_pc0": {
+   "n": 10458218.0,
+   "RMSE": 6.206438753618687,
+   "R2": 0.8734370936592668
+  },
+  "impute_pc_median": {
+   "n": 10458218.0,
+   "RMSE": 6.207019013461763,
+   "R2": 0.8734134270097986
+  }
+ },
+ "notes": [
+  "All 6 borough dummies per side kept (no drop_first) per spec wording; intercept + full dummy set is collinear, fitted values/RMSE/R2 unaffected.",
+  "LocationID 264/265 (Unknown / Outside NYC) map to no borough -> all-zero dummies on that side (kept as implicit baseline): 0.33% pickup, 0.82% dropoff rows.",
+  "No Q2 date filter applied (spec only specifies distance/fare ranges); a negligible share of rows have out-of-quarter pickup timestamps.",
+  "tpep_dropoff_datetime and all fare-component columns (tips, tolls, taxes, total_amount) excluded to avoid leakage."
+ ]
+}

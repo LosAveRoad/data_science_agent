@@ -1,0 +1,146 @@
+{
+  "plan_version": "1.0",
+  "node": "plan",
+  "task": "Missing-rate filtering + median imputation -> time-based 70/30 split -> SMOTE to ~50% positive on train -> LGBM -> report train_positive_ratio_after_smote and test_ks into output.json",
+  "data_overview": {
+    "files": {
+      "features.csv": {"rows": 49910, "columns": 100, "size_mb": 22.4},
+      "label.csv": {"rows": 49910, "columns": 3, "columns_list": ["label", "time", "bizcode"], "size_mb": 0.95}
+    },
+    "join_keys": ["time", "bizcode"],
+    "join_check": "features and label are 1:1 on (time, bizcode), 0 duplicate keys, row order identical (verified upstream in data_profile.json)",
+    "feature_columns": {
+      "n": 98,
+      "excluded_id_cols": ["time", "bizcode"],
+      "groups": {
+        "f0-f66": "67 numeric columns; mixture of continuous floats and low-cardinality integer codes (cardinality 3-15 for many, e.g. f63: {-1,0,1})",
+        "e1-e11": "11 continuous floats in ~[0,0.95] with -1 sentinel; e8-e11 show ~23.6% sentinel rate in sample",
+        "x0-x19": "20 continuous floats in ~[0,80] with -1 sentinel; x10-x19 have identical min/max to x0-x9 (likely derived/duplicated variants)"
+      }
+    },
+    "label": {
+      "type": "binary 0/1",
+      "overall_positive_ratio": 0.0932,
+      "positive_count": 4650,
+      "train_positive_ratio_before_smote": 0.0969,
+      "test_positive_ratio": 0.0873,
+      "missing_rate": 0.0
+    },
+    "time": {
+      "field": "time",
+      "format": "int64 yyyymmdd",
+      "range": [20230701, 20231130],
+      "n_unique_days": 153,
+      "note": "rows are NOT stored in time order (sample of 5000 heads spans all 153 days) -> must sort/split explicitly"
+    },
+    "missingness": {
+      "nan_missing_rate": "0.0 for all 98 features (upstream data_profile + 5000-row head sample agree)",
+      "sentinel_negative_one": "90 of 98 features use -1 as a 'not applicable/missing' sentinel, but no feature exceeds 30% (-1) in sample (max ~0.236 for e8-e11)",
+      "implication": "literal NaN-based missing-rate filter drops nothing; median imputation is a no-op on NaN but the plan still runs the step so the requirement is satisfied and auditable"
+    }
+  },
+  "assumptions": [
+    "Missing rate is defined on true NaN values (pandas isna) as the task states; the -1 sentinel is recorded as a diagnostic only and is NOT used to drop features (keeps output comparable to the upstream baseline in output.json).",
+    "Time split uses the first 70% of unique sorted days (not 70% of rows) to avoid leaking future days into train; this is the split already documented in data_profile.json.",
+    "Median imputation statistics are fit on the training portion only, then applied to both parts (no test leakage).",
+    "SMOTE is applied only to the training set, never to test, and only after imputation + split.",
+    "No feature standardization is required (LGBM is tree-based); no feature selection beyond the >30% missing filter."
+  ],
+  "steps": [
+    {
+      "id": 1,
+      "name": "load_and_validate",
+      "actions": [
+        "pd.read_csv('features.csv') and pd.read_csv('label.csv')",
+        "assert len equal (49910) and (time, bizcode) 1:1 merge keeps 49910 rows; assert no duplicated keys",
+        "feature_cols = all features columns except ['time','bizcode'] -> expect 98 columns"
+      ],
+      "outputs": "in-memory df"
+    },
+    {
+      "id": 2,
+      "name": "missing_rate_filter",
+      "actions": [
+        "miss = df[feature_cols].isna().mean()",
+        "dropped = [c for c in feature_cols if miss[c] > 0.30]; kept = rest",
+        "record counts: n_columns_with_any_missing, max_missing_rate, dropped list (expected: empty, kept=98)",
+        "secondary diagnostic: rate of value == -1 per feature, saved but not used for dropping"
+      ],
+      "expected": "dropped = [] , kept = 98 features"
+    },
+    {
+      "id": 3,
+      "name": "time_split",
+      "actions": [
+        "df = df.sort_values('time', kind='mergesort')",
+        "days = sorted unique time; n_train_days = floor(0.7*153) = 107 -> train days 20230701..20231015; test days 20231016..20231130 (46 days)",
+        "is_train mask = df.time.isin(train_days) -> expect 30490 train rows / 19420 test rows"
+      ],
+      "expected": {"n_train_rows": 30490, "n_test_rows": 19420, "train_days": 107, "test_days": 46}
+    },
+    {
+      "id": 4,
+      "name": "median_impute",
+      "actions": [
+        "med = df.loc[is_train, kept].median()",
+        "X = df[kept].fillna(med); assert X.isna().sum().sum() == 0 after fill",
+        "y = df['label'].astype(int)",
+        "handle residual all-NaN columns defensively (none expected): drop column if med is NaN"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "smote",
+      "actions": [
+        "X_tr, X_te, y_tr, y_te = time-based slices of X, y",
+        "SMOTE(sampling_strategy=1.0, random_state=42, k_neighbors=5).fit_resample(X_tr, y_tr)",
+        "train_positive_ratio_after_smote = y_res.mean() (expected 0.5); record before/after row counts (~30490 -> ~55k rows)",
+        "guard: k_neighbors must be < n_minority(2954); also drop any zero-variance columns before SMOTE if it errors"
+      ],
+      "expected": {"train_positive_ratio_before_smote": 0.0969, "train_positive_ratio_after_smote": 0.5}
+    },
+    {
+      "id": 6,
+      "name": "train_lgbm",
+      "actions": [
+        "LGBMClassifier(n_estimators=600, learning_rate=0.03, num_leaves=31, subsample=0.8, subsample_freq=1, colsample_bytree=0.7, min_child_samples=20, reg_lambda=1.0, random_state=42, n_jobs=-1, verbose=-1)",
+        "fit on the SMOTE-resampled training data only",
+        "predict_proba on X_te (original, unsampled test) -> p_te"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "evaluate_ks",
+      "actions": [
+        "KS = max |CDF_pos - CDF_neg| computed on descending score order of p_te vs y_te",
+        "also log test AUC and train KS for diagnostics (not written to output.json)"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "write_output",
+      "actions": [
+        "json.dump({'train_positive_ratio_after_smote': round(ratio_after, 6), 'test_ks': round(ks, 6)}, open('output.json','w'), indent=2)",
+        "also persist the missing-rate table / dropped feature list to missing_rate_report.json for traceability"
+      ],
+      "output_schema": {"train_positive_ratio_after_smote": "float ~0.5", "test_ks": "float in [0,1]"}
+    }
+  ],
+  "validation_checks": [
+    "joined rows == 49910 and no duplicated (time, bizcode)",
+    "kept feature count (98) + dropped count == 98; every kept feature has NaN missing rate <= 0.30",
+    "no NaN in X after imputation",
+    "train/test day ranges strictly non-overlapping and contiguous in sorted day order",
+    "test set is never resampled: len(X_te) == 19420",
+    "train_positive_ratio_after_smote within [0.49, 0.51]",
+    "test_ks sanity range 0.05-0.60; upstream baseline value is 0.129349 - a materially different value should be explained before overwriting output.json"
+  ],
+  "risks_and_notes": [
+    "Heavy class imbalance (9.3% positive) plus 1.0 SMOTE ratio means ~9x replication of synthetic minority in train; test distribution stays untouched, so test KS reflects the real prior.",
+    "-1 sentinel values are widespread (90/98 features). Treating them as missing would change the feature set and the model; the plan keeps the literal NaN-based rule and only documents the sentinel rate.",
+    "x10-x19 duplicate the min/max of x0-x9 -> strong collinearity; harmless for LGBM but explains low feature importance gains; no removal is done (task does not ask for it).",
+    "Many f-columns are low-cardinality integer codes; keeping them numeric (ordinal) rather than categorical is acceptable for LGBM and keeps SMOTE simple (SMOTE requires numeric input).",
+    "SMOTE interpolation on one-hot/unbalanced low-cardinality columns can create non-integer intermediate values; acceptable for this pipeline since trees are invariant to monotone transforms and no inverse mapping is needed.",
+    "Runtime: 55k x 98 matrix with 600 trees runs in well under 120s; if it is tight, split into save-to-parquet + train steps."
+  ]
+}

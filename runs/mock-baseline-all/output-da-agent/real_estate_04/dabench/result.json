@@ -1,0 +1,35 @@
+{
+  "finished": true,
+  "steps": 2,
+  "result": "任务完成，产出 1 个文件: top5_cagr_disparity.csv",
+  "result_files": {
+    "added_files": [
+      "top5_cagr_disparity.csv"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 top5_cagr_disparity.csv",
+      "observation": "写出 top5_cagr_disparity.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.039
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 top5_cagr_disparity.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.039
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

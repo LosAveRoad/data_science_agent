@@ -1,0 +1,217 @@
+{
+  "plan_metadata": {
+    "node": "analysis_plan",
+    "artifact": "analysis_plan.json",
+    "target_output": "output.json",
+    "objective": "Lead-lag (cross-correlation) analysis between state-level Zillow ZHVI trends and state unemployment-rate trends, 2010-01..2019-12, lags -24..+24 months, per-state strongest lag + ranking of relationships with |r| > 0.1."
+  },
+  "inputs": [
+    {
+      "key": "unemployment",
+      "path": "Unemployment in America Per US State.csv",
+      "read_kwargs": {
+        "encoding": "utf-8-sig",
+        "low_memory": false
+      },
+      "used_columns": {
+        "State/Area": "state name -> map to 2-letter USPS",
+        "Year": "timestamp part (cast to int)",
+        "Month": "timestamp part (cast to int; raw file reads as int64, do NOT assume zero-padding)",
+        "Percent (%) of Labor Force Unemployed in State/Area": "unemployment rate (%) = target series"
+      },
+      "shape_reference": {
+        "rows": 31747,
+        "columns": 11,
+        "months_per_state": 599,
+        "first_month": "1976-01"
+      }
+    },
+    {
+      "key": "zhvi",
+      "path": "Zillow House Price Data/State_Zhvi_AllHomes.csv",
+      "read_kwargs": {
+        "encoding": "utf-8"
+      },
+      "used_columns": {
+        "StateName": "already 2-letter USPS -> state identifier for ZHVI",
+        "RegionName": "state full name (cross-check join key only)",
+        "region/month columns matching r'^\\d{4}-\\d{2}-\\d{2}$'": "wide month columns, month-END labels, 291 columns 1996-01..2020-03"
+      },
+      "shape_reference": {
+        "rows": 51,
+        "columns": 297,
+        "id_columns": 6
+      },
+      "drop_columns": [
+        "Unnamed: 0"
+      ]
+    }
+  ],
+  "known_data_issues_and_mitigations": [
+    {
+      "issue": "Unemployment CSV has UTF-8 BOM",
+      "mitigation": "read with encoding='utf-8-sig'"
+    },
+    {
+      "issue": "Two non-state rows in unemployment ('Los Angeles County', 'New York city')",
+      "mitigation": "drop explicitly before name->USPS mapping; do not rely on FIPS (FIPS not uniform width, reads as int64)"
+    },
+    {
+      "issue": "Unemployment rate is a string with whitespace/commas and en-dash placeholder '–'",
+      "mitigation": "astype(str).str.strip().str.replace(',','') then pd.to_numeric(errors='coerce'); NaNs expected only in 2025 (outside window)"
+    },
+    {
+      "issue": "ZHVI date columns are month-END labels",
+      "mitigation": "normalize every label to month start: pd.to_datetime(col).to_period('M').to_timestamp(); join to unemployment month-start dates (otherwise zero matches)"
+    },
+    {
+      "issue": "ZHVI is wide format",
+      "mitigation": "pandas.melt with id_vars=['RegionID','RegionName','RegionType','StateName'] over the 291 date columns, then drop NaN values"
+    },
+    {
+      "issue": "Both files contain history outside the analysis window",
+      "mitigation": "compute 12-month rolling stats on the full per-state monthly history (needed for a populated window at 2010-01), then subset the rolling outputs to 2010-01..2019-12"
+    },
+    {
+      "issue": "Possible duplicate (state, month) rows",
+      "mitigation": "assert no duplicates after melt/filter; if present, keep mean and log"
+    }
+  ],
+  "state_identifier_normalization": {
+    "rule": "unemployment State/Area (full names) -> USPS 2-letter via a 50-state + 'District of Columbia'->'DC' map; ZHVI uses StateName directly (already USPS)",
+    "expected_mapped_states": 51,
+    "unmapped_allowed": [
+      "Los Angeles County",
+      "New York city"
+    ],
+    "cross_check": "set(unemployment USPS) == set(ZHVI StateName); expected 51 / 51 matched, 0 unmatched on either side"
+  },
+  "timestamp_convention": {
+    "rule": "all timestamps = first day of the calendar month (pandas 'MS' / Period('M')->to_timestamp())",
+    "unemployment": "pd.to_datetime({'year': Year.astype(int), 'month': Month.astype(int), 'day': 1})",
+    "zhvi": "pd.to_datetime(month_end_label).to_period('M').to_timestamp()",
+    "analysis_index": "pd.date_range('2010-01-01','2019-12-01', freq='MS') -> 120 periods, identical for every state"
+  },
+  "pipeline_steps": [
+    {
+      "step": 1,
+      "name": "load_and_clean_long_format",
+      "details": [
+        "Read both files with the encodings above; restrict unemployment to Year between 1976 and max year (all years kept for rolling-window history).",
+        "Unemployment: keep [state_name, year, month, unemployment_rate], drop non-state rows, cast rate to numeric, build month_start date, map state -> USPS, drop any remaining NaN rate rows.",
+        "ZHVI: drop 'Unnamed: 0', melt wide->long (variable -> date label, value -> zhvi), coerce date labels to month_start, drop NaN zhvi, keep [state, month_start, zhvi] with state = StateName.",
+        "Build tidy frames: zhvi_long (state, month_start, ZHVI) and unemp_long (state, month_start, Unemployment_Rate); sort by (state, month_start)."
+      ],
+      "qc": [
+        "zhvi_long states == 51",
+        "unemp_long states == 51",
+        "no duplicate (state, month_start)",
+        "month_start.dt.day == 1 for 100% of rows"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "zhvi_rolling_statistics",
+      "details": [
+        "For each state, reindex ZHVI onto a gap-free monthly range from its first to last month, then compute Rolling_Mean = zhvi.rolling(window=12, min_periods=6).mean() and Rolling_Std = zhvi.rolling(window=12, min_periods=6).std().",
+        "min_periods=6 means the first 5 months of each state's history stay NaN; by 2010-01 every state has >= 168 prior months, so all 120 in-window months are populated.",
+        "Store ZHVI_Rolling_Mean and ZHVI_Rolling_Std."
+      ],
+      "qc": [
+        "non-null count of ZHVI_Rolling_Mean inside 2010-01..2019-12 == 120 per state",
+        "Rolling_Std >= 0 everywhere"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "unemployment_rolling_statistics",
+      "details": [
+        "Identical treatment: per state gap-free monthly reindex, Unemployment_Rolling_Mean = rolling(window=12, min_periods=6).mean(), Unemployment_Rolling_Std = rolling(12, min_periods=6).std().",
+        "Unemployment history starts 1976-01 so the 2010-01..2019-12 window is fully populated."
+      ],
+      "qc": [
+        "non-null count of Unemployment_Rolling_Mean inside window == 120 per state"
+      ]
+    },
+    {
+      "step": 4,
+      "name": "cross_correlation_-24_+24",
+      "details": [
+        "For each state: take ZHVI_Rolling_Mean and Unemployment_Rolling_Mean, reindex BOTH to pd.date_range('2010-01-01','2019-12-01', freq='MS'), then fill missing with .ffill().bfill() (forward fill first, then backward fill) exactly once, in that order.",
+        "For lag k in -24..+24: r(k) = Pearson corr( ZHVI[t] , Unemployment[t+k] ) over the overlapping pairs only (dropna on the pair); implemented as corr(zhvi_rm, unemp_rm.shift(-k)) so shift(-k) pulls the value from t+k onto t.",
+        "Sign convention: k<0 -> unemployment value taken from earlier months -> 'Unemployment leads ZHVI'; k>0 -> ZHVI leads; k==0 -> 'Synchronous'.",
+        "Require >= 48 overlapping observations per lag (120-|k| = 96..120 months is expected) and |r| <= 1; r is the normalized (mean/variance standardized) cross-correlation by construction."
+      ],
+      "qc": [
+        "overlap counts equal 120-|k| when no ffill/bfill changes occurred; record min overlap",
+        "SIGN SELF-TEST: on synthetic data where unemployment leads ZHVI by 5 months, argmax|r| must land on lag -5 (and mirror test for +5) - assert before trusting real results",
+        "all 51 states produce 49 lag values, none NaN"
+      ]
+    },
+    {
+      "step": 5,
+      "name": "strongest_lag_and_ranking",
+      "details": [
+        "Per state: lag_star = argmax_k |r(k)|; correlation = r(lag_star); abs_correlation = |r(lag_star)|; relationship label derived from lag_star sign.",
+        "Tie-breaking (deterministic): smallest |lag| first, then smaller lag value; keeps results reproducible.",
+        "Rank states by abs_correlation descending; significant = abs_correlation > 0.1 (strict). significant_relationships_found = count of significant states."
+      ],
+      "qc": [
+        "ranking strictly non-increasing in abs_correlation",
+        "relationship label consistent with lag sign"
+      ]
+    },
+    {
+      "step": 6,
+      "name": "write_output_json",
+      "details": [
+        "top_10_relationships = first 10 rows of the ranked significant list (if fewer than 10 states exceed the threshold, emit all of them and note the shortfall in the plan/report rather than padding).",
+        "Each element: state, variable1='ZHVI_Rolling_Mean', variable2='Unemployment_Rolling_Mean', correlation (round 4), lag_months (int), abs_correlation (round 4), relationship.",
+        "summary_statistics computed over those top-10 rows: mean/max/min of correlation (signed, round 4) and mean of lag_months (round 1).",
+        "analysis_metadata: time_range='2010-01 to 2019-12', lag_range_months=[-24,24], correlation_threshold=0.1, window_size=12, total_states_analyzed=51 (int), significant_relationships_found (int)."
+      ]
+    }
+  ],
+  "output_schema": {
+    "file": "output.json",
+    "analysis_metadata": {
+      "time_range": "str '2010-01 to 2019-12'",
+      "lag_range_months": "[-24, 24]",
+      "correlation_threshold": 0.1,
+      "window_size": 12,
+      "total_states_analyzed": "int",
+      "significant_relationships_found": "int"
+    },
+    "top_10_relationships": [
+      {
+        "state": "str (USPS)",
+        "variable1": "ZHVI_Rolling_Mean",
+        "variable2": "Unemployment_Rolling_Mean",
+        "correlation": "float 4dp",
+        "lag_months": "int",
+        "abs_correlation": "float 4dp",
+        "relationship": "one of ['Unemployment leads ZHVI','ZHVI leads Unemployment','Synchronous']"
+      }
+    ],
+    "summary_statistics": {
+      "mean_correlation": "float 4dp",
+      "max_correlation": "float 4dp",
+      "min_correlation": "float 4dp",
+      "mean_lag_months": "float 1dp"
+    }
+  },
+  "validation_checks": [
+    "51 states analyzed on both sides; 0 unmatched names after USPS mapping",
+    "120 monthly rows per state in the analysis index; 0 NaN after ffill+bfill for both rolling means",
+    "49 lag values (-24..24) per state; every correlation finite and within [-1,1]",
+    "sign-convention self-test on synthetic lagged series passes before final run",
+    "output.json JSON-parses, all required keys present, rounding rules applied",
+    "significant_relationships_found equals the number of states with abs_correlation > 0.1, and equals len(ranked significant list)"
+  ],
+  "risks_and_notes": [
+    "Pearson r on trending/autocorrelated rolling means is descriptive, not causal; correlations are expected to be strongly negative if ZHVI rises while unemployment falls (both de-trended only by rolling mean).",
+    "Only rolling MEAN series enter the correlation; rolling STD is computed as required by steps 2-3 but is not part of the correlation output.",
+    "Because ZHVI and unemployment are not differenced, level-trend correlation may dominate; interpret lags as lead-lag of smoothed levels, and state this caveat in the final report.",
+    "If >=10 states exceed threshold a top-10 slice is emitted; the full per-state lag table should still be saved as an intermediate artifact (e.g. state_lag_table.csv) for traceability."
+  ]
+}

@@ -1,0 +1,444 @@
+{
+  "task": "Compare blood glucose distributions across Diabetes / Stroke / CKD patient groups",
+  "glucose_mapping": {
+    "Diabetes": "Glucose",
+    "Stroke": "avg_glucose_level",
+    "CKD": "bgr",
+    "unified_column": "glucose",
+    "unit": "mg/dL"
+  },
+  "files": {
+    "Healthcare-Diabetes.csv": {
+      "size_bytes": 98571,
+      "n_rows": 2768,
+      "n_cols": 10,
+      "columns": {
+        "Id": {
+          "dtype": "numeric",
+          "sample_values": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "Pregnancies": {
+          "dtype": "numeric",
+          "sample_values": [
+            "6",
+            "1",
+            "8"
+          ]
+        },
+        "Glucose": {
+          "dtype": "numeric",
+          "sample_values": [
+            "148",
+            "85",
+            "183"
+          ]
+        },
+        "BloodPressure": {
+          "dtype": "numeric",
+          "sample_values": [
+            "72",
+            "66",
+            "64"
+          ]
+        },
+        "SkinThickness": {
+          "dtype": "numeric",
+          "sample_values": [
+            "35",
+            "29",
+            "0"
+          ]
+        },
+        "Insulin": {
+          "dtype": "numeric",
+          "sample_values": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        "BMI": {
+          "dtype": "numeric",
+          "sample_values": [
+            "33.6",
+            "26.6",
+            "23.3"
+          ]
+        },
+        "DiabetesPedigreeFunction": {
+          "dtype": "numeric",
+          "sample_values": [
+            "0.627",
+            "0.351",
+            "0.672"
+          ]
+        },
+        "Age": {
+          "dtype": "numeric",
+          "sample_values": [
+            "50",
+            "31",
+            "32"
+          ]
+        },
+        "Outcome": {
+          "dtype": "numeric",
+          "sample_values": [
+            "1",
+            "0",
+            "1"
+          ]
+        }
+      },
+      "notes": "Pima-style diabetes data; glucose mg/dL in column \"Glucose\" (zeros = missing code)"
+    },
+    "healthcare-dataset-stroke-data.csv": {
+      "size_bytes": 316971,
+      "n_rows": 5110,
+      "n_cols": 12,
+      "columns": {
+        "id": {
+          "dtype": "numeric",
+          "sample_values": [
+            "9046",
+            "51676",
+            "31112"
+          ]
+        },
+        "gender": {
+          "dtype": "categorical",
+          "sample_values": [
+            "Male",
+            "Female",
+            "Male"
+          ]
+        },
+        "age": {
+          "dtype": "numeric",
+          "sample_values": [
+            "67",
+            "61",
+            "80"
+          ]
+        },
+        "hypertension": {
+          "dtype": "numeric",
+          "sample_values": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        "heart_disease": {
+          "dtype": "numeric",
+          "sample_values": [
+            "1",
+            "0",
+            "1"
+          ]
+        },
+        "ever_married": {
+          "dtype": "categorical",
+          "sample_values": [
+            "Yes",
+            "Yes",
+            "Yes"
+          ]
+        },
+        "work_type": {
+          "dtype": "categorical",
+          "sample_values": [
+            "Private",
+            "Self-employed",
+            "Private"
+          ]
+        },
+        "Residence_type": {
+          "dtype": "categorical",
+          "sample_values": [
+            "Urban",
+            "Rural",
+            "Rural"
+          ]
+        },
+        "avg_glucose_level": {
+          "dtype": "numeric",
+          "sample_values": [
+            "228.69",
+            "202.21",
+            "105.92"
+          ]
+        },
+        "bmi": {
+          "dtype": "categorical",
+          "sample_values": [
+            "36.6",
+            "N/A",
+            "32.5"
+          ]
+        },
+        "smoking_status": {
+          "dtype": "categorical",
+          "sample_values": [
+            "formerly smoked",
+            "never smoked",
+            "never smoked"
+          ]
+        },
+        "stroke": {
+          "dtype": "numeric",
+          "sample_values": [
+            "1",
+            "1",
+            "1"
+          ]
+        }
+      },
+      "notes": "Stroke data; mean glucose mg/dL in column \"avg_glucose_level\"; bmi contains N/A"
+    },
+    "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff": {
+      "size_bytes": 47277,
+      "n_rows": 400,
+      "n_cols": 25,
+      "columns": {
+        "age": "numeric",
+        "bp": "numeric",
+        "sg": "{1.005,1.010,1.015,1.020,1.025}",
+        "al": "{0,1,2,3,4,5}",
+        "su": "{0,1,2,3,4,5}",
+        "rbc": "{normal,abnormal}",
+        "pc": "{normal,abnormal}",
+        "pcc": "{present,notpresent}",
+        "ba": "{present,notpresent}",
+        "bgr": "numeric",
+        "bu": "numeric",
+        "sc": "numeric",
+        "sod": "numeric",
+        "pot": "numeric",
+        "hemo": "numeric",
+        "pcv": "numeric",
+        "wbcc": "numeric",
+        "rbcc": "numeric",
+        "htn": "{yes,no}",
+        "dm": "{yes,no}",
+        "cad": "{yes,no}",
+        "appet": "{good,poor}",
+        "pe": "{yes,no}",
+        "ane": "{yes,no}",
+        "class": "{ckd,notckd}"
+      },
+      "sample_rows": [
+        {
+          "age": "48",
+          "bp": "80",
+          "sg": "1.020",
+          "al": "1",
+          "su": "0",
+          "rbc": "?",
+          "pc": "normal",
+          "pcc": "notpresent",
+          "ba": "notpresent",
+          "bgr": "121",
+          "bu": "36",
+          "sc": "1.2",
+          "sod": "?",
+          "pot": "?",
+          "hemo": "15.4",
+          "pcv": "44",
+          "wbcc": "7800",
+          "rbcc": "5.2",
+          "htn": "yes",
+          "dm": "yes",
+          "cad": "no",
+          "appet": "good",
+          "pe": "no",
+          "ane": "no",
+          "class": "ckd"
+        },
+        {
+          "age": "7",
+          "bp": "50",
+          "sg": "1.020",
+          "al": "4",
+          "su": "0",
+          "rbc": "?",
+          "pc": "normal",
+          "pcc": "notpresent",
+          "ba": "notpresent",
+          "bgr": "?",
+          "bu": "18",
+          "sc": "0.8",
+          "sod": "?",
+          "pot": "?",
+          "hemo": "11.3",
+          "pcv": "38",
+          "wbcc": "6000",
+          "rbcc": "?",
+          "htn": "no",
+          "dm": "no",
+          "cad": "no",
+          "appet": "good",
+          "pe": "no",
+          "ane": "no",
+          "class": "ckd"
+        },
+        {
+          "age": "62",
+          "bp": "80",
+          "sg": "1.010",
+          "al": "2",
+          "su": "3",
+          "rbc": "normal",
+          "pc": "normal",
+          "pcc": "notpresent",
+          "ba": "notpresent",
+          "bgr": "423",
+          "bu": "53",
+          "sc": "1.8",
+          "sod": "?",
+          "pot": "?",
+          "hemo": "9.6",
+          "pcv": "31",
+          "wbcc": "7500",
+          "rbcc": "?",
+          "htn": "no",
+          "dm": "yes",
+          "cad": "no",
+          "appet": "poor",
+          "pe": "no",
+          "ane": "yes",
+          "class": "ckd"
+        }
+      ],
+      "notes": "ARFF CKD; random blood glucose mg/dL in \"bgr\"; \"?\" = missing; 3 data lines have 26 fields (malformed -> numeric fields left-aligned)"
+    }
+  },
+  "filters": {
+    "age": "keep 30 <= age <= 70 (inclusive)",
+    "glucose": "drop glucose == 0 or missing (NaN / empty / \"?\")",
+    "source_label": "source column = Diabetes | Stroke | CKD"
+  },
+  "cleaning_counts": {
+    "Diabetes": {
+      "raw_rows": 2768,
+      "excluded_missing_age": 0,
+      "excluded_age_out_of_range": 1454,
+      "excluded_glucose_zero_or_missing": 8,
+      "final_n": 1306
+    },
+    "Stroke": {
+      "raw_rows": 5110,
+      "excluded_missing_age": 0,
+      "excluded_age_out_of_range": 2225,
+      "excluded_glucose_zero_or_missing": 0,
+      "final_n": 2885
+    },
+    "CKD": {
+      "raw_rows": 400,
+      "excluded_missing_age": 9,
+      "excluded_age_out_of_range": 90,
+      "excluded_glucose_zero_or_missing": 28,
+      "final_n": 273
+    }
+  },
+  "group_summary": {
+    "Diabetes": {
+      "n": 1306,
+      "mean": 129.521,
+      "std": 32.157,
+      "median": 125.0,
+      "q1": 105.0,
+      "q3": 154.0,
+      "min": 44.0,
+      "max": 197.0,
+      "raw_glucose_zero_count": 18,
+      "raw_glucose_missing_count": 0
+    },
+    "Stroke": {
+      "n": 2885,
+      "mean": 107.899,
+      "std": 46.964,
+      "median": 92.23,
+      "q1": 77.67,
+      "q3": 114.47,
+      "min": 55.22,
+      "max": 271.74,
+      "raw_glucose_zero_count": 0,
+      "raw_glucose_missing_count": 0
+    },
+    "CKD": {
+      "n": 273,
+      "mean": 151.179,
+      "std": 80.611,
+      "median": 123.0,
+      "q1": 100.0,
+      "q3": 169.0,
+      "min": 70.0,
+      "max": 490.0,
+      "raw_glucose_zero_count": 0,
+      "raw_glucose_missing_count": 44
+    }
+  },
+  "total_analyzed_n": 4464,
+  "statistics": {
+    "kruskal_wallis": {
+      "H": 628.1297472880678,
+      "df": 2,
+      "p_value": 4.011976834982009e-137,
+      "alpha": 0.05,
+      "significant": true,
+      "method": "scipy.stats.kruskal (tie-corrected), independent samples"
+    },
+    "post_hoc": {
+      "method": "Dunn test (rank based, tie corrected), two-sided z-test, Bonferroni adjustment over 3 comparisons",
+      "rows": [
+        {
+          "test": "Kruskal-Wallis",
+          "comparison": "all",
+          "statistic": 628.1297472880678,
+          "p_value": 4.011976834982009e-137,
+          "significant": true
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Diabetes vs Stroke",
+          "statistic": 23.369292894117425,
+          "p_value": 2.632308557413407e-120,
+          "significant": true,
+          "p_value_unadjusted": 8.77436185804469e-121
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Diabetes vs CKD",
+          "statistic": -0.43762135560234433,
+          "p_value": 1.0,
+          "significant": false,
+          "p_value_unadjusted": 0.6616607877623728
+        },
+        {
+          "test": "Dunn post-hoc",
+          "comparison": "Stroke vs CKD",
+          "statistic": -12.768506131789152,
+          "p_value": 7.3748159242587045e-37,
+          "significant": true,
+          "p_value_unadjusted": 2.4582719747529015e-37
+        }
+      ]
+    }
+  },
+  "key_findings": [
+    "Kruskal-Wallis H = 628.13, p = 4.01e-137 -> glucose distributions differ significantly across the three groups.",
+    "Diabetes vs Stroke: significant (larger median glucose in Diabetes, 125 vs 92.2 mg/dL).",
+    "Diabetes vs CKD: NOT significant after Bonferroni (z = -0.44, adjusted p = 1.0); median 125 vs 123 mg/dL.",
+    "Stroke vs CKD: significant (CKD has higher glucose ranks; patients <30 or >70 and missing/zero glucose excluded)."
+  ],
+  "outputs": [
+    "output.csv",
+    "output.png"
+  ],
+  "outputs_note": "output.csv contains test/comparison/statistic/p_value/significant; p_value for Dunn rows is Bonferroni-adjusted (capped at 1.0); output.png is a density histogram (bins=50, alpha=0.6; Diabetes red, Stroke blue, CKD green) with the Kruskal-Wallis p annotated."
+}

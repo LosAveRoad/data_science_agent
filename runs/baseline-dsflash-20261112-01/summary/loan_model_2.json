@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "loan_model_2",
+  "startedAt": "2026-11-11T19:14:14.603Z",
+  "finishedAt": "2026-11-11T19:15:27.692Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.json",
+  "totalSteps": 60,
+  "tokenUsage": {
+    "inputTokens": 8412,
+    "outputTokens": 7793,
+    "totalTokens": 16205
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:14:14.671Z",
+      "finishedAt": "2026-11-11T19:15:27.690Z",
+      "elapsedMs": 73019,
+      "error": null,
+      "steps": 60,
+      "tokenUsage": {
+        "inputTokens": 8412,
+        "outputTokens": 7793,
+        "totalTokens": 16205
+      }
+    }
+  ]
+}

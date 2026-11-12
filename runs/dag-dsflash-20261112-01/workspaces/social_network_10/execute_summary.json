@@ -1,0 +1,90 @@
+{
+  "node": "execute",
+  "status": "success",
+  "task": "Social media user influence network analysis (2-source join -> interaction aggregation -> directed weighted graph -> PageRank alpha=0.85 -> top-10 output.csv)",
+  "data_sources": {
+    "bot_detection_data.csv": {
+      "rows": 50000,
+      "unique_username_keys": 40566,
+      "used_columns": [
+        "Username",
+        "Mention Count",
+        "Follower Count"
+      ]
+    },
+    "twitter_dataset.csv": {
+      "rows": 10000,
+      "unique_username_keys": 9447,
+      "used_columns": [
+        "Username",
+        "Retweets",
+        "Likes"
+      ]
+    },
+    "join_coverage": {
+      "matched_users": 2694,
+      "twitter_only_users_excluded": 6753,
+      "bot_only_users_excluded": 37872,
+      "twitter_coverage_pct": 28.52,
+      "bot_coverage_pct": 6.64
+    }
+  },
+  "method": {
+    "join": "inner join on username_key = str.strip().str.lower() (User ID ignored); 2694 matched users = node set (twitter-coverage 28.5%)",
+    "aggregation": "per user: mention_count = SUM('Mention Count') over bot rows; follower_count = MAX('Follower Count') (snapshot attribute); retweets_sum/likes_sum = SUM over twitter rows",
+    "graph": "for each target user u in sorted(username_key) order: k = min(mention_count_u, 10); k distinct source users drawn without replacement with probability proportional to follower_count (uniform fallback if zero total); directed edge s -> u",
+    "edge_weight": "mention_count_u / k (mention mass split evenly over in-edges, so a node's total in-weight equals its mention_count)",
+    "pagerank": "power iteration, alpha=0.85, weight='weight', tol=1e-10, max_iter=200 (networkx not installed -> own implementation, networkx-equivalent formulation incl. uniform dangling redistribution); converged in 29 iterations, L1 delta 6.13e-11",
+    "randomness": "numpy.random.default_rng(42) + deterministic sorted node iteration -> fully reproducible",
+    "ranking": "pagerank_score desc, tie-break username asc"
+  },
+  "key_intermediate_results": {
+    "nodes": 2694,
+    "edges": 11344,
+    "expected_edges_sum_min_mention_10": 11344,
+    "self_loops": 0,
+    "pagerank_score_sum": 1.0,
+    "pagerank_min_max_median": [
+      7.8e-05,
+      0.002418,
+      0.000289
+    ],
+    "baseline_1_over_n": 0.000371,
+    "zero_mention_users": 283,
+    "spearman_score_vs_mention_count": 0.883,
+    "spearman_score_vs_follower_count": 0.278
+  },
+  "sensitivity": {
+    "edge_weight=mention_count_on_every_edge": {
+      "spearman_vs_main": 0.985,
+      "top10_overlap": 8,
+      "top50_overlap": 40
+    },
+    "different_seed(7)_same_method": {
+      "spearman_vs_main": 0.787,
+      "top10_overlap": 4,
+      "note": "sampling noise materially reshuffles the top-10 (mention counts drive in-degree, but which users point in is random); seed 42 is the specified/reported run"
+    }
+  },
+  "validation": {
+    "output_rows_10": true,
+    "columns_exact": true,
+    "rank_1_to_10": true,
+    "scores_finite_and_monotone_desc": true,
+    "scores_in_(0,1)": true,
+    "top10_mention_follower_match_source_aggregation": true,
+    "reread_by_pandas": true
+  },
+  "outputs": [
+    "output.csv",
+    "full_ranking.csv",
+    "edges.csv",
+    "sensitivity_alt_weight_top10.csv",
+    "execute_summary.json"
+  ],
+  "notes": [
+    "Referential/random graph: the only edges are those synthesized from mention counts; there is no observed interaction log linking specific users, so PageRank reflects synthetic attention flow, not verified real interaction.",
+    "Inner join restricted to the 2694 users present in both sources (6753 twitter-only and 37872 bot-only users excluded; 28.52% twitter / 6.64% bot coverage); ranking must not be read as global.",
+    "10 of the 2694 users are the reported top-10; scores span 0.001811-0.002418 vs uniform baseline 0.000371."
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "node": "data_profile",
+  "task_goal": "Unify four satisfaction variables to a common 1-5 scale, apply robust Z-score standardization, describe each distribution (mean/std/95% CI), and run one-way ANOVA (F, p, eta^2) across accommodation / indoor attractions / outdoor attractions / destination.",
+  "data_sources": [
+    {
+      "file": "Airbnb_Open_Data.csv",
+      "rows": 102599,
+      "cols": 28,
+      "role": "accommodation (short-term rental listings)",
+      "variable_used": "review rate number",
+      "raw_scale": "integer 1-5",
+      "valid_n": 102273,
+      "missing": 326,
+      "notes": "Listing-level review rating; 326 missing. Uniform-ish across 1-5 (mean 3.28), least negatively skewed of the four sources. Other columns (price, host info) not needed for satisfaction."
+    },
+    {
+      "file": "FISETIO A FIne-grained, Structured and Enriched Tourism Dataset for Indoor and Outdoor attractions/datasets/indoors.csv",
+      "rows": 2754,
+      "cols": 11,
+      "role": "indoor cultural attractions visit ratings",
+      "variable_used": "rating",
+      "raw_scale": "float 1-5 (aggregate museum rating)",
+      "valid_n": 2676,
+      "missing": 78,
+      "notes": "Monthly record per museum (date, museum, visits, weather, rating, revs, mus_ID); 254 distinct rating values, strongly left-skewed (skew -2.50) with a long lower tail down to 1.0."
+    },
+    {
+      "file": "FISETIO A FIne-grained, Structured and Enriched Tourism Dataset for Indoor and Outdoor attractions/datasets/outdoors.csv",
+      "rows": 2923,
+      "cols": 11,
+      "role": "outdoor leisure venues visit ratings",
+      "variable_used": "rate",
+      "raw_scale": "float 3-5 (aggregate park rating)",
+      "valid_n": 2923,
+      "missing": 0,
+      "notes": "Monthly record per park (date, y, weather, rev, rate, park_id, park_name); 665 distinct values, truncated at a 3.0 floor (no 1-2 range), skew -1.44, very low dispersion (sd 0.26)."
+    },
+    {
+      "file": "TripAdvisor Indonesia Tourism/Transaction.xlsx",
+      "rows": 52930,
+      "cols": 7,
+      "role": "tourists' satisfaction with the destination (transaction records)",
+      "variable_used": "Rating",
+      "raw_scale": "integer 1-5",
+      "valid_n": 52930,
+      "missing": 0,
+      "notes": "Sheet 'Transaction' (dimension A1:G52931): TransactionId, UserId, VisitYear, VisitMonth, VisitMode, AttractionId, Rating. openpyxl unavailable in the environment, so the OOXML stream was parsed directly (sharedStrings + sheet1.xml); header mapping verified and rows persisted to tx_clean.csv. Rating skew -1.20."
+    }
+  ],
+  "harmonization": {
+    "target_scale": "1-5 points",
+    "steps": [
+      "coerce to numeric (non-numeric -> NaN)",
+      "drop missing values",
+      "clip to [1,5]: values outside the common scale are winsorised onto the boundary",
+      "out-of-range values found: 0 in every source (all four variables already use a 1-5 metric, so no ratio rescaling is needed)"
+    ],
+    "caveats": [
+      "The four variables are not identical constructs: FISETIO rating/rate are venue-level aggregate ratings repeated over monthly rows, whereas Airbnb 'review rate number' and TripAdvisor 'Rating' are individual listing/transaction ratings. Repeated monthly aggregates make the effective FISETIO sample smaller than the row count and rows are not strictly independent.",
+      "outdoors 'rate' never drops below 3.0, so its 1-5 scale is de-facto truncated; central-tendency comparison is still valid on the common metric but dispersion is not comparable in raw units."
+    ]
+  },
+  "robust_standardization": {
+    "formula": "z = (x - median) / (1.4826 * MAD), MAD = median(|x - median|)",
+    "fallback": "if MAD = 0 -> (x - median)/(IQR/1.349) -> (x - median)/sd",
+    "fallback_used": false,
+    "per_source": {
+      "accommodation": {
+        "median": 3.0,
+        "mad": 1.0,
+        "robust_scale": 1.4826,
+        "scale_method": "MAD*1.4826"
+      },
+      "indoor_attraction": {
+        "median": 4.55,
+        "mad": 0.18,
+        "robust_scale": 0.266868,
+        "scale_method": "MAD*1.4826"
+      },
+      "outdoor_attraction": {
+        "median": 4.714286,
+        "mad": 0.156682,
+        "robust_scale": 0.232297,
+        "scale_method": "MAD*1.4826"
+      },
+      "destination": {
+        "median": 4.0,
+        "mad": 1.0,
+        "robust_scale": 1.4826,
+        "scale_method": "MAD*1.4826"
+      }
+    },
+    "note": "Each source is centred on its own median and rescaled by its own robust spread: z=0 is that domain's typical (median) value, 1 unit = 1 robust SD of that domain."
+  },
+  "raw_source_statistics": {
+    "accommodation": {
+      "n_used": 102273,
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 3.2791,
+      "sd": 1.2847,
+      "median": 3.0,
+      "skew": -0.139,
+      "kurtosis": -1.127
+    },
+    "indoor_attraction": {
+      "n_used": 2676,
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 4.3765,
+      "sd": 0.5606,
+      "median": 4.55,
+      "skew": -2.501,
+      "kurtosis": 8.388
+    },
+    "outdoor_attraction": {
+      "n_used": 2923,
+      "min": 3.0,
+      "max": 5.0,
+      "mean": 4.6705,
+      "sd": 0.2614,
+      "median": 4.7143,
+      "skew": -1.44,
+      "kurtosis": 4.291
+    },
+    "destination": {
+      "n_used": 52930,
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 4.1577,
+      "sd": 0.9705,
+      "median": 4.0,
+      "skew": -1.198,
+      "kurtosis": 1.166
+    }
+  },
+  "standardized_source_statistics": {
+    "note": "identical to output1.csv; CI = mean +/- t(0.975, n-1) * sd/sqrt(n)",
+    "rows": [
+      {
+        "source": "accommodation",
+        "n": 102273,
+        "mean": 0.188254,
+        "std": 0.866489,
+        "ci_lower": 0.182944,
+        "ci_upper": 0.193565
+      },
+      {
+        "source": "indoor_attraction",
+        "n": 2676,
+        "mean": -0.650175,
+        "std": 2.100832,
+        "ci_lower": -0.729808,
+        "ci_upper": -0.570542
+      },
+      {
+        "source": "outdoor_attraction",
+        "n": 2923,
+        "mean": -0.188517,
+        "std": 1.125382,
+        "ci_lower": -0.229331,
+        "ci_upper": -0.147702
+      },
+      {
+        "source": "destination",
+        "n": 52930,
+        "mean": 0.106366,
+        "std": 0.654622,
+        "ci_lower": 0.100789,
+        "ci_upper": 0.111943
+      }
+    ]
+  },
+  "anova": {
+    "test": "one-way ANOVA (scipy.stats.f_oneway) on the robust-standardized values",
+    "df_between": 3,
+    "df_within": 160798,
+    "F": 1064.888298,
+    "p_value_double": 0.0,
+    "p_value_note": "p underflows IEEE-754 double precision (scipy returns 0.0). Asymptotic evaluation of the F upper tail (log I_y(df2/2, df1/2) with y = df1*F/(df2+df1*F)) gives log10(p) ~ -137512, i.e. p < 1e-300: the equal-means null is rejected by an enormous margin.",
+    "eta_squared": 0.019481,
+    "omega_squared": 0.019462,
+    "ss_between": 2284.2663,
+    "ss_within": 114974.6397,
+    "ss_total": 117258.9059,
+    "effect_size_interpretation": "eta^2 = 0.019 => ~1.9% of total variance in standardized scores lies between domains: statistically decisive but practically small."
+  },
+  "post_hoc_pairwise_welch": {
+    "accommodation vs indoor_attraction": {
+      "t": 20.599,
+      "p": 1.0960557501086453e-87,
+      "cohens_d": 0.522
+    },
+    "accommodation vs outdoor_attraction": {
+      "t": 17.949,
+      "p": 1.5619868321437836e-68,
+      "cohens_d": 0.375
+    },
+    "accommodation vs destination": {
+      "t": 20.842,
+      "p": 2.5718908211966358e-96,
+      "cohens_d": 0.107
+    },
+    "indoor_attraction vs outdoor_attraction": {
+      "t": -10.116,
+      "p": 9.001100067076514e-24,
+      "cohens_d": -0.274
+    },
+    "indoor_attraction vs destination": {
+      "t": -18.583,
+      "p": 1.2279363048409013e-72,
+      "cohens_d": -0.486
+    },
+    "outdoor_attraction vs destination": {
+      "t": -14.036,
+      "p": 2.0815074525005625e-43,
+      "cohens_d": -0.32
+    }
+  },
+  "sanity_checks": {
+    "anova_on_raw_1to5_values": {
+      "F": 7791.612,
+      "p_value": 0.0,
+      "eta_squared": 0.1269,
+      "raw_means": {
+        "accommodation": 3.2791,
+        "indoor_attraction": 4.3765,
+        "outdoor_attraction": 4.6705,
+        "destination": 4.1577
+      },
+      "note": "Robust-z changes the ranking: in raw 1-5 units accommodation (3.28) has the lowest mean and outdoor (4.67)/indoor (4.38) the highest (eta^2=0.127), while after per-source robust centring the ordering reflects how far each mean sits from its own median (accommodation +0.19, destination +0.11, outdoor -0.19, indoor -0.65) and eta^2 shrinks to 0.019. Both reject equality, so the qualitative conclusion (systematic differences exist) is robust to the scoring choice."
+    },
+    "excel_parse_validation": "OOXML stream parse reproduced the declared sheet dimension A1:G52931 (52930 data rows); header/column mapping confirmed against sharedStrings; all 7 columns numeric, 0 missing.",
+    "no_out_of_range_values": "min/max of every source already lie inside [1,5]; clipping changed no observation."
+  },
+  "key_findings": [
+    "All four domains share a 1-5 satisfaction metric but differ sharply in shape/spread: Airbnb ratings are near-uniform (sd 1.28, median 3), TripAdvisor destination ratings pile up at 4-5 (sd 0.97), indoor museum ratings are tightly bunched high (median 4.55, sd 0.56, long lower tail to 1.0), outdoor park ratings are the highest and tightest (median 4.71, sd 0.26, floor 3.0).",
+    "After robust centring every 95% CI of the standardized means excludes 0 and no two CIs overlap: accommodation +0.188 [0.183, 0.194], destination +0.106 [0.101, 0.112], outdoor -0.189 [-0.229, -0.148], indoor -0.650 [-0.730, -0.571].",
+    "One-way ANOVA: F(3, 160798) = 1064.89, p < 1e-300 (double 0.0), eta^2 = 0.019 - domain means differ significantly, but the effect size is small because within-domain variance (dominated by the huge Airbnb and TripAdvisor samples) is large.",
+    "Post-hoc Welch tests: all six pairwise contrasts are significant (all p < 1e-20); largest separation accommodation vs indoor attractions (d = 0.52), smallest accommodation vs destination (d = 0.11).",
+    "Interpretation caveats: the very large N (160,798) inflates significance, and venue-level aggregates (FISETIO) are compared with individual-level ratings. Practically, indoor cultural attractions show the most left-skewed / lower-tail-heavy satisfaction profile while outdoor venues show the most uniformly high ratings."
+  ],
+  "outputs": [
+    "output1.csv",
+    "output2.csv"
+  ]
+}

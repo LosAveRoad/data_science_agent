@@ -1,0 +1,111 @@
+{
+  "analysis_metadata": {
+    "time_range": "2010-01 to 2019-12",
+    "lag_range_months": [
+      -24,
+      24
+    ],
+    "correlation_threshold": 0.1,
+    "window_size": 12,
+    "total_states_analyzed": 51,
+    "significant_relationships_found": 51
+  },
+  "top_10_relationships": [
+    {
+      "state": "OR",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9989,
+      "lag_months": -24,
+      "abs_correlation": 0.9989,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "HI",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9963,
+      "lag_months": -16,
+      "abs_correlation": 0.9963,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "FL",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9939,
+      "lag_months": -23,
+      "abs_correlation": 0.9939,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "AZ",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9938,
+      "lag_months": -17,
+      "abs_correlation": 0.9938,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "CA",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9929,
+      "lag_months": -14,
+      "abs_correlation": 0.9929,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "MA",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9925,
+      "lag_months": -24,
+      "abs_correlation": 0.9925,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "GA",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9911,
+      "lag_months": -21,
+      "abs_correlation": 0.9911,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "VA",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.991,
+      "lag_months": -24,
+      "abs_correlation": 0.991,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "CO",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9896,
+      "lag_months": -21,
+      "abs_correlation": 0.9896,
+      "relationship": "Unemployment leads ZHVI"
+    },
+    {
+      "state": "DC",
+      "variable1": "ZHVI_Rolling_Mean",
+      "variable2": "Unemployment_Rolling_Mean",
+      "correlation": -0.9891,
+      "lag_months": -7,
+      "abs_correlation": 0.9891,
+      "relationship": "Unemployment leads ZHVI"
+    }
+  ],
+  "summary_statistics": {
+    "mean_correlation": -0.9929,
+    "max_correlation": -0.9891,
+    "min_correlation": -0.9989,
+    "mean_lag_months": -19.1
+  }
+}
