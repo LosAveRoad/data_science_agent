@@ -78,6 +78,7 @@ CLI 参数（两个实验入口一致，也可用 `node dist/src/main.js baselin
 | `--token-budget <n>` | run 级 token 预算，默认 2000000，超限中止并标记 failed |
 | `--max-steps <n>` | 单节点 / 单次 ReAct 步数上限，默认 40 |
 | `--overwriting` | 忽略断点续跑记录，强制重跑已完成任务 |
+| `--concurrency <n>` | 任务级并发数，默认 1（串行）；任务相互独立、工作区按 task.id 隔离，可安全并行 |
 
 每次运行产出（`runs/<experiment_id>/`）：
 
