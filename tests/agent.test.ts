@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MockAgentRunner } from '../src/agent/mock-agent.js';
 import type { AgentRunnerInput } from '../src/agent/pi-runtime.js';
+import { buildModel } from '../src/agent/pi-runtime.js';
 import { RunRecorder } from '../src/tracing/recorder.js';
 import {
   executeWorkspaceTool,
@@ -284,5 +285,20 @@ describe('truncateToolOutput', () => {
 
   it('未超过上限时原样返回', () => {
     expect(truncateToolOutput('short')).toBe('short');
+  });
+});
+
+describe('buildModel 兼容性默认值', () => {
+  it('默认 supportsStore=false（Mistral 等严格端点会 422 拒绝 store 字段）', () => {
+    const model = buildModel({ baseUrl: 'http://127.0.0.1:8788/v1', modelId: 'deepseek-v4-1-flash' });
+    expect(model.compat?.supportsStore).toBe(false);
+  });
+
+  it('调用方显式传入的 compat 优先', () => {
+    const model = buildModel(
+      { baseUrl: 'https://api.openai.com/v1', modelId: 'gpt-4o' },
+      { supportsStore: true },
+    );
+    expect(model.compat?.supportsStore).toBe(true);
   });
 });
