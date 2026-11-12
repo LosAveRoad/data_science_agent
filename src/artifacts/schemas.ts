@@ -12,12 +12,14 @@
 import { readFile } from 'node:fs/promises';
 
 /** 已登记的结构化 Artifact schema ID。 */
-export type ArtifactSchemaId = 'data_profile' | 'analysis_plan';
+export type ArtifactSchemaId = 'data_profile' | 'analysis_plan' | 'challenge_list' | 'verdict';
 
 /** Artifact 文件名 → schema 映射（按文件名识别，workflow 定义无需额外声明）。 */
 const SCHEMA_BY_ARTIFACT: Readonly<Record<string, ArtifactSchemaId>> = {
   'data_profile.json': 'data_profile',
   'analysis_plan.json': 'analysis_plan',
+  'challenge_list.json': 'challenge_list',
+  'verdict.json': 'verdict',
 };
 
 /** 按产物文件名返回 schema ID；无对应 schema 时返回 null（不校验）。 */
@@ -107,7 +109,98 @@ export function validateAnalysisPlan(content: unknown): string[] {
 const VALIDATORS: Readonly<Record<ArtifactSchemaId, (content: unknown) => string[]>> = {
   data_profile: validateDataProfile,
   analysis_plan: validateAnalysisPlan,
+  challenge_list: validateChallengeList,
+  verdict: validateVerdict,
 };
+
+/** challenge_list 挑战类别（#3 Phase B 挑战清单的固定检查维度）。 */
+export const CHALLENGE_CATEGORIES = [
+  'unit_conversion',
+  'filter_condition',
+  'time_window',
+  'aggregation',
+  'requirement_coverage',
+  'other',
+] as const;
+
+export type ChallengeCategory = (typeof CHALLENGE_CATEGORIES)[number];
+
+/**
+ * 校验 challenge_list.json 内容（verify 挑战者节点产出，#3 Phase B），
+ * 返回问题清单（空列表 = 合法）。
+ *
+ * 最小契约：顶层对象含 challenges 数组（可为空 = 无语义挑战）；
+ * 每条挑战含 category（固定维度之一）与 description（具体质疑内容），
+ * 可含 severity（critical / major / minor）与 evidence（依据）。
+ */
+export function validateChallengeList(content: unknown): string[] {
+  const problems: string[] = [];
+  if (!isPlainObject(content)) {
+    return ['顶层必须是 JSON 对象（非数组、非标量）'];
+  }
+  const challenges = content['challenges'];
+  if (!Array.isArray(challenges)) {
+    return ['缺少 challenges 数组（无挑战时为空数组，不允许省略）'];
+  }
+  challenges.forEach((challenge, index) => {
+    const label = `challenges[${index}]`;
+    if (!isPlainObject(challenge)) {
+      problems.push(`${label} 必须是对象`);
+      return;
+    }
+    const category = challenge['category'];
+    if (typeof category !== 'string' || !CHALLENGE_CATEGORIES.includes(category as ChallengeCategory)) {
+      problems.push(
+        `${label}.category 必须是 ${CHALLENGE_CATEGORIES.join(' / ')} 之一，实际为 ${JSON.stringify(category)}`,
+      );
+    }
+    if (typeof challenge['description'] !== 'string' || challenge['description'].trim().length === 0) {
+      problems.push(`${label}.description 必须是非空字符串（具体质疑内容）`);
+    }
+    const severity = challenge['severity'];
+    if (
+      severity !== undefined &&
+      severity !== null &&
+      !['critical', 'major', 'minor'].includes(severity as string)
+    ) {
+      problems.push(`${label}.severity 只允许 critical / major / minor，实际为 ${JSON.stringify(severity)}`);
+    }
+  });
+  return problems;
+}
+
+/** 裁决决定（#3 Phase B 裁决节点的三选一）。 */
+export const VERDICT_DECISIONS = ['pass', 'fix', 'accept'] as const;
+
+export type VerdictDecision = (typeof VERDICT_DECISIONS)[number];
+
+/**
+ * 校验 verdict.json 内容（裁决节点产出，#3 Phase B），返回问题清单（空列表 = 合法）。
+ * 最小契约：decision 必须是 pass / fix / accept 三选一；reasons 为字符串数组（可空）。
+ */
+export function validateVerdict(content: unknown): string[] {
+  const problems: string[] = [];
+  if (!isPlainObject(content)) {
+    return ['顶层必须是 JSON 对象（非数组、非标量）'];
+  }
+  const decision = content['decision'];
+  if (typeof decision !== 'string' || !VERDICT_DECISIONS.includes(decision as VerdictDecision)) {
+    return [`decision 必须是 ${VERDICT_DECISIONS.join(' / ')} 之一，实际为 ${JSON.stringify(decision)}`];
+  }
+  const reasons = content['reasons'];
+  if (reasons !== undefined && reasons !== null) {
+    if (!Array.isArray(reasons)) {
+      problems.push('reasons 必须是字符串数组');
+    } else {
+      reasons.forEach((reason, index) => {
+        if (typeof reason !== 'string') {
+          problems.push(`reasons[${index}] 必须是字符串`);
+        }
+      });
+    }
+  }
+  return problems;
+}
 
 /** 校验一段已解析的 JSON 内容；返回问题清单（空列表 = 合法）。 */
 export function validateArtifactContent(schemaId: ArtifactSchemaId, content: unknown): string[] {

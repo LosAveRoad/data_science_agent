@@ -4,7 +4,12 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MockAgentRunner } from '../src/agent/mock-agent.js';
 import type { AgentRunnerInput } from '../src/agent/pi-runtime.js';
-import { buildModel } from '../src/agent/pi-runtime.js';
+import { buildModel, PiAgentRunner, resolveNodeModelConfig } from '../src/agent/pi-runtime.js';
+import {
+  adjudicatorSystemPrompt,
+  challengerSystemPrompt,
+  systemPromptForNode,
+} from '../src/agent/prompts.js';
 import { RunRecorder } from '../src/tracing/recorder.js';
 import {
   executeWorkspaceTool,
@@ -300,5 +305,74 @@ describe('buildModel 兼容性默认值', () => {
       { supportsStore: true },
     );
     expect(model.compat?.supportsStore).toBe(true);
+  });
+});
+
+describe('按节点模型分层（#3 Phase B）', () => {
+  it('resolveNodeModelConfig：节点级覆盖 modelId，未命中节点回落全局配置', () => {
+    const options = {
+      apiKey: 'key-global',
+      baseUrl: 'https://api.deepseek.com',
+      modelId: 'deepseek-flash',
+      nodeModels: {
+        plan: { modelId: 'deepseek-r1' },
+        verify: { modelId: 'deepseek-r1' },
+        adjudicate: { modelId: 'deepseek-r1' },
+      },
+    };
+    expect(resolveNodeModelConfig(options, 'plan').modelId).toBe('deepseek-r1');
+    expect(resolveNodeModelConfig(options, 'adjudicate').modelId).toBe('deepseek-r1');
+    // 未命中节点沿用全局（Inspect / Execute 用默认档）
+    const execute = resolveNodeModelConfig(options, 'execute');
+    expect(execute.modelId).toBe('deepseek-flash');
+    expect(execute.apiKey).toBe('key-global');
+    expect(execute.baseUrl).toBe('https://api.deepseek.com');
+  });
+
+  it('resolveNodeModelConfig：字段级合并（节点只覆盖 modelId 时沿用全局 key/baseUrl）', () => {
+    const options = {
+      apiKey: 'key-global',
+      baseUrl: 'https://api.deepseek.com',
+      modelId: 'deepseek-flash',
+      nodeModels: { verify: { modelId: 'strong-model' } },
+    };
+    const verify = resolveNodeModelConfig(options, 'verify');
+    expect(verify).toEqual({ apiKey: 'key-global', baseUrl: 'https://api.deepseek.com', modelId: 'strong-model' });
+  });
+
+  it('PiAgentRunner 结果回报所用模型（tracing 按节点记录）', async () => {
+    const runner = new PiAgentRunner({
+      apiKey: 'test-key',
+      modelId: 'deepseek-flash',
+      nodeModels: { verify: { modelId: 'deepseek-r1' } },
+    });
+    // 工作区不存在 → 在触网前返回失败结果，但失败结果同样回报按节点解析的 model
+    const missingWorkspace = path.join(workspace, 'does-not-exist');
+    const inspectResult = await runner.run(makeInput({ nodeId: 'inspect', workspacePath: missingWorkspace }));
+    expect(inspectResult.status).toBe('failed');
+    expect(inspectResult.model).toBe('deepseek-flash');
+    const verifyResult = await runner.run(makeInput({ nodeId: 'verify', workspacePath: missingWorkspace }));
+    expect(verifyResult.status).toBe('failed');
+    expect(verifyResult.model).toBe('deepseek-r1');
+  });
+});
+
+describe('节点 prompt 分发（#3 Phase B）', () => {
+  it('verify 节点用挑战者 prompt，adjudicate 用裁决 prompt，其余用通用节点 prompt', () => {
+    expect(systemPromptForNode('verify', '职责')).toContain('挑战者');
+    expect(systemPromptForNode('adjudicate', '职责')).toContain('裁决节点');
+    expect(systemPromptForNode('inspect', '职责')).toContain('执行节点');
+    // 显式 promptStyle 覆盖（如极简路径的 execute 用 baseline 风格）
+    expect(systemPromptForNode('execute', '职责', 'baseline')).toContain('资深数据分析师');
+    expect(systemPromptForNode('execute', '职责', 'challenger')).toContain('挑战者');
+  });
+
+  it('challenger prompt 强调只挑语义错误、不修复；adjudicator prompt 强调三选一与低轮数', () => {
+    const challenger = challengerSystemPrompt('职责');
+    expect(challenger).toContain('程序化验证门');
+    expect(challenger).toContain('不要修复');
+    const adjudicator = adjudicatorSystemPrompt('职责');
+    expect(adjudicator).toContain('三选一');
+    expect(adjudicator).toContain('宁可 accept');
   });
 });

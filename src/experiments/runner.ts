@@ -27,12 +27,12 @@ import { PiAgentRunner } from '../agent/pi-runtime.js';
 import { subsetFromConfig } from '../benchmark/task-loader.js';
 import type { BenchmarkTask } from '../benchmark/task-loader.js';
 import { collectTaskOutputs, prepareWorkspace } from '../benchmark/workspace.js';
-import type { AgentRunner, NodeRunResult } from '../dag/executor.js';
+import type { AgentRunner, NodeRunResult, RepairSummary } from '../dag/executor.js';
 import { DagExecutor } from '../dag/executor.js';
-import { taskWorkflow } from '../dag/workflow.js';
+import { taskRepairWorkflow } from '../dag/workflow.js';
 import { addTokenUsage, emptyTokenUsage } from '../tracing/recorder.js';
 import { RunRecorder } from '../tracing/recorder.js';
-import type { TokenUsage } from '../tracing/recorder.js';
+import type { NodeTraceSnapshot, TokenUsage } from '../tracing/recorder.js';
 import { createTaskOutputGate } from '../validate/gate.js';
 import { baselineMockScript, dagMockScripts, NodeScriptedMockRunner } from './mock-scripts.js';
 
@@ -89,6 +89,10 @@ export interface TaskRunRecord {
   tokenUsage: TokenUsage;
   /** 收集到 output-da-agent/<task_id>/ 的产出文件名。 */
   outputs: string[];
+  /** 按模型 ID 分层的 token 用量（#3 Phase B 模型分层成本归因；无模型信息时缺省）。 */
+  usageByModel?: Record<string, TokenUsage>;
+  /** 修复回路收口信息（#3 Phase B；仅 DAG 模式）。 */
+  repair?: RepairSummary;
   error?: string;
 }
 
@@ -442,6 +446,49 @@ function sumUsage(records: readonly TaskRunRecord[]): TokenUsage {
   return usage;
 }
 
+/** 强模型 ID（$MODEL_ID_STRONG，#3 Phase B 模型分层）；未设置时返回 null（不启用分层）。 */
+function strongModelId(): string | null {
+  const value = process.env['MODEL_ID_STRONG']?.trim();
+  return value !== undefined && value.length > 0 ? value : null;
+}
+
+/** 强模型节点集合（#3 Phase B：Plan / Verify / 裁决用强模型，Inspect / Execute 用默认档）。 */
+const STRONG_MODEL_NODES: readonly string[] = ['plan', 'verify', 'adjudicate'];
+
+/** 按节点级覆盖构造 PiAgentRunner 的 nodeModels（强模型分层；未配置强模型时返回 undefined）。 */
+export function buildNodeModels(): Record<string, { modelId: string }> | undefined {
+  const strong = strongModelId();
+  if (strong === null) {
+    return undefined;
+  }
+  const nodeModels: Record<string, { modelId: string }> = {};
+  for (const nodeId of STRONG_MODEL_NODES) {
+    nodeModels[nodeId] = { modelId: strong };
+  }
+  return nodeModels;
+}
+
+/** 按节点轨迹汇总分层 token 用量（无模型信息的节点计入 unknown 桶）。 */
+export function aggregateUsageByModel(nodes: readonly NodeTraceSnapshot[]): Record<string, TokenUsage> {
+  const byModel: Record<string, TokenUsage> = {};
+  for (const node of nodes) {
+    const key = node.model ?? 'unknown';
+    byModel[key] = addTokenUsage(byModel[key] ?? emptyTokenUsage(), node.tokenUsage);
+  }
+  return byModel;
+}
+
+/** 合并多任务记录的分层 token 用量。 */
+function mergeUsageByModel(records: readonly TaskRunRecord[]): Record<string, TokenUsage> {
+  const merged: Record<string, TokenUsage> = {};
+  for (const record of records) {
+    for (const [model, usage] of Object.entries(record.usageByModel ?? {})) {
+      merged[model] = addTokenUsage(merged[model] ?? emptyTokenUsage(), usage);
+    }
+  }
+  return merged;
+}
+
 /**
  * 运行一次实验（共享运行循环）。
  * 真实 LLM 运行不在此处做任何 API mock：--mock 时全部使用 MockAgentRunner（0 token）。
@@ -536,6 +583,8 @@ export async function runExperiment(config: ExperimentRunConfig): Promise<Experi
       ? {}
       : {
           model: process.env['MODEL_ID'] ?? null,
+          // #3 Phase B 模型分层：强模型档（Plan / Verify / 裁决），未配置时与默认档同模型
+          strongModel: strongModelId(),
           baseUrl: process.env['PI_BASE_URL'] ?? null,
         }),
   };
@@ -556,7 +605,11 @@ export async function runExperiment(config: ExperimentRunConfig): Promise<Experi
       overwriting: config.overwriting,
       concurrency: config.concurrency,
     },
-    totals: result.totals,
+    totals: {
+      ...result.totals,
+      // #3 Phase B：按模型分层汇总的成本（无模型信息时为空对象）
+      usageByModel: mergeUsageByModel(records),
+    },
     tasks: result.records,
   };
   await writeFile(path.join(runDir, 'run-summary.json'), JSON.stringify(runSummary, null, 2), 'utf8');
@@ -584,6 +637,7 @@ async function runSingleTask(
   let outputs: string[] = [];
   let resultText: string;
   let workspacePath = '';
+  let repair: RepairSummary | null = null;
 
   try {
     // 1. 任务隔离工作区：先归位 data_sources（官方 dev.jsonl 相对 datasets/<domain>/），
@@ -636,14 +690,18 @@ async function runSingleTask(
           `（预算 ${config.tokenBudget} tokens）`;
       }
     } else {
+      // #3 Phase B：验证-修复回路工作流（verify 挑战者 + adjudicate 裁决 + 有界回炉）；
+      // 模型分层（#3 Phase B）：Plan / Verify / 裁决用强模型（$MODEL_ID_STRONG），其余默认档
+      const nodeModels = buildNodeModels();
       const runner: AgentRunner = config.mock
         ? new NodeScriptedMockRunner(dagMockScripts(task))
-        : new PiAgentRunner({ mode: 'node' });
-      const executor = new DagExecutor(taskWorkflow(task), runner, {
+        : new PiAgentRunner({ mode: 'node', ...(nodeModels !== undefined ? { nodeModels } : {}) });
+      const executor = new DagExecutor(taskRepairWorkflow(task), runner, {
         maxStepsPerNode: config.maxSteps,
         tokenBudgetPerRun: config.tokenBudget,
         // #2 Phase A：单节点失败重试 / 步数耗尽续跑（默认 2 次尝试）+
-        // execute 节点成功后的程序化验证门（任务输出文件存在性 / 非空 / 格式）
+        // execute 节点成功后的程序化验证门（任务输出文件存在性 / 非空 / 格式）；
+        // 语义层辩驳由 verify / adjudicate 负责（第一道门仍是 0 token 程序化检查）
         outputGate: createTaskOutputGate(task),
       });
       const outcome = await executor.runTask({
@@ -655,6 +713,11 @@ async function runSingleTask(
       });
       status = outcome.status;
       error = outcome.error;
+      repair = outcome.repair;
+      console.log(
+        `[dag] ${task.id}: 修复回路 rounds=${repair.rounds}` +
+          ` lastDecision=${repair.lastDecision ?? '无'}${repair.forcedAccept ? '（超限强制 accept）' : ''}`,
+      );
     }
 
     // 3. 产物收集：工作区内按 outputFileName 递归匹配，复制到官方评测目录（扁平）
@@ -681,21 +744,29 @@ async function runSingleTask(
     resultText = `任务异常失败: ${error}`;
   }
 
-  // 4. 官方评测产物 + run 级汇总
+  // 4. 官方评测产物 + run 级汇总（extras：修复回路收口信息并入任务 summary）
   recorder.endRun({
     status,
     ...(error !== undefined ? { error } : {}),
     result: resultText,
     resultFiles: { added_files: outputs, changed_files: [] },
+    ...(repair !== null ? { extras: { repair } } : {}),
   });
   await recorder.writeResultJson(taskOutputDir);
   await recorder.writeSummary(summaryPath);
+
+  // 分层成本归因（#3 Phase B）：仅当有节点回报了模型信息时输出分层用量
+  const nodes = recorder.listNodes();
+  const usageByModel = aggregateUsageByModel(nodes);
+  const hasModelInfo = nodes.some((node) => node.model !== undefined);
 
   const record: TaskRunRecord = {
     taskId: task.id,
     status,
     tokenUsage: recorder.getTotalTokenUsage(),
     outputs,
+    ...(repair !== null ? { repair } : {}),
+    ...(hasModelInfo ? { usageByModel } : {}),
     ...(error !== undefined ? { error } : {}),
   };
   return record;

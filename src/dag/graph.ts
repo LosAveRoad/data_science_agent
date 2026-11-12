@@ -8,7 +8,7 @@ export class DagValidationError extends Error {
   }
 }
 
-/** 校验工作流定义：节点 ID 唯一、依赖存在、无自依赖、无环。 */
+/** 校验工作流定义：节点 ID 唯一、依赖存在、无自依赖、静态边无环；回路字段（#3 Phase B）合法。 */
 export function validateWorkflow(workflow: WorkflowDefinition): void {
   const ids = new Set<string>();
   for (const node of workflow.nodes) {
@@ -26,13 +26,48 @@ export function validateWorkflow(workflow: WorkflowDefinition): void {
         throw new DagValidationError(`节点 ${node.id} 依赖了不存在的节点: ${dep}`);
       }
     }
+    // 回路携带依赖：目标必须存在且不能是自身（允许指向前方节点，构成有界回路）
+    for (const dep of node.loopDependencies ?? []) {
+      if (dep === node.id) {
+        throw new DagValidationError(`节点 ${node.id} 的回路依赖不能指向自身`);
+      }
+      if (!ids.has(dep)) {
+        throw new DagValidationError(`节点 ${node.id} 的回路依赖指向不存在的节点: ${dep}`);
+      }
+    }
+    if (node.maxExecutions !== undefined && (!Number.isInteger(node.maxExecutions) || node.maxExecutions < 1)) {
+      throw new DagValidationError(`节点 ${node.id} 的 maxExecutions 必须是 >= 1 的整数`);
+    }
+    if (node.conditionalNext !== undefined && node.conditionalNext.length > 0) {
+      if (!node.decisionArtifact) {
+        throw new DagValidationError(`节点 ${node.id} 声明了条件边但缺少 decisionArtifact（决策产物文件名）`);
+      }
+      for (const edge of node.conditionalNext) {
+        if (typeof edge.when !== 'string' || edge.when.trim().length === 0) {
+          throw new DagValidationError(`节点 ${node.id} 的条件边缺少 when 决策值`);
+        }
+        if (!ids.has(edge.goto)) {
+          throw new DagValidationError(`节点 ${node.id} 的条件边 goto 指向不存在的节点: ${edge.goto}`);
+        }
+      }
+    }
+    if (node.decisionArtifact !== undefined && node.decisionArtifact.trim().length === 0) {
+      throw new DagValidationError(`节点 ${node.id} 的 decisionArtifact 不能为空字符串`);
+    }
+    if (
+      node.promptStyle !== undefined &&
+      !['baseline', 'node', 'challenger', 'adjudicator'].includes(node.promptStyle)
+    ) {
+      throw new DagValidationError(`节点 ${node.id} 的 promptStyle 非法: ${String(node.promptStyle)}`);
+    }
   }
+  // 静态拓扑（dependsOn）仍要求无环；回路依赖（loopDependencies）与条件回边不参与拓扑
   topoSort(workflow.nodes);
 }
 
 /**
- * Kahn 拓扑排序，返回可执行顺序；保持无依赖节点之间的定义顺序（确定性）。
- * 存在环时抛出 DagValidationError。
+ * Kahn 拓扑排序（只按静态 dependsOn 边），返回可执行顺序；保持无依赖节点之间的定义顺序
+ * （确定性）。静态边存在环时抛出 DagValidationError；回路依赖（loopDependencies）不参与排序。
  */
 export function topoSort(nodes: readonly DagNode[]): DagNode[] {
   const indegree = new Map<string, number>();
