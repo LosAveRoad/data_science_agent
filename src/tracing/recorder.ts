@@ -38,6 +38,8 @@ export interface NodeTraceSnapshot {
   startedAt: string;
   finishedAt?: string;
   error?: string;
+  /** 该节点执行使用的模型 ID（#3 Phase B 模型分层；runner 回报，endNode 时写入）。 */
+  model?: string;
   tokenUsage: TokenUsage;
   steps: SerializedStep[];
 }
@@ -50,6 +52,11 @@ export interface RunEndInfo {
   result?: string;
   /** 产出 / 变更的文件清单（写入 result.json 顶层 result_files 字段）。 */
   resultFiles?: { added_files: string[]; changed_files: string[] };
+  /**
+   * 附加任务级信息（原样并入 writeSummary 输出顶层）：如 #3 Phase B 的修复回路收口
+   * （repair）与 #4 Phase C 的路由决策（routing）。
+   */
+  extras?: Record<string, unknown>;
 }
 
 /** 轨迹记录器的调用顺序非法（未 startNode 就 endNode 等）时抛出。 */
@@ -124,6 +131,9 @@ function snapshotNode(trace: NodeTraceSnapshot): NodeTraceSnapshot {
   }
   if (trace.error !== undefined) {
     snapshot.error = trace.error;
+  }
+  if (trace.model !== undefined) {
+    snapshot.model = trace.model;
   }
   return snapshot;
 }
@@ -245,8 +255,8 @@ export class RunRecorder {
     }
   }
 
-  /** 标记当前节点结束；status 为 succeeded / failed，失败时传入 error。 */
-  endNode(status: 'succeeded' | 'failed', error?: string): void {
+  /** 标记当前节点结束；status 为 succeeded / failed，失败时传入 error；meta.model 记录该节点使用的模型。 */
+  endNode(status: 'succeeded' | 'failed', error?: string, model?: string): void {
     if (status !== 'succeeded' && status !== 'failed') {
       throw new RecorderError(`endNode 的 status 必须是 succeeded / failed: ${JSON.stringify(status)}`);
     }
@@ -256,10 +266,16 @@ export class RunRecorder {
     if (error !== undefined && typeof error !== 'string') {
       throw new RecorderError('endNode 的 error 必须是字符串');
     }
+    if (model !== undefined && typeof model !== 'string') {
+      throw new RecorderError('endNode 的 model 必须是字符串');
+    }
     this.current.status = status;
     this.current.finishedAt = new Date().toISOString();
     if (error !== undefined) {
       this.current.error = error;
+    }
+    if (model !== undefined) {
+      this.current.model = model;
     }
     this.current = null;
   }
@@ -277,6 +293,12 @@ export class RunRecorder {
     }
     if (summary.result !== undefined && typeof summary.result !== 'string') {
       throw new RecorderError('endRun 的 result 必须是字符串');
+    }
+    if (
+      summary.extras !== undefined &&
+      (summary.extras === null || typeof summary.extras !== 'object' || Array.isArray(summary.extras))
+    ) {
+      throw new RecorderError('endRun 的 extras 必须是对象');
     }
     this.endInfo = { ...summary };
     this.finishedAt = new Date().toISOString();
@@ -416,10 +438,13 @@ export class RunRecorder {
         startedAt: node.startedAt,
         finishedAt: node.finishedAt ?? null,
         elapsedMs: elapsedMsBetween(node.startedAt, node.finishedAt),
+        model: node.model ?? null,
         error: node.error ?? null,
         steps: node.steps.length,
         tokenUsage: { ...node.tokenUsage },
       })),
+      // 附加任务级信息（#3 Phase B 修复回路 / #4 Phase C 路由决策等），原样并入顶层
+      ...(this.endInfo?.extras ?? {}),
     };
     await writeFile(target, JSON.stringify(summary, null, 2), 'utf8');
   }

@@ -4,6 +4,7 @@
  */
 
 import type { NodeAttemptFeedback } from '../dag/executor.js';
+import type { NodePromptStyle } from '../dag/types.js';
 
 /** user prompt 的任务输入。 */
 export interface TaskPromptInput {
@@ -79,6 +80,73 @@ export function nodeSystemPrompt(nodeTask: string): string {
 }
 
 /**
+ * Verify 挑战者 system prompt（#3 Phase B）：Bear 式对抗审查。
+ * 只挑语义错误（机械检查由程序化验证门负责），产出结构化挑战清单，不做修复。
+ */
+export function challengerSystemPrompt(nodeTask: string): string {
+  return [
+    '你是 DAG 数据分析流水线中的验证挑战者（Bear 式辩手）：默认假设执行节点的结果有错，用对抗性审查找出语义问题。流水线节点之间只通过工作区里的 Artifact 文件传递信息，不共享对话历史。',
+    '',
+    `## 本节点职责\n${nodeTask}`,
+    '',
+    TOOL_USAGE_RULES,
+    '',
+    DATA_GUARDRAILS,
+    '',
+    [
+      '## 挑战者护栏',
+      '- 逐项核查任务要求与结果之间的一致性：单位换算、过滤条件、时间窗口、聚合口径、任务要求逐条覆盖度；对每一项都要给出可定位的依据（引用任务原文或数据事实）。',
+      '- 只挑语义错误：输出文件缺失、空文件、格式错误已由上游程序化验证门拦截，不要重复检查，也不要为这类机械问题发起挑战。',
+      '- 不确定的问题也要列出（severity 标注把握程度），但不要编造数据里不存在的事实。',
+      '- 不要修复、不要改写任何输出文件或上游 Artifact——你的职责是提出挑战清单，修复由 execute 节点负责。',
+      '- 把挑战清单写入 challenge_list.json（结构见节点职责），无挑战时写空数组；然后调用 finish 并在 artifacts 中列出该文件。',
+    ].join('\n'),
+  ].join('\n');
+}
+
+/**
+ * 裁决节点 system prompt（#3 Phase B）：pass / fix / accept 三选一。
+ * 低轮数经验：宁可 accept 也不为锦上添花发起 fix。
+ */
+export function adjudicatorSystemPrompt(nodeTask: string): string {
+  return [
+    '你是 DAG 数据分析流水线中的裁决节点：综合挑战清单与执行产出，对分析结果做出最终裁决。节点之间只通过工作区里的 Artifact 文件传递信息，不共享对话历史。',
+    '',
+    `## 本节点职责\n${nodeTask}`,
+    '',
+    TOOL_USAGE_RULES,
+    '',
+    DATA_GUARDRAILS,
+    '',
+    [
+      '## 裁决护栏',
+      '- 三选一：pass（挑战清单为空或挑战均不成立）/ fix（存在 critical/major 级实质错误且修复有明确抓手）/ accept（仅剩 minor 瑕疵、主观口径分歧或挑战无法定位）。',
+      '- 修复轮次有上限，每轮修复都有真实成本：宁可 accept 保留现状，也不要为锦上添花发起 fix。',
+      '- 裁决依据要落到具体挑战条目：reasons 中逐条引用挑战编号或内容，不要泛泛而谈。',
+      '- 不要自己修复任何文件——把裁决与理由写入 verdict.json（结构见节点职责），然后调用 finish 并在 artifacts 中列出该文件。',
+    ].join('\n'),
+  ].join('\n');
+}
+
+/**
+ * 按节点选择 system prompt：verify → 挑战者，adjudicate → 裁决者，其余 → 通用节点 prompt。
+ * 工作流节点可用 promptStyle 显式覆盖（如极简路径的 execute 用 baseline 风格）。
+ */
+export function systemPromptForNode(nodeId: string, nodeTask: string, promptStyle?: NodePromptStyle): string {
+  const style = promptStyle ?? (nodeId === 'verify' ? 'challenger' : nodeId === 'adjudicate' ? 'adjudicator' : 'node');
+  switch (style) {
+    case 'baseline':
+      return baselineSystemPrompt();
+    case 'challenger':
+      return challengerSystemPrompt(nodeTask);
+    case 'adjudicator':
+      return adjudicatorSystemPrompt(nodeTask);
+    default:
+      return nodeSystemPrompt(nodeTask);
+  }
+}
+
+/**
  * 统一 user prompt：任务问题 + 数据文件清单 + 期望产出 + 上游产物说明。
  */
 export function userPrompt(task: TaskPromptInput, upstreamSummary?: string): string {
@@ -123,4 +191,17 @@ export function attemptFeedbackSection(feedback: NodeAttemptFeedback): string {
     lines.push('- 若反馈指出产物不符合 schema，请按节点职责说明的结构要求重新生成对应文件');
   }
   return lines.join('\n');
+}
+
+/**
+ * 修复轮提示（#3 Phase B）：修复回路重跑（executionRound > 1）时追加到 user prompt，
+ * 提示节点本轮为挑战应答轮——优先响应上游挑战清单并重写受影响的输出文件。
+ */
+export function repairRoundHint(executionRound: number): string {
+  return [
+    `## 修复轮提示（本节点第 ${executionRound} 次执行）`,
+    '- 本轮是验证-修复回路的应答轮：工作区里可能已有上一轮写出的产出文件，先读挑战清单（如 challenge_list.json），逐条应答并修复。',
+    '- 只重写受挑战影响的输出文件；未受挑战的正确结果保持不变，避免引入新问题。',
+    '- 修复完成后按节点职责要求更新执行摘要（如 execute_summary.json 的 challenge_responses），再调用 finish。',
+  ].join('\n');
 }

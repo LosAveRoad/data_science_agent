@@ -23,7 +23,7 @@
 
 ### 2.2 工作流
 
-固定包含四个阶段：
+固定包含四个阶段（Phase A 前的基线拓扑）：
 
 | 节点 | 职责 | 输出 |
 |---|---|---|
@@ -37,6 +37,26 @@
 Inspect → Plan → Execute → Verify
 
 其中 Plan 节点生成的是数据分析执行计划，而不是新的 DAG 拓扑。
+
+**#3 Phase B：验证-修复回路。** Verify 升级为 Bear 式挑战者并引入裁决节点，工作流扩展为五节点有界回路：
+
+| 节点 | 职责 | 输出 |
+|---|---|---|
+| Inspect / Plan | 同上 | data_profile.json / analysis_plan.json |
+| Execute | 执行分析；修复轮逐条应答挑战清单并重写受影响输出 | 任务输出文件 + execute_summary.json |
+| Verify（挑战者） | 对抗式语义审查：单位换算、过滤条件、时间窗口、聚合口径、任务要求逐条覆盖度 | challenge_list.json（可为空数组） |
+| Adjudicate（裁决） | pass / fix / accept 三选一，低轮数经验（宁可 accept） | verdict.json |
+
+```text
+Inspect → Plan → Execute ⇄ Verify（挑战） → Adjudicate（裁决）
+                     ↑______fix______|
+```
+
+- 第一道验证门仍是 Phase A 的程序化检查（0 token）：输出文件存在、非空、格式成立；辩驳只处理语义层。
+- Execute 重跑通过回路依赖（loopDependencies）读取上一轮挑战清单，单轮应答后重写输出。
+- 修复上限默认 2 轮（`maxRepairRounds`，对齐 TradingAgents 默认 1 轮辩论的低轮数经验）；
+  超限仍被裁决 fix 时由 executor 强制 accept 收口并记录（`repair.forcedAccept`）。
+- 任务内教训回灌：每轮修复 prompt 带上一轮被驳回原因（挑战清单），不做跨任务反思记忆（benchmark 污染风险）。
 
 ### 2.3 节点执行机制
 
@@ -57,13 +77,22 @@ Inspect → Plan → Execute → Verify
 
 - 注册固定工作流。
 - 检查节点 ID 和依赖关系。
-- 按依赖顺序执行节点。
+- 按依赖顺序调度执行节点（#3 Phase B：静态拓扑序 + 有界条件回路的 worklist 调度）。
 - 记录节点状态和执行耗时。
 - 保存节点输出和错误信息。
-- 节点失败重试与步数耗尽续跑（#2 Phase A）：单节点默认 2 次尝试，失败原因回灌 runner 供其修复。
-- 产物确定性收口（#2 Phase A）：声明产物核对 → data_profile / analysis_plan 结构化 schema 校验 → execute 产出的程序化验证门（文件存在性 / 非空 / 格式检查，0 token），任一不通过按节点失败处理并触发重试。
+- 节点失败重试与步数耗尽续跑（#2 Phase A）：单节点单回默认 2 次尝试，失败原因回灌 runner 供其修复。
+- 产物确定性收口（#2 Phase A）：声明产物核对 → data_profile / analysis_plan / challenge_list / verdict 结构化 schema 校验 → execute 产出的程序化验证门（文件存在性 / 非空 / 格式检查，0 token），任一不通过按节点失败处理并触发重试。
+- 有界条件回路（#3 Phase B）：裁决节点声明 `decisionArtifact` + `conditionalNext`；决策匹配条件边且目标节点未达 `maxExecutions` 时回炉目标及其传递下游，超限强制 accept 收口。回路体节点（execute / verify / adjudicate）`maxExecutions = 1 + maxRepairRounds`。
+- 断点续跑 state.json v2（#3 Phase B）：除已完成节点外，持久化各节点执行轮数（`nodeExecutions`）、待回炉集合（`pendingReset`）、最近裁决（`lastDecision`）与累计修复轮数（`repairRounds`），支持含中间轮次的断点续跑；被回路取代的旧轮成功记录保留，用于恢复回路产物（挑战清单）与完整轨迹。
 
 不实现通用动态 DAG 引擎。
+
+### 2.5 模型分层（#3 Phase B）
+
+- `src/agent/pi-runtime.ts` 支持按节点配置模型（`nodeModels`：nodeId → {modelId, baseUrl, apiKey} 字段级合并，未命中节点回落全局配置）。
+- 分档策略：Plan / Verify（挑战者）/ Adjudicate（裁决）用强模型（`$MODEL_ID_STRONG`，需要推理与判断的节点）；Inspect / Execute 用默认档（deepseek-flash，重工具调用的节点）。
+- 强模型未配置（`MODEL_ID_STRONG` 留空）时自动退化为单模型，不改变运行行为。
+- tracing 按节点记录所用模型与用量（summary nodes[].model）；run-summary 汇总分档成本（`totals.usageByModel`）与分层配置（`config.strongModel`）。
 
 ## 3. Benchmark 任务子集
 
@@ -93,8 +122,10 @@ Inspect → Plan → Execute → Verify
 | Inspect 类操作 | 只允许 head / schema / dtypes，禁止全量读取数据文件 |
 | Run 级 token 预算 | 超限中止该任务并记录 |
 | 断点续跑 | 已成功任务跳过，不重复执行 |
-| 节点失败重试 / 步数续跑 | 单节点默认 2 次尝试（#2 Phase A）；重试带失败原因回灌，步数耗尽从工作区断点继续 |
+| 节点失败重试 / 步数续跑 | 单节点单回默认 2 次尝试（#2 Phase A）；重试带失败原因回灌，步数耗尽从工作区断点继续 |
 | 程序化验证门 | execute 节点产出后确定性检查任务输出文件（存在 / 非空 / 格式，0 token，#2 Phase A） |
+| 修复回路轮数上限 | 默认 2 轮（#3 Phase B）；超限强制 accept 收口并记录，回路不再无界膨胀 |
+| 模型分层 | Plan / Verify / 裁决 = 强模型（$MODEL_ID_STRONG）；Inspect / Execute = 默认档（#3 Phase B） |
 
 ### 3.4 成本预估
 
@@ -164,8 +195,10 @@ agentic-data-dag/
 ├── tests/
 │   ├── graph.test.ts
 │   ├── executor.test.ts
+│   ├── loop.test.ts           # 修复回路：裁决三分支 / 2 轮上限 / 含中间轮次断点续跑（#3 Phase B）
 │   ├── agent.test.ts
 │   ├── benchmark.test.ts
+│   ├── validate.test.ts
 │   └── infra.test.ts
 │
 └── runs/
@@ -197,10 +230,11 @@ npm run evaluate -- <experiment_id>                               # 官方 Evalu
 
 - Benchmark Task ID
 - 使用的模型及实验配置
-- 节点执行顺序和状态
+- 节点执行顺序和状态（修复回路重跑逐轮展开，含每轮所用模型，#3 Phase B）
 - 每个节点的输入、输出及执行耗时
 - Agent Tool Calls
-- Token Usage
+- Token Usage（run-summary 按模型分层汇总，#3 Phase B）
+- 修复回路收口信息（修复轮数 / 裁决结果 / 是否超限强制 accept，写入任务 summary 与 run-summary，#3 Phase B）
 - 最终输出文件
 - 官方 Benchmark Evaluation Score
 

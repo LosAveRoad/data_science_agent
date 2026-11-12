@@ -8,7 +8,9 @@ import {
   validateAnalysisPlan,
   validateArtifactContent,
   validateArtifactFile,
+  validateChallengeList,
   validateDataProfile,
+  validateVerdict,
 } from '../src/artifacts/schemas.js';
 import { createTaskOutputGate, verifyOutputGate } from '../src/validate/gate.js';
 
@@ -54,9 +56,77 @@ describe('artifact schema / 文件名映射', () => {
   it('data_profile.json 与 analysis_plan.json 映射到对应 schema，其他产物返回 null', () => {
     expect(schemaForArtifact('data_profile.json')).toBe('data_profile');
     expect(schemaForArtifact('analysis_plan.json')).toBe('analysis_plan');
+    expect(schemaForArtifact('challenge_list.json')).toBe('challenge_list');
+    expect(schemaForArtifact('verdict.json')).toBe('verdict');
     expect(schemaForArtifact('execute_summary.json')).toBeNull();
     expect(schemaForArtifact('verification.json')).toBeNull();
     expect(schemaForArtifact('output.csv')).toBeNull();
+  });
+});
+
+describe('artifact schema / challenge_list（#3 Phase B 挑战清单）', () => {
+  it('空挑战清单与合法挑战条目通过，允许额外字段', () => {
+    expect(validateChallengeList({ challenges: [] })).toEqual([]);
+    expect(
+      validateChallengeList({
+        challenges: [
+          {
+            id: 'c1',
+            category: 'unit_conversion',
+            description: '结果把万元当元使用，量级差 1e4',
+            severity: 'critical',
+            evidence: '任务原文要求万元',
+          },
+          { category: 'requirement_coverage', description: '任务要求的同比增速未覆盖' },
+        ],
+        note: '额外字段允许',
+      }),
+    ).toEqual([]);
+  });
+
+  it('非对象顶层、缺 challenges 数组被拦截', () => {
+    expect(validateChallengeList(null)).toHaveLength(1);
+    expect(validateChallengeList([1])).toHaveLength(1);
+    expect(validateChallengeList({})).toMatchObject(['缺少 challenges 数组（无挑战时为空数组，不允许省略）']);
+  });
+
+  it('挑战条目的 category / description / severity 逐项校验', () => {
+    const problems = validateChallengeList({
+      challenges: [
+        'not-an-object',
+        { description: '缺 category' },
+        { category: 'made_up', description: '类别不在枚举内' },
+        { category: 'filter_condition' },
+        { category: 'other', description: 'severity 非法', severity: 'huge' },
+      ],
+    });
+    expect(problems).toHaveLength(5);
+    expect(problems[0]).toContain('challenges[0] 必须是对象');
+    expect(problems[1]).toContain('challenges[1].category');
+    expect(problems[2]).toContain('challenges[2].category');
+    expect(problems[3]).toContain('challenges[3].description');
+    expect(problems[4]).toContain('challenges[4].severity');
+  });
+
+  it('challenge_list.json 文件校验走通（validateArtifactFile）', async () => {
+    const filePath = path.join(tmpRoot, 'challenge_list.json');
+    await writeFile(filePath, JSON.stringify({ challenges: [] }), 'utf8');
+    expect(await validateArtifactFile('challenge_list', filePath)).toEqual([]);
+  });
+});
+
+describe('artifact schema / verdict（#3 Phase B 裁决）', () => {
+  it('pass / fix / accept 三选一均合法，reasons 可省略', () => {
+    expect(validateVerdict({ decision: 'pass' })).toEqual([]);
+    expect(validateVerdict({ decision: 'fix', reasons: ['单位换算错误'] })).toEqual([]);
+    expect(validateVerdict({ decision: 'accept', reasons: [] })).toEqual([]);
+  });
+
+  it('decision 缺失或超出枚举被拦截，reasons 类型非法被拦截', () => {
+    expect(validateVerdict({})).toMatchObject(['decision 必须是 pass / fix / accept 之一，实际为 undefined']);
+    expect(validateVerdict({ decision: 'banana' })).toHaveLength(1);
+    expect(validateVerdict({ decision: 'pass', reasons: '不是数组' })).toMatchObject(['reasons 必须是字符串数组']);
+    expect(validateVerdict({ decision: 'pass', reasons: [1] })).toHaveLength(1);
   });
 });
 

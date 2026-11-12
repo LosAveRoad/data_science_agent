@@ -107,7 +107,7 @@ export function baselineMockScript(task: BenchmarkTask): MockScript {
   };
 }
 
-/** DAG mock 剧本：defaultWorkflow 四节点各自的写出步骤。 */
+/** DAG mock 剧本：修复回路工作流（#3 Phase B）各节点的写出步骤。 */
 export function dagMockScripts(task: BenchmarkTask): Record<string, MockScript> {
   const artifact = (nodeId: string, fileName: string): MockWriteStep => ({
     path: fileName,
@@ -118,14 +118,39 @@ export function dagMockScripts(task: BenchmarkTask): Record<string, MockScript> 
     plan: { steps: [artifact('plan', 'analysis_plan.json')] },
     execute: {
       steps: [
-        artifact('execute', 'result.json'),
         artifact('execute', 'execute_summary.json'),
         ...task.outputFileName.map(
           (name): MockWriteStep => ({ path: name, content: mockFileContent(task, name) }),
         ),
       ],
     },
-    verify: { steps: [artifact('verify', 'verification.json')] },
+    // 挑战者节点：mock 输出空挑战清单（结构符合 challenge_list schema）
+    verify: {
+      steps: [
+        {
+          path: 'challenge_list.json',
+          content: {
+            mock: true,
+            task_id: task.id,
+            node_id: 'verify',
+            challenges: [],
+            note: 'Mock 占位挑战清单（--mock 管线联调，无语义挑战）',
+          },
+        },
+      ],
+    },
+    // 裁决节点：mock 输出 pass 裁决（结构符合 verdict schema，回路一轮收口）
+    adjudicate: {
+      steps: [
+        {
+          path: 'verdict.json',
+          content: {
+            decision: 'pass',
+            reasons: ['Mock 占位裁决（--mock 管线联调）：挑战清单为空，直接通过'],
+          },
+        },
+      ],
+    },
   };
 }
 

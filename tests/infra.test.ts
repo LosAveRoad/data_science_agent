@@ -233,6 +233,38 @@ describe('RunRecorder / writeSummary', () => {
     expect(nodes[1]?.['status']).toBe('failed');
     expect(nodes[1]?.['error']).toBe('模型超时');
   });
+
+  it('endNode 记录模型 ID 且 extras 原样并入 summary 顶层（#3 Phase B）', async () => {
+    const recorder = new RunRecorder();
+    recorder.startRun('exp-tier', 'dag-prototype', 'task_02');
+    recorder.startNode('verify');
+    recorder.recordStep({ kind: 'thought', content: '挑战', tokenUsage: { inputTokens: 1, outputTokens: 2, totalTokens: 3 } });
+    recorder.endNode('succeeded', undefined, 'deepseek-r1');
+    recorder.startNode('adjudicate');
+    recorder.endNode('succeeded', undefined, 'deepseek-r1');
+    recorder.endRun({
+      status: 'succeeded',
+      result: 'ok',
+      extras: { repair: { rounds: 1, forcedAccept: false, lastDecision: 'pass' } },
+    });
+
+    const summaryPath = path.join(tmpRoot, 'summary-tier.json');
+    await recorder.writeSummary(summaryPath);
+    const parsed = JSON.parse(await readFile(summaryPath, 'utf8')) as Record<string, unknown>;
+    const nodes = parsed['nodes'] as Array<Record<string, unknown>>;
+    expect(nodes[0]?.['model']).toBe('deepseek-r1');
+    expect(nodes[1]?.['model']).toBe('deepseek-r1');
+    expect(parsed['repair']).toEqual({ rounds: 1, forcedAccept: false, lastDecision: 'pass' });
+  });
+
+  it('endNode / endRun 的非法 model 与 extras 抛出 RecorderError', () => {
+    const recorder = new RunRecorder();
+    recorder.startRun('exp-bad', 'dag-prototype', 'task_03');
+    recorder.startNode('inspect');
+    expect(() => recorder.endNode('succeeded', undefined, 42 as unknown as string)).toThrow(RecorderError);
+    recorder.endNode('succeeded');
+    expect(() => recorder.endRun({ extras: [1] as unknown as Record<string, unknown> })).toThrow(RecorderError);
+  });
 });
 
 describe('RunRecorder / restoreNode（断点续跑恢复轨迹）', () => {

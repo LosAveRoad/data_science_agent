@@ -30,7 +30,13 @@ import {
   type ToolResultMessage,
 } from '@mariozechner/pi-ai';
 import type { AgentRunner, AgentRunnerInput, NodeRunResult } from '../dag/executor.js';
-import { attemptFeedbackSection, baselineSystemPrompt, nodeSystemPrompt, userPrompt } from './prompts.js';
+import {
+  attemptFeedbackSection,
+  baselineSystemPrompt,
+  repairRoundHint,
+  systemPromptForNode,
+  userPrompt,
+} from './prompts.js';
 import {
   DEFAULT_TOOL_TIMEOUT_MS,
   executeWorkspaceTool,
@@ -73,6 +79,13 @@ export interface AgentStepRecord {
   isError?: boolean;
 }
 
+/** 单节点的模型覆盖配置（#3 Phase B 模型分层）。 */
+export interface NodeModelConfig {
+  modelId?: string;
+  baseUrl?: string;
+  apiKey?: string;
+}
+
 export interface PiAgentRunnerOptions {
   apiKey?: string;
   baseUrl?: string;
@@ -81,6 +94,12 @@ export interface PiAgentRunnerOptions {
   mode?: 'baseline' | 'node';
   /** 期望产出的最终文件名（写入 user prompt；baseline 实验建议提供）。 */
   outputFileName?: string;
+  /**
+   * 按节点覆盖模型配置（#3 Phase B 模型分层）：Plan / Verify / 裁决等强模型节点
+   * 指向更强模型，Inspect / Execute 保持默认（deepseek-flash 档）。
+   * 未命中的节点回落到全局 apiKey / baseUrl / modelId 配置。
+   */
+  nodeModels?: Partial<Record<string, NodeModelConfig>>;
   /** LLM 单次调用超时（毫秒），默认 120s。 */
   llmTimeoutMs?: number;
   /** 单次工具执行超时（毫秒），默认 120s。 */
@@ -140,6 +159,27 @@ function resolveRunnerConfig(options: PiAgentRunnerOptions): {
     apiKey: options.apiKey ?? process.env.PI_API_KEY ?? '',
     baseUrl: options.baseUrl ?? process.env.PI_BASE_URL ?? DEFAULT_BASE_URL,
     modelId: options.modelId ?? process.env.MODEL_ID ?? DEFAULT_MODEL_ID,
+  };
+}
+
+/**
+ * 解析指定节点的 LLM 连接配置（#3 Phase B 模型分层）：
+ * 节点级覆盖（options.nodeModels[nodeId]）优先于全局配置；字段级合并
+ * （节点只覆盖 modelId 时沿用全局 apiKey / baseUrl）。环境变量作为全局兜底。
+ */
+export function resolveNodeModelConfig(
+  options: PiAgentRunnerOptions,
+  nodeId: string,
+): { apiKey: string; baseUrl: string; modelId: string } {
+  const base = resolveRunnerConfig(options);
+  const override = options.nodeModels?.[nodeId];
+  if (override === undefined) {
+    return base;
+  }
+  return {
+    apiKey: override.apiKey ?? base.apiKey,
+    baseUrl: override.baseUrl ?? base.baseUrl,
+    modelId: override.modelId ?? base.modelId,
   };
 }
 
@@ -220,6 +260,8 @@ export class PiAgentRunner implements AgentRunner {
     this.stepBuffer = [];
     let steps = 0;
     const usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+    // 按节点解析模型配置（#3 Phase B 模型分层）：结果统一回报 model 供 tracing 记录
+    const config = resolveNodeModelConfig(this.options, input.nodeId);
     const makeResult = (
       status: 'succeeded' | 'failed',
       artifacts: AgentArtifact[],
@@ -230,6 +272,7 @@ export class PiAgentRunner implements AgentRunner {
       artifacts,
       tokenUsage: { ...usage },
       steps,
+      model: config.modelId,
       ...(error === undefined ? {} : { error }),
       ...(stopReason === undefined ? {} : { stopReason }),
     });
@@ -261,7 +304,6 @@ export class PiAgentRunner implements AgentRunner {
     };
 
     // —— 前置校验 ——
-    const config = resolveRunnerConfig(this.options);
     if (!config.apiKey) {
       return makeResult('failed', [], '缺少 LLM API Key：请设置 PI_API_KEY 环境变量或通过构造参数传入');
     }
@@ -276,7 +318,11 @@ export class PiAgentRunner implements AgentRunner {
     // —— 组装 prompt ——
     const mode = this.options.mode ?? 'node';
     const nodeTask = input.nodeTask.trim() || input.question;
-    const systemPrompt = mode === 'baseline' ? baselineSystemPrompt() : nodeSystemPrompt(nodeTask);
+    // 节点 prompt 分发（#3 Phase B）：verify → 挑战者、adjudicate → 裁决者，
+    // 工作流可用 promptStyle 显式覆盖（如极简路径的 execute 用 baseline 风格）
+    const systemPrompt = mode === 'baseline'
+      ? baselineSystemPrompt()
+      : systemPromptForNode(input.nodeId, nodeTask, input.promptStyle);
     const dataFiles = await listWorkspaceFiles(input.workspacePath);
     const upstreamSummary = input.upstreamArtifacts.length > 0
       ? input.upstreamArtifacts.map((a) => `- ${a.name}: ${a.path}`).join('\n')
@@ -291,9 +337,13 @@ export class PiAgentRunner implements AgentRunner {
     );
     // 重试 / 续跑（#2 Phase A）：executor 回灌的上次失败原因追加到 user prompt，
     // 使重试「带着失败原因」——schema/验证门问题针对性修复，步数耗尽从断点继续
-    const userText = input.previousFailure !== undefined
+    const withFeedback = input.previousFailure !== undefined
       ? `${baseUserText}\n\n${attemptFeedbackSection(input.previousFailure)}`
       : baseUserText;
+    // 修复回路重跑（#3 Phase B）：提示节点本轮为挑战应答轮
+    const userText = input.executionRound !== undefined && input.executionRound > 1
+      ? `${withFeedback}\n\n${repairRoundHint(input.executionRound)}`
+      : withFeedback;
 
     const tools: Tool[] = WORKSPACE_TOOLS;
     const context: Context = {
