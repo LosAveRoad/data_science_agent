@@ -29,11 +29,13 @@ import type { BenchmarkTask } from '../benchmark/task-loader.js';
 import { collectTaskOutputs, prepareWorkspace } from '../benchmark/workspace.js';
 import type { AgentRunner, NodeRunResult, RepairSummary } from '../dag/executor.js';
 import { DagExecutor } from '../dag/executor.js';
-import { taskRepairWorkflow } from '../dag/workflow.js';
+import { taskMinimalWorkflow, taskRepairWorkflow } from '../dag/workflow.js';
 import { addTokenUsage, emptyTokenUsage } from '../tracing/recorder.js';
 import { RunRecorder } from '../tracing/recorder.js';
 import type { NodeTraceSnapshot, TokenUsage } from '../tracing/recorder.js';
 import { createTaskOutputGate } from '../validate/gate.js';
+import { routeBudget, routeTask } from '../dag/router.js';
+import type { RouteDecision, RouteId } from '../dag/router.js';
 import { baselineMockScript, dagMockScripts, NodeScriptedMockRunner } from './mock-scripts.js';
 
 /** 实验模式。 */
@@ -53,6 +55,9 @@ export const DEFAULT_TOKEN_BUDGET = 2_000_000;
 /** 默认单节点 / 单次 ReAct 步数上限。 */
 export const DEFAULT_MAX_STEPS = 40;
 
+/** DAG 模式的难度路由选择（#4 Phase C）：auto = 按任务特征规则路由；其余强制指定档位。 */
+export type RoutingMode = 'auto' | RouteId;
+
 /** 解析后的 CLI 运行参数。 */
 export interface ParsedExperimentArgs {
   experimentId: string;
@@ -67,6 +72,8 @@ export interface ParsedExperimentArgs {
   overwriting: boolean;
   /** 任务级并发数（任务相互独立、工作区隔离；1 = 串行）。 */
   concurrency: number;
+  /** 难度路由（#4 Phase C，仅 DAG 模式生效）：auto=按任务特征规则路由。 */
+  routing: RoutingMode;
 }
 
 /** runExperiment 的完整配置（CLI 参数 + 路径解析结果）。 */
@@ -93,6 +100,8 @@ export interface TaskRunRecord {
   usageByModel?: Record<string, TokenUsage>;
   /** 修复回路收口信息（#3 Phase B；仅 DAG 模式）。 */
   repair?: RepairSummary;
+  /** 难度路由决策（#4 Phase C；仅 DAG 模式，auto 时含规则理由）。 */
+  route?: { route: RouteId; reason: string };
   error?: string;
 }
 
@@ -132,6 +141,8 @@ export function usageText(): string {
     '  --max-steps <n>        单节点 / 单次 ReAct 步数上限（默认 40）',
     '  --overwriting          忽略断点续跑记录，强制重跑已完成任务',
     '  --concurrency <n>      任务级并发数（默认 1 = 串行；任务相互独立，可安全并行）',
+    '  --routing <mode>       难度路由（仅 DAG，#4 Phase C）：auto | full | simple | minimal，默认 auto；',
+    '                         simple 跳过 Plan 保留修复回路，minimal 单节点直做；预算按档位折算',
     '  -h, --help             打印本帮助',
   ].join('\n');
 }
@@ -150,6 +161,7 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
   let maxSteps = DEFAULT_MAX_STEPS;
   let overwriting = false;
   let concurrency = 1;
+  let routing: RoutingMode = 'auto';
 
   const readValue = (flag: string, rest: readonly string[]): string => {
     if (rest.length === 0) {
@@ -211,6 +223,15 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
         concurrency = readInt(flag, rest);
         i += 1;
         break;
+      case '--routing': {
+        const value = readValue(flag, rest);
+        if (!['auto', 'full', 'simple', 'minimal'].includes(value)) {
+          throw new Error(`参数 --routing 只允许 auto / full / simple / minimal，实际为 ${JSON.stringify(value)}`);
+        }
+        routing = value as RoutingMode;
+        i += 1;
+        break;
+      }
       default:
         throw new Error(`未知参数: ${flag}`);
     }
@@ -231,7 +252,18 @@ export function parseExperimentArgs(args: readonly string[]): ParsedExperimentAr
     throw new Error('缺少任务选择参数：--tasks <id1,id2,...> 或 --all（二选一）');
   }
 
-  return { experimentId, taskIds, all, ...(limit !== undefined ? { limit } : {}), mock, tokenBudget, maxSteps, overwriting, concurrency };
+  return {
+    experimentId,
+    taskIds,
+    all,
+    ...(limit !== undefined ? { limit } : {}),
+    mock,
+    tokenBudget,
+    maxSteps,
+    overwriting,
+    concurrency,
+    routing,
+  };
 }
 
 /**
@@ -489,6 +521,17 @@ function mergeUsageByModel(records: readonly TaskRunRecord[]): Record<string, To
   return merged;
 }
 
+/** 统计各路由档位的任务数（#4 Phase C run-summary 归因用；未记录路由的任务不计入）。 */
+function countRoutes(records: readonly TaskRunRecord[]): Record<RouteId, number> {
+  const counts: Record<RouteId, number> = { minimal: 0, simple: 0, full: 0 };
+  for (const record of records) {
+    if (record.route !== undefined) {
+      counts[record.route.route] += 1;
+    }
+  }
+  return counts;
+}
+
 /**
  * 运行一次实验（共享运行循环）。
  * 真实 LLM 运行不在此处做任何 API mock：--mock 时全部使用 MockAgentRunner（0 token）。
@@ -604,6 +647,9 @@ export async function runExperiment(config: ExperimentRunConfig): Promise<Experi
       tokenBudget: config.tokenBudget,
       overwriting: config.overwriting,
       concurrency: config.concurrency,
+      // #4 Phase C：难度路由模式与各档位任务数（归因用）
+      routing: config.routing,
+      routeCounts: countRoutes(records),
     },
     totals: {
       ...result.totals,
@@ -638,6 +684,7 @@ async function runSingleTask(
   let resultText: string;
   let workspacePath = '';
   let repair: RepairSummary | null = null;
+  let routing: { route: RouteId; reason: string } | null = null;
 
   try {
     // 1. 任务隔离工作区：先归位 data_sources（官方 dev.jsonl 相对 datasets/<domain>/），
@@ -690,19 +737,46 @@ async function runSingleTask(
           `（预算 ${config.tokenBudget} tokens）`;
       }
     } else {
+      // #4 Phase C 难度路由：auto 按任务特征规则分档，或 CLI 强制档位；
+      // 决策（特征依据与选择结果）写入 tracing（轨迹步骤）与 summary（extras / run-summary）
+      const decision: RouteDecision =
+        config.routing === 'auto'
+          ? routeTask(task)
+          : {
+              route: config.routing,
+              ...(() => {
+                const features = routeTask(task).features;
+                return { features, reason: `CLI 指定 --routing ${config.routing}（特征: ${JSON.stringify(features)}）` };
+              })(),
+            };
+      recorder.recordStep({
+        kind: 'thought',
+        name: 'route',
+        content: `[router] 路由决策: ${decision.route}（${decision.reason}）`,
+      });
+      routing = { route: decision.route, reason: decision.reason };
+      const budget = routeBudget(config.tokenBudget, decision.route);
+
       // #3 Phase B：验证-修复回路工作流（verify 挑战者 + adjudicate 裁决 + 有界回炉）；
+      // #4 Phase C：simple 路径经 executor 跳过 plan 子图（依赖透明传递），minimal 单节点直做；
       // 模型分层（#3 Phase B）：Plan / Verify / 裁决用强模型（$MODEL_ID_STRONG），其余默认档
       const nodeModels = buildNodeModels();
       const runner: AgentRunner = config.mock
         ? new NodeScriptedMockRunner(dagMockScripts(task))
         : new PiAgentRunner({ mode: 'node', ...(nodeModels !== undefined ? { nodeModels } : {}) });
-      const executor = new DagExecutor(taskRepairWorkflow(task), runner, {
+      const workflow =
+        decision.route === 'minimal'
+          ? taskMinimalWorkflow(task)
+          : taskRepairWorkflow(task);
+      const executor = new DagExecutor(workflow, runner, {
         maxStepsPerNode: config.maxSteps,
-        tokenBudgetPerRun: config.tokenBudget,
+        // 分档 token 预算（#4 Phase C）：simple 0.6×、minimal 0.25×，full 用满 run 级预算
+        tokenBudgetPerRun: budget,
         // #2 Phase A：单节点失败重试 / 步数耗尽续跑（默认 2 次尝试）+
         // execute 节点成功后的程序化验证门（任务输出文件存在性 / 非空 / 格式）；
         // 语义层辩驳由 verify / adjudicate 负责（第一道门仍是 0 token 程序化检查）
         outputGate: createTaskOutputGate(task),
+        ...(decision.route === 'simple' ? { skipNodes: ['plan'] as const } : {}),
       });
       const outcome = await executor.runTask({
         taskId: task.id,
@@ -715,7 +789,7 @@ async function runSingleTask(
       error = outcome.error;
       repair = outcome.repair;
       console.log(
-        `[dag] ${task.id}: 修复回路 rounds=${repair.rounds}` +
+        `[dag] ${task.id}: route=${decision.route} budget=${budget} 修复回路 rounds=${repair.rounds}` +
           ` lastDecision=${repair.lastDecision ?? '无'}${repair.forcedAccept ? '（超限强制 accept）' : ''}`,
       );
     }
@@ -744,13 +818,15 @@ async function runSingleTask(
     resultText = `任务异常失败: ${error}`;
   }
 
-  // 4. 官方评测产物 + run 级汇总（extras：修复回路收口信息并入任务 summary）
+  // 4. 官方评测产物 + run 级汇总（extras：路由决策与修复回路收口信息并入任务 summary）
   recorder.endRun({
     status,
     ...(error !== undefined ? { error } : {}),
     result: resultText,
     resultFiles: { added_files: outputs, changed_files: [] },
-    ...(repair !== null ? { extras: { repair } } : {}),
+    ...(repair !== null || routing !== null
+      ? { extras: { ...(routing !== null ? { routing } : {}), ...(repair !== null ? { repair } : {}) } }
+      : {}),
   });
   await recorder.writeResultJson(taskOutputDir);
   await recorder.writeSummary(summaryPath);
@@ -766,6 +842,7 @@ async function runSingleTask(
     tokenUsage: recorder.getTotalTokenUsage(),
     outputs,
     ...(repair !== null ? { repair } : {}),
+    ...(routing !== null ? { route: routing } : {}),
     ...(hasModelInfo ? { usageByModel } : {}),
     ...(error !== undefined ? { error } : {}),
   };

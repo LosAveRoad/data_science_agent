@@ -96,6 +96,12 @@ export interface DagExecutorOptions {
   maxAttemptsPerNode?: number;
   /** 节点成功后的程序化验证门（见 NodeOutputGateFn；未设置则不做门检查）。 */
   outputGate?: NodeOutputGateFn;
+  /**
+   * 跳过的节点集合（#4 Phase C 按路由跳过子图）：不执行、不要求产物，
+   * 依赖透明传递——依赖跳过节点的节点改从跳过节点的上游取产物
+   * （如 simple 路径跳过 plan 时，execute 直接读 inspect 的 data_profile.json）。
+   */
+  skipNodes?: readonly string[];
 }
 
 /** runTask 的任务上下文。 */
@@ -229,6 +235,12 @@ export class DagExecutor {
   private readonly tokenBudgetPerRun: number | undefined;
   private readonly maxAttemptsPerNode: number;
   private readonly outputGate: NodeOutputGateFn | undefined;
+  /** 跳过的节点集合（#4 Phase C）：不调度、依赖透明传递。 */
+  private readonly skipNodes: ReadonlySet<string>;
+  /** 各节点展开跳过节点后的有效静态依赖（跳过节点用其静态上游替换，传递展开）。 */
+  private readonly effectiveStaticDeps: Map<string, string[]>;
+  /** 各节点展开跳过节点后的有效回路依赖。 */
+  private readonly effectiveLoopDeps: Map<string, string[]>;
 
   constructor(workflow: WorkflowDefinition, runner: AgentRunner, opts: DagExecutorOptions = {}) {
     this.workflow = workflow;
@@ -240,6 +252,40 @@ export class DagExecutor {
     this.tokenBudgetPerRun = opts.tokenBudgetPerRun;
     this.maxAttemptsPerNode = Math.max(1, opts.maxAttemptsPerNode ?? DEFAULT_MAX_ATTEMPTS_PER_NODE);
     this.outputGate = opts.outputGate;
+    this.skipNodes = new Set(opts.skipNodes ?? []);
+    for (const nodeId of this.skipNodes) {
+      if (!this.nodeById.has(nodeId)) {
+        throw new ExecutorError(`skipNodes 引用了不存在的节点: ${nodeId}`);
+      }
+    }
+    this.effectiveStaticDeps = new Map();
+    this.effectiveLoopDeps = new Map();
+    for (const node of this.order) {
+      this.effectiveStaticDeps.set(node.id, this.expandDeps(node.dependsOn, new Set()));
+      this.effectiveLoopDeps.set(node.id, this.expandDeps(node.loopDependencies ?? [], new Set()));
+    }
+  }
+
+  /**
+   * 依赖展开：被跳过的依赖节点用其静态上游替换（传递展开），实现子图跳过的依赖透明传递。
+   * 跳过链（A 跳过、B 依赖 A 且 B 也跳过）逐层下沉到未跳过的上游；无上游时消解为空。
+   */
+  private expandDeps(depIds: readonly string[], visiting: Set<string>): string[] {
+    const expanded: string[] = [];
+    for (const depId of depIds) {
+      if (!this.skipNodes.has(depId)) {
+        expanded.push(depId);
+        continue;
+      }
+      const depNode = this.nodeById.get(depId);
+      if (depNode === undefined || visiting.has(depId)) {
+        continue; // 防御：未知节点 / 跳过环（构造期已校验节点存在）
+      }
+      visiting.add(depId);
+      expanded.push(...this.expandDeps(depNode.dependsOn, visiting));
+      visiting.delete(depId);
+    }
+    return expanded;
   }
 
   /** 按依赖顺序调度执行整个工作流，返回 run 结果。 */
@@ -285,6 +331,9 @@ export class DagExecutor {
       let stallNode: DagNode | null = null;
       let stallError = '';
       for (const node of this.order) {
+        if (this.skipNodes.has(node.id)) {
+          continue; // #4 Phase C 按路由跳过的子图节点：不调度（nodeRuns 记 skipped）
+        }
         if (doneOk.has(node.id)) {
           continue;
         }
@@ -466,6 +515,10 @@ export class DagExecutor {
     // 10. 汇总 nodeRuns（按执行序输出；未执行的节点补 pending 记录，保证覆盖整个 workflow）
     const nodeRuns: NodeRun[] = [];
     for (const node of this.order) {
+      if (this.skipNodes.has(node.id)) {
+        nodeRuns.push({ nodeId: node.id, status: 'skipped' });
+        continue;
+      }
       const run = nodeRunsByNode.get(node.id);
       if (run !== undefined) {
         nodeRuns.push(run);
@@ -523,7 +576,7 @@ export class DagExecutor {
   }
 
   /**
-   * 回炉重置集合：目标节点 + 经静态依赖与回路依赖可传递到达它的全部下游节点
+   * 回炉重置集合：目标节点 + 经有效静态/回路依赖可传递到达它的全部下游节点
    * （它们的输入随目标节点重跑而失效，需要一并重跑）。
    */
   private resetSetFor(targetId: string): Set<string> {
@@ -535,7 +588,10 @@ export class DagExecutor {
         if (set.has(node.id)) {
           continue;
         }
-        const deps = [...node.dependsOn, ...(node.loopDependencies ?? [])];
+        const deps = [
+          ...(this.effectiveStaticDeps.get(node.id) ?? []),
+          ...(this.effectiveLoopDeps.get(node.id) ?? []),
+        ];
         if (deps.some((dep) => set.has(dep))) {
           set.add(node.id);
           grew = true;
@@ -621,11 +677,14 @@ export class DagExecutor {
   }
 
   /**
-   * 节点的上游产物：静态依赖（dependsOn）始终计入；回路依赖（loopDependencies）
-   * 仅从第 2 轮执行起计入（首轮执行时回路反馈产物尚不存在，依赖检查同样放行）。
+   * 节点的上游产物：有效静态依赖（dependsOn 展开跳过节点）始终计入；有效回路依赖
+   * （loopDependencies 展开跳过节点）仅从第 2 轮执行起计入（首轮执行时回路反馈产物
+   * 尚不存在，依赖检查同样放行）。
    */
   private upstreamArtifactsFor(node: DagNode, store: ArtifactStore, executionRound: number): ArtifactRef[] {
-    const depIds = executionRound > 1 ? [...node.dependsOn, ...(node.loopDependencies ?? [])] : node.dependsOn;
+    const depIds = executionRound > 1
+      ? [...(this.effectiveStaticDeps.get(node.id) ?? []), ...(this.effectiveLoopDeps.get(node.id) ?? [])]
+      : (this.effectiveStaticDeps.get(node.id) ?? []);
     return depIds.flatMap((dep) => store.list(dep));
   }
 
@@ -696,8 +755,8 @@ export class DagExecutor {
   }
 
   /**
-   * 检查节点的依赖产物是否就绪。静态依赖（dependsOn）始终检查；回路依赖
-   * （loopDependencies）仅在重跑轮（executionCount >= 1）检查。
+   * 检查节点的依赖产物是否就绪。有效静态依赖始终检查；有效回路依赖
+   * （loopDependencies 展开跳过节点）仅在重跑轮（executionCount >= 1）检查。
    * 检查内容：上游声明产物已产出、已登记产物文件都在盘上。
    */
   private async findMissingDependencies(
@@ -705,7 +764,9 @@ export class DagExecutor {
     store: ArtifactStore,
     executionCount: number,
   ): Promise<string[]> {
-    const depIds = executionCount >= 1 ? [...node.dependsOn, ...(node.loopDependencies ?? [])] : node.dependsOn;
+    const depIds = executionCount >= 1
+      ? [...(this.effectiveStaticDeps.get(node.id) ?? []), ...(this.effectiveLoopDeps.get(node.id) ?? [])]
+      : (this.effectiveStaticDeps.get(node.id) ?? []);
     const problems = new Set<string>();
     for (const depId of depIds) {
       const depNode = this.nodeById.get(depId);

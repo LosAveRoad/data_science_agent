@@ -6,7 +6,7 @@
 基于 AgenticDataBench 基准，使用 Pi Agent 作为底层 ReAct Runtime 的数据分析 Agent，并自主实现 DAG 编排层，探索任务分阶段执行与依赖管理对数据分析任务完成效果的影响。
 
 - **Baseline**：Pi Agent 直接接收任务，通过 ReAct 与工具调用完成数据分析。
-- **DAG Prototype**：Pi Agent 作为执行节点，由自研 DAG Orchestrator 管理四阶段工作流并带验证-修复回路：`Inspect → Plan → Execute ⇄ Verify(挑战者) → Adjudicate(裁决)`，节点之间通过文件 Artifact 传递信息；节点失败自动重试 / 步数耗尽续跑，关键 Artifact 做结构化 schema 校验，execute 产出过程序化验证门（Phase A，[issue #2](https://github.com/LosAveRoad/data_science_agent/issues/2)）；验证-修复回路与模型分层（Phase B，[issue #3](https://github.com/LosAveRoad/data_science_agent/issues/3)）。
+- **DAG Prototype**：Pi Agent 作为执行节点，由自研 DAG Orchestrator 管理四阶段工作流并带验证-修复回路：`Inspect → Plan → Execute ⇄ Verify(挑战者) → Adjudicate(裁决)`，节点之间通过文件 Artifact 传递信息；节点失败自动重试 / 步数耗尽续跑，关键 Artifact 做结构化 schema 校验，execute 产出过程序化验证门（Phase A，[issue #2](https://github.com/LosAveRoad/data_science_agent/issues/2)）；验证-修复回路与模型分层（Phase B，[issue #3](https://github.com/LosAveRoad/data_science_agent/issues/3)）；难度路由（按任务特征分档选择路径与预算，Phase C，[issue #4](https://github.com/LosAveRoad/data_science_agent/issues/4)）。
 
 两套系统使用相同的模型、工具、数据集和执行环境，统一由 AgenticDataBench 官方 Evaluator 评价。第一阶段固定评测 **30 个任务的冻结子集**，不跑全量 344 任务（选样标准与成本预估见 [docs/design.md](docs/design.md) §3）。完整设计见 [docs/design.md](docs/design.md)，Phase 1 开发计划与里程碑见 [docs/development-plan.md](docs/development-plan.md)。
 
@@ -19,6 +19,7 @@
 - [x] 执行轨迹（Tool Calls / Token Usage / 节点耗时）与失败定位
 - [x] Phase A 失败策略与产物契约（[issue #2](https://github.com/LosAveRoad/data_science_agent/issues/2)）：节点失败重试 / 步数耗尽续跑 / Artifact 结构化 schema / 程序化验证门——单测与 `--mock` 管线验证通过，真实 LLM 对照运行待执行
 - [x] Phase B 验证-修复回路与模型分层（[issue #3](https://github.com/LosAveRoad/data_science_agent/issues/3)）：Verify 挑战者 + 裁决节点 + 有界修复回路（2 轮上限）+ 按节点模型分层——单测与 `--mock` 管线验证通过，真实 LLM 对照运行待执行
+- [x] Phase C 难度路由（[issue #4](https://github.com/LosAveRoad/data_science_agent/issues/4)）：入口规则路由（full / simple / minimal 三档路径）+ 跳过子图 + 分档 token 预算 + 路由决策可归因——单测与 `--mock` 管线验证通过，真实 LLM 对照运行待执行
 
 ## 目录结构
 
@@ -28,7 +29,7 @@
 ├── src/
 │   ├── benchmark/    # 任务读取（dev.jsonl）、隔离工作区准备
 │   ├── agent/        # Pi Agent Runtime、工作区工具、Baseline/节点/挑战者/裁决者 Prompt、按节点模型分层、MockAgentRunner
-│   ├── dag/          # 节点/依赖/工作流（含修复回路拓扑）/有界回路 Executor（AgentRunner 契约单一来源）
+│   ├── dag/          # 节点/依赖/工作流（含修复回路拓扑）/有界回路 Executor/难度路由（规则分档+分档预算）
 │   ├── artifacts/    # Artifact 存取（产物注册表 + data_profile/analysis_plan/challenge_list/verdict 结构化 schema 校验）
 │   ├── validate/     # 程序化验证门（任务输出文件存在性/非空/格式检查，0 token）
 │   ├── tracing/      # RunRecorder：轨迹、Token 统计（按节点记录模型）、官方 result.json / run 级 summary
@@ -36,7 +37,7 @@
 │   └── main.ts       # CLI 分发入口：node dist/src/main.js baseline|dag [--...]
 ├── experiments/      # 实验入口：baseline-pi.ts / dag-prototype.ts（编译产物 dist/experiments/*.js）
 ├── scripts/          # evaluate.sh（官方 Evaluator）、check-pr-structure.mjs、test-llm.ts
-├── tests/            # 单元测试（vitest；loop.test.ts 覆盖修复回路）
+├── tests/            # 单元测试（vitest；loop.test.ts 覆盖修复回路，router.test.ts 覆盖难度路由）
 └── runs/             # 实验产物：runs/<experiment_id>/（output-da-agent、summary、run-summary.json、evaluation）；JSON 评测证据随 PR 提交
 ```
 
@@ -104,14 +105,15 @@ CLI 参数（两个实验入口一致，也可用 `node dist/src/main.js baselin
 | `--max-steps <n>` | 单节点 / 单次 ReAct 步数上限，默认 40 |
 | `--overwriting` | 忽略断点续跑记录，强制重跑已完成任务 |
 | `--concurrency <n>` | 任务级并发数，默认 1（串行）；任务相互独立、工作区按 task.id 隔离，可安全并行 |
+| `--routing <mode>` | 难度路由（仅 DAG，Phase C）：`auto`（按任务特征规则分档）/ `full` / `simple` / `minimal`，默认 auto。simple 跳过 Plan 保留修复回路；minimal 单节点直做；token 预算按档位折算（full 1× / simple 0.6× / minimal 0.25×）。路由决策写入任务 summary（`routing`）与 run-summary（`routeCounts`），轨迹首步可查 |
 
 环境变量 `MODEL_ID_STRONG`（可选，Phase B 模型分层）：配置后 Plan / Verify（挑战者）/ Adjudicate（裁决）节点使用强模型，Inspect / Execute 保持 `MODEL_ID` 默认档；留空则全部节点用默认档。每次运行的分层用量在 `run-summary.json` 的 `totals.usageByModel` 汇总。
 
 每次运行产出（`runs/<experiment_id>/`）：
 
 - `output-da-agent/<task_id>/`：官方 Evaluator 输入——任务产出文件（按 `output_file_name` 从工作区收集）与 `dabench/result.json`（trajectory / finished / steps / result / result_files / token_usage）；
-- `summary/<task_id>.json`：任务级汇总（节点状态 / 耗时 / 每节点模型 / token / 错误，及 DAG 模式的修复回路收口信息 `repair`：修复轮数 / 最终裁决 / 是否超限强制 accept）；
-- `run-summary.json`：全部任务状态与 token 汇总、模型与运行配置、按模型分层的成本汇总（`totals.usageByModel`）；
+- `summary/<task_id>.json`：任务级汇总（节点状态 / 耗时 / 每节点模型 / token / 错误，及 DAG 模式的路由决策 `routing` 与修复回路收口信息 `repair`：修复轮数 / 最终裁决 / 是否超限强制 accept）；
+- `run-summary.json`：全部任务状态与 token 汇总、模型与运行配置、按模型分层的成本汇总（`totals.usageByModel`）、路由档位任务数（`config.routeCounts`）与每任务路由决策（`tasks[].route`）；
 - `evaluation/`：`scripts/evaluate.sh` 写出的官方评测结果 JSON。
 
 ## CI 与 PR 规则

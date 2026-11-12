@@ -31,6 +31,7 @@
 | M5 评测与对比 | 官方 Evaluator 对接；baseline vs DAG 对照 | `scripts/evaluate.sh`、`scripts/run-dag.sh` | 官方得分产出且能填入 PR 的 `benchmark-results` 块（`tasks: 30`）；两系统同任务同模型对照可复现 |
 | M6 Phase A 失败策略（issue #2） | 节点重试 / 步数续跑 / 结构化 Artifact schema / 程序化验证门 | `src/artifacts/schemas.ts`、`src/validate/gate.ts` | 重试 / 续跑 / schema 校验失败路径单测覆盖；完成率与 token 对照实验待真实运行 |
 | M7 Phase B 验证-修复回路（issue #3） | Verify 挑战者 + 裁决节点 + 有界回路（2 轮上限）+ state.json v2 + 按节点模型分层 | `tests/loop.test.ts`（executor/workflow/prompts/pi-runtime 扩展） | 单测覆盖回路终止条件、裁决三分支、含中间轮次断点续跑；`--mock` 管线联调通过；修复轮次 / 挑战清单 / 裁决结果在 summary 与 tracing 可查；真实 LLM 对照运行（0 分任务下降、均分 0.5+）待执行 |
+| M8 Phase C 难度路由（issue #4） | 入口规则路由（full / simple / minimal）+ executor 跳过子图 + 分档 token 预算 + 路由决策可归因 | `src/dag/router.ts`、`tests/router.test.ts`（executor/workflow/runner 扩展） | 单测覆盖路由分支选择、预算分档、跳过子图后的依赖检查；`--mock` 管线联调通过；每任务路由决策与理由在 summary / run-summary / tracing 可查；真实 LLM 对照运行（token 进一步下降、得分不低于 Phase B）待执行 |
 
 模块与文件对应关系以 design.md §4 为准；M1–M3 严格串行（M3 依赖 M1 的任务输入结构），M4 可与 M3 后半并行。
 
