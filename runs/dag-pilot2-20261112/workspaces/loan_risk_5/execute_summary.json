@@ -1,0 +1,188 @@
+{
+  "task": "score distribution statistics by group_id: overall (output_1.csv) + monthly by apply_date[:6] (output_2.csv)",
+  "method": {
+    "environment": "pure Python standard library (pandas/numpy NOT installed in this environment); csv + collections.Counter + statistics",
+    "loading": "csv.DictReader with encoding='utf-8-sig' (strips BOM); score parsed to float; apply_month = apply_date[:6]; rows missing any of the 3 fields or failing parse are skipped and counted (actual skipped = 0)",
+    "accumulation": "single pass; each row appended both to key (group_id, apply_month) and (group_id, 'overall'); the 'overall' marker is an internal accumulator key only and is NOT emitted as a column",
+    "metrics": {
+      "cnt": "float(len(values)) - cast to float per spec (written as e.g. 420.0)",
+      "max_score / min_score": "float(max) / float(min)",
+      "mode_score": "Counter-based mode with MIN tie-break: min of all scores sharing the highest frequency (not Counter.most_common, whose tie order is insertion-dependent)",
+      "mean_score": "statistics.mean",
+      "median_score": "statistics.median (average of two middle values for even n)",
+      "std_score": "statistics.stdev (SAMPLE std, ddof=1); 0.0 when n < 2"
+    },
+    "ordering": "output_1 sorted by group_id; output_2 sorted by (group_id, apply_month); sparse grid - only observed (group, month) pairs emitted",
+    "formatting": "all values rounded to 10 decimal places and written via repr(float); cnt remains integral (e.g. 420.0)"
+  },
+  "key_results": {
+    "rows_read": 1203,
+    "rows_skipped": 0,
+    "groups": [
+      "G001",
+      "G002",
+      "G003",
+      "G004",
+      "G005",
+      "G006",
+      "G007"
+    ],
+    "months": [
+      "202401",
+      "202402",
+      "202403",
+      "202404",
+      "202405",
+      "202406"
+    ],
+    "output_1_rows": 7,
+    "output_2_rows": 32,
+    "output_1_sum_cnt": 1203.0,
+    "output_2_sum_cnt": 1203.0,
+    "overall_by_group": {
+      "G001": {
+        "cnt": 420.0,
+        "mean": 712.1357142857,
+        "median": 714.0,
+        "std": 40.3213009876,
+        "mode": 722.0,
+        "min": 614.0,
+        "max": 850.0
+      },
+      "G002": {
+        "cnt": 330.0,
+        "mean": 688.5272727273,
+        "median": 688.0,
+        "std": 52.7999681814,
+        "mode": 688.0,
+        "min": 511.0,
+        "max": 850.0
+      },
+      "G003": {
+        "cnt": 261.0,
+        "mean": 739.3754789272,
+        "median": 739.0,
+        "std": 30.9768650066,
+        "mode": 724.0,
+        "min": 665.0,
+        "max": 999.0
+      },
+      "G004": {
+        "cnt": 150.0,
+        "mean": 661.1533333333,
+        "median": 659.5,
+        "std": 60.8843922282,
+        "mode": 655.0,
+        "min": 487.0,
+        "max": 854.0
+      },
+      "G005": {
+        "cnt": 40.0,
+        "mean": 700.9,
+        "median": 700.0,
+        "std": 38.0686289853,
+        "mode": 682.0,
+        "min": 635.0,
+        "max": 797.0
+      },
+      "G006": {
+        "cnt": 1.0,
+        "mean": 700.0,
+        "median": 700.0,
+        "std": 0.0,
+        "mode": 700.0,
+        "min": 700.0,
+        "max": 700.0
+      },
+      "G007": {
+        "cnt": 1.0,
+        "mean": 640.0,
+        "median": 640.0,
+        "std": 0.0,
+        "mode": 640.0,
+        "min": 640.0,
+        "max": 640.0
+      }
+    },
+    "mode_ties_resolved_by_min": {
+      "G001_overall": {
+        "tied_values": [
+          722.0,
+          726.0
+        ],
+        "freq": 8,
+        "chosen": 722.0
+      },
+      "G005_overall": {
+        "tied_values": [
+          682.0,
+          683.0,
+          722.0,
+          726.0
+        ],
+        "freq": 2,
+        "chosen": 682.0
+      }
+    },
+    "std_zero_insufficient_sample": {
+      "overall": [
+        "G006 (n=1)",
+        "G007 (n=1)"
+      ],
+      "monthly": [
+        "G005/202403 (n=1)",
+        "G006/202406 (n=1)",
+        "G007/202406 (n=1)"
+      ]
+    }
+  },
+  "validation": {
+    "output_1_header_8_cols": true,
+    "output_2_header_9_cols_apply_month_second": true,
+    "output_1_rows_eq_7": true,
+    "output_2_rows_eq_32": true,
+    "sum_cnt_both_eq_1203": true,
+    "monthly_cnt_sums_match_overall_per_group": "PASS (max diff 0.0)",
+    "min<=median<=max and min<=mean/mode<=max_all_rows": "PASS",
+    "all_numeric_fields_parse_as_float": "PASS",
+    "cnt_integral_no_drift": "PASS",
+    "no_overall_string_in_outputs": true,
+    "independent_recompute_max_abs_diff": "4.05e-11 (manual mean/median/sqrt(ddof=1) formulas vs output_1) - rounding only"
+  },
+  "outputs": [
+    {
+      "path": "output_1.csv",
+      "rows": 7,
+      "columns": [
+        "group_id",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ]
+    },
+    {
+      "path": "output_2.csv",
+      "rows": 32,
+      "columns": [
+        "group_id",
+        "apply_month",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ]
+    }
+  ],
+  "notes": [
+    "5 duplicate full rows exist in the raw data and were intentionally KEPT (no dedup in spec); counts sum to 1203 either way as expected.",
+    "Sparse (group, month) grid: 32 observed cells out of the 42 possible group x month combinations; missing combinations are not emitted.",
+    "G003 max_score 999.0 is the dataset maximum (per data_profile) and is retained as a legitimate value."
+  ]
+}

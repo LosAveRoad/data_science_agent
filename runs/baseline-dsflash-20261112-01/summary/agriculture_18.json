@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "agriculture_18",
+  "startedAt": "2026-11-11T18:45:15.290Z",
+  "finishedAt": "2026-11-11T18:45:54.884Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 3 个文件: output.png, output1.csv, output2.csv",
+  "totalSteps": 47,
+  "tokenUsage": {
+    "inputTokens": 7317,
+    "outputTokens": 4443,
+    "totalTokens": 11760
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:45:15.295Z",
+      "finishedAt": "2026-11-11T18:45:54.881Z",
+      "elapsedMs": 39586,
+      "error": null,
+      "steps": 47,
+      "tokenUsage": {
+        "inputTokens": 7317,
+        "outputTokens": 4443,
+        "totalTokens": 11760
+      }
+    }
+  ]
+}

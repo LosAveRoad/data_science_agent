@@ -1,0 +1,218 @@
+{
+  "total_associations_analyzed": 8,
+  "confidence_level_distribution": {
+    "high": 4,
+    "medium": 2,
+    "low": 2
+  },
+  "n_multi_study_pairs": 1,
+  "n_single_study_pairs": 7,
+  "total_participants_contributing": 29020,
+  "per_condition_rank_of_top_biomarker": {
+    "Diabetes": {
+      "biomarker": "Glucose",
+      "rank": 1
+    },
+    "Stroke": {
+      "biomarker": "Glucose",
+      "rank": 4
+    },
+    "HeartDisease": {
+      "biomarker": "Glucose",
+      "rank": 2
+    }
+  },
+  "strongest_association": {
+    "condition": "Diabetes",
+    "biomarker": "Glucose",
+    "score": 11.8713,
+    "meta_effect_size": 1.1871,
+    "fdr_corrected_p_unrounded": 4.508533916504829e-165
+  },
+  "weakest_association": {
+    "condition": "HeartDisease",
+    "biomarker": "BMI",
+    "score": 0.4628,
+    "meta_effect_size": 0.1908,
+    "fdr_corrected_p_unrounded": 0.003751577107101481
+  },
+  "nonsignificant_or_low_confidence_associations": [
+    {
+      "condition": "Stroke",
+      "biomarker": "BMI",
+      "fdr_corrected_p": 0.0034077705860749486
+    },
+    {
+      "condition": "HeartDisease",
+      "biomarker": "BMI",
+      "fdr_corrected_p": 0.003751577107101481
+    }
+  ],
+  "fdr_method_family_size": 8,
+  "method_notes": "Cohen's d (cases vs controls, ddof=1 pooled SD); inverse-variance weighted fixed-effect meta-analysis (w=1/var_d); single-study pairs use the same formulas (collapse to d_1) with two-tailed standard-normal p-value from z; Benjamini-Hochberg FDR across all 8 associations; score=|d|*(-log10(q+1e-10)); classification and scoring use UNROUNDED values.",
+  "heterogeneity": {
+    "HDF_BP": {
+      "Q": 0.04218142295601805,
+      "df": 3,
+      "I2": 0.0
+    }
+  },
+  "per_association_detail": [
+    {
+      "association_id": "DIA_GLU",
+      "condition": "Diabetes",
+      "biomarker": "Glucose",
+      "studies": 1,
+      "n_total": 2750,
+      "meta_effect_size_unrounded": 1.1871294949562672,
+      "se_meta": 0.043234985480891,
+      "z": 27.45761289733646,
+      "meta_p_value_unrounded": 5.635667395631037e-166,
+      "fdr_corrected_p_unrounded": 4.508533916504829e-165,
+      "score_unrounded": 11.871294949562671,
+      "confidence_level": "high",
+      "rank": 1
+    },
+    {
+      "association_id": "HDF_GLU",
+      "condition": "HeartDisease",
+      "biomarker": "Glucose",
+      "studies": 1,
+      "n_total": 5110,
+      "meta_effect_size_unrounded": 0.7254793108859985,
+      "se_meta": 0.06230213052604247,
+      "z": 11.644534540961581,
+      "meta_p_value_unrounded": 2.4465372012286396e-31,
+      "fdr_corrected_p_unrounded": 6.5240992032763725e-31,
+      "score_unrounded": 7.254793108859985,
+      "confidence_level": "high",
+      "rank": 2
+    },
+    {
+      "association_id": "DIA_BMI",
+      "condition": "Diabetes",
+      "biomarker": "BMI",
+      "studies": 1,
+      "n_total": 2729,
+      "meta_effect_size_unrounded": 0.6398851757699608,
+      "se_meta": 0.04113577901644862,
+      "z": 15.555440812585447,
+      "meta_p_value_unrounded": 1.461455565490087e-54,
+      "fdr_corrected_p_unrounded": 5.845822261960348e-54,
+      "score_unrounded": 6.3988517576996085,
+      "confidence_level": "high",
+      "rank": 3
+    },
+    {
+      "association_id": "STR_GLU",
+      "condition": "Stroke",
+      "biomarker": "Glucose",
+      "studies": 1,
+      "n_total": 5110,
+      "meta_effect_size_unrounded": 0.6181324456241206,
+      "se_meta": 0.06526231315924914,
+      "z": 9.471506842176913,
+      "meta_p_value_unrounded": 2.7583546422264644e-21,
+      "fdr_corrected_p_unrounded": 5.516709284452929e-21,
+      "score_unrounded": 6.181324456226396,
+      "confidence_level": "high",
+      "rank": 4
+    },
+    {
+      "association_id": "DIA_BP",
+      "condition": "Diabetes",
+      "biomarker": "BloodPressure",
+      "studies": 1,
+      "n_total": 2643,
+      "meta_effect_size_unrounded": 0.3790074505636698,
+      "se_meta": 0.04140941694584213,
+      "z": 9.15268744448539,
+      "meta_p_value_unrounded": 5.553447499683404e-20,
+      "fdr_corrected_p_unrounded": 8.885515999493446e-20,
+      "score_unrounded": 3.790074505490442,
+      "confidence_level": "medium",
+      "rank": 5
+    },
+    {
+      "association_id": "HDF_BP",
+      "condition": "HeartDisease",
+      "biomarker": "BloodPressure",
+      "studies": 4,
+      "n_total": 860,
+      "meta_effect_size_unrounded": 0.3034248879943755,
+      "se_meta": 0.07592052469455804,
+      "z": 3.996612104764931,
+      "meta_p_value_unrounded": 6.425545965609507e-05,
+      "fdr_corrected_p_unrounded": 8.567394620812676e-05,
+      "score_unrounded": 1.2340747522135653,
+      "confidence_level": "medium",
+      "rank": 6
+    },
+    {
+      "association_id": "STR_BMI",
+      "condition": "Stroke",
+      "biomarker": "BMI",
+      "studies": 1,
+      "n_total": 4909,
+      "meta_effect_size_unrounded": 0.21002389409943978,
+      "se_meta": 0.07072444927125905,
+      "z": 2.969608052993198,
+      "meta_p_value_unrounded": 0.00298179926281558,
+      "fdr_corrected_p_unrounded": 0.0034077705860749486,
+      "score_unrounded": 0.5182401832188267,
+      "confidence_level": "low",
+      "rank": 7
+    },
+    {
+      "association_id": "HDF_BMI",
+      "condition": "HeartDisease",
+      "biomarker": "BMI",
+      "studies": 1,
+      "n_total": 4909,
+      "meta_effect_size_unrounded": 0.19078949323248912,
+      "se_meta": 0.06582742748018748,
+      "z": 2.89832825823115,
+      "meta_p_value_unrounded": 0.003751577107101481,
+      "fdr_corrected_p_unrounded": 0.003751577107101481,
+      "score_unrounded": 0.46281450288113235,
+      "confidence_level": "low",
+      "rank": 8
+    }
+  ],
+  "reporting_note_rounding": "meta_p_value and fdr_corrected_p are reported rounded to 6 decimals per specification; values < 5e-7 therefore appear as 0.0 in the CSV. Unrounded values are recorded above.",
+  "sensitivity_excluding_bmi_gt60_and_age_lt1_stroke_cohort": {
+    "STR_GLU": {
+      "d": 0.6145,
+      "p": 4.843356472063833e-21,
+      "n_cases": 249,
+      "n_controls": 4805
+    },
+    "STR_BMI": {
+      "d": 0.2219,
+      "p": 0.0017132122121557708,
+      "n_cases": 209,
+      "n_controls": 4645
+    },
+    "HDF_GLU": {
+      "d": 0.7216,
+      "p": 5.266380410894961e-31,
+      "n_cases": 276,
+      "n_controls": 4778
+    },
+    "HDF_BMI": {
+      "d": 0.2018,
+      "p": 0.002183131522875543,
+      "n_cases": 243,
+      "n_controls": 4611
+    }
+  },
+  "excluded_binary_substitutes": [
+    "stroke cohort hypertension (binary) NOT used as BloodPressure",
+    "UCI fbs (binary) NOT used as Glucose",
+    "UCI and stroke cohort have no continuous BMI",
+    "Stroke-BloodPressure pair excluded (no continuous BP in stroke cohort)"
+  ],
+  "not_feasible_pairs": [
+    "Stroke x BloodPressure (only binary hypertension available -> excluded)"
+  ]
+}

@@ -1,0 +1,227 @@
+{
+ "node": "verify",
+ "artifact_under_review": "output.csv",
+ "verdict": "PASS",
+ "summary": "output.csv exists, is valid UTF-8 CSV with exactly the 5 required columns in the required order, 78 rows, 0 nulls, 0 duplicate (AttractionType, Continent) keys, all Avg_Rating values reproduce an independent recomputation from the source xlsx files to 0.0 absolute difference, and both macro columns carry verified Indonesia values.",
+ "checks": [
+  {
+   "id": "file_exists",
+   "description": "output.csv present in workspace and non-empty (3.2 KB)",
+   "expected": "exists",
+   "actual": "exists",
+   "status": "PASS"
+  },
+  {
+   "id": "parseable_csv",
+   "description": "File parses as UTF-8 CSV; header line = AttractionType,Continent,Avg_Rating,Country_GDP_per_Capita,Visa_Free_Score; 79 lines = 1 header + 78 data rows; trailing newline present; no index column",
+   "expected": "valid, 5 cols",
+   "actual": "valid, 5 cols",
+   "status": "PASS"
+  },
+  {
+   "id": "columns_exact",
+   "description": "Column names and order exactly match the task specification",
+   "expected": [
+    "AttractionType",
+    "Continent",
+    "Avg_Rating",
+    "Country_GDP_per_Capita",
+    "Visa_Free_Score"
+   ],
+   "actual": [
+    "AttractionType",
+    "Continent",
+    "Avg_Rating",
+    "Country_GDP_per_Capita",
+    "Visa_Free_Score"
+   ],
+   "status": "PASS"
+  },
+  {
+   "id": "dtypes",
+   "description": "AttractionType/Continent string, Avg_Rating float, Country_GDP_per_Capita float, Visa_Free_Score int",
+   "expected": "str,str,float,float,int",
+   "actual": "str,str,float64,float64,int64",
+   "status": "PASS"
+  },
+  {
+   "id": "row_count",
+   "description": "78 non-empty (AttractionType, Continent) groups vs 85 theoretical combos (17 types x 5 continents); the 7 absent combos were re-confirmed to have zero transactions, so absence is correct and not missing data",
+   "expected": 78,
+   "actual": 78,
+   "status": "PASS",
+   "missing_combos": [
+    [
+     "Caverns & Caves",
+     "Africa"
+    ],
+    [
+     "Flea & Street Markets",
+     "Africa"
+    ],
+    [
+     "Historic Sites",
+     "Africa"
+    ],
+    [
+     "Neighborhoods",
+     "Africa"
+    ],
+    [
+     "Spas",
+     "Africa"
+    ],
+    [
+     "Spas",
+     "America"
+    ],
+    [
+     "Speciality Museums",
+     "Africa"
+    ]
+   ]
+  },
+  {
+   "id": "no_nulls",
+   "description": "Null count across all 5 columns",
+   "expected": 0,
+   "actual": 0,
+   "status": "PASS"
+  },
+  {
+   "id": "no_duplicates",
+   "description": "Duplicate (AttractionType, Continent) key rows (grain is one row per group)",
+   "expected": 0,
+   "actual": 0,
+   "status": "PASS"
+  },
+  {
+   "id": "label_coverage",
+   "description": "Distinct AttractionType labels equal the 17 labels in Type.xlsx; distinct Continent labels equal the 5 non-placeholder labels in Continent.xlsx (id 0 '-' excluded, unused by User)",
+   "expected": "17 types / 5 continents",
+   "actual": "17 types / 5 continents",
+   "status": "PASS"
+  },
+  {
+   "id": "avg_rating_recompute",
+   "description": "Independent recomputation: Transaction -UserId-> User(ContenentId) -AttractionId-> Item(AttractionTypeId) -> Type -> Continent, inner joins retained 52,930/52,930 rows; mean(Rating) by group compared row-by-row to output.csv",
+   "expected": "max abs diff 0",
+   "actual": "max abs diff 0.0 across 78/78 groups; no group present only in one side",
+   "status": "PASS"
+  },
+  {
+   "id": "avg_rating_range",
+   "description": "All Avg_Rating within the valid 1-5 review scale and plausible rounding (<=4 decimals)",
+   "expected": "[1,5]",
+   "actual": "min 3.3333 / max 5.0; max 4 decimal places",
+   "status": "PASS"
+  },
+  {
+   "id": "weighted_reconciliation",
+   "description": "Review-weighted mean of group means reconciles with the raw mean of all 52,930 ratings (guards against dropped/duplicated rows in aggregation)",
+   "expected": 4.15769884753448,
+   "actual": 4.157699,
+   "status": "PASS"
+  },
+  {
+   "id": "macro_gdp",
+   "description": "Country_GDP_per_Capita equals Indonesia 'GDP ($ per capita)' in 'countries of the world.csv' (Country column stripped of trailing whitespace) and is constant on every row",
+   "expected": 3200.0,
+   "actual": 3200.0,
+   "status": "PASS"
+  },
+  {
+   "id": "macro_visa",
+   "description": "Visa_Free_Score equals the Henley 2025 row for Indonesia (Rank 66) and is constant on every row; integer dtype preserved",
+   "expected": 74,
+   "actual": 74,
+   "status": "PASS"
+  },
+  {
+   "id": "sort_order",
+   "description": "Rows sorted deterministically by AttractionType then Continent",
+   "expected": "sorted",
+   "actual": "sorted",
+   "status": "PASS"
+  }
+ ],
+ "warnings": [
+  {
+   "id": "low_group_sizes",
+   "severity": "info",
+   "description": "8 of 78 groups have n<5 reviews (min n=1: Spas/Australia & Oceania 5.0, Speciality Museums/America 5.0); their Avg_Rating is statistically fragile. 2 groups are singletons. This is a data-density property of the source, not an output defect - values are correct means, just low-confidence.",
+   "groups": [
+    {
+     "AttractionType": "Spas",
+     "Continent": "Australia & Oceania",
+     "Avg_Rating": 5.0,
+     "n_reviews": 1
+    },
+    {
+     "AttractionType": "Speciality Museums",
+     "Continent": "America",
+     "Avg_Rating": 5.0,
+     "n_reviews": 1
+    },
+    {
+     "AttractionType": "Caverns & Caves",
+     "Continent": "Australia & Oceania",
+     "Avg_Rating": 4.0,
+     "n_reviews": 2
+    },
+    {
+     "AttractionType": "History Museums",
+     "Continent": "Africa",
+     "Avg_Rating": 5.0,
+     "n_reviews": 2
+    },
+    {
+     "AttractionType": "National Parks",
+     "Continent": "Africa",
+     "Avg_Rating": 3.5,
+     "n_reviews": 2
+    },
+    {
+     "AttractionType": "Speciality Museums",
+     "Continent": "Australia & Oceania",
+     "Avg_Rating": 4.5,
+     "n_reviews": 2
+    },
+    {
+     "AttractionType": "Neighborhoods",
+     "Continent": "America",
+     "Avg_Rating": 4.6667,
+     "n_reviews": 3
+    },
+    {
+     "AttractionType": "Ballets",
+     "Continent": "Africa",
+     "Avg_Rating": 3.5,
+     "n_reviews": 4
+    }
+   ]
+  },
+  {
+   "id": "macro_semantics",
+   "severity": "info",
+   "description": "Visa_Free_Score is the outbound visa-free access of the Indonesian passport (mobility of the destination's residents), not Indonesia's inbound visa openness, and GDP per capita comes from a ~2006 World-Bank-style snapshot. Both are single-destination constants, so they cannot vary with AttractionType/Continent and only serve as contextual annotation - any correlation with Avg_Rating across rows is not identifiable."
+  }
+ ],
+ "metrics": {
+  "rows": 78,
+  "theoretical_combos": 85,
+  "missing_zero_review_combos": 7,
+  "reviews_reconciled": 52930,
+  "groups_with_n_lt_5": 8,
+  "groups_with_n_eq_1": 2,
+  "median_group_size": 213.5,
+  "avg_rating_min": 3.3333,
+  "avg_rating_max": 5.0,
+  "avg_rating_mean_unweighted": 4.1768,
+  "avg_rating_weighted_mean": 4.1577,
+  "raw_rating_mean": 4.15769884753448,
+  "max_abs_diff_vs_recompute": 0.0,
+  "gdp_per_capita": 3200.0,
+  "visa_free_score": 74
+ }
+}

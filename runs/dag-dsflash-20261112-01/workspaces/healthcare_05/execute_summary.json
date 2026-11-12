@@ -1,0 +1,173 @@
+{
+  "status": "success",
+  "objective": "Harmonize blood glucose across Diabetes/Stroke/CKD (ages 30-70, glucose>0), test group differences with Kruskal-Wallis + Dunn post-hoc (Bonferroni), produce output.csv and output.png.",
+  "data_harmonization": {
+    "sources": {
+      "Diabetes": {
+        "file": "Healthcare-Diabetes.csv",
+        "glucose_col": "Glucose",
+        "age_col": "Age",
+        "raw_rows": 2768
+      },
+      "Stroke": {
+        "file": "healthcare-dataset-stroke-data.csv",
+        "glucose_col": "avg_glucose_level",
+        "age_col": "age",
+        "raw_rows": 5110
+      },
+      "CKD": {
+        "file": "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff",
+        "glucose_col": "bgr",
+        "age_col": "age",
+        "raw_rows": 400,
+        "parsing": "manual @data parse, '?' -> NaN, 1 malformed row (25-field mismatch after trailing-comma cleanup) dropped; 399 parsed"
+      }
+    },
+    "unified_columns": [
+      "age",
+      "glucose",
+      "source"
+    ],
+    "units": "all three glucose fields are mg/dL -> pooled without rescaling",
+    "filtering": "coerce numeric -> drop NaN age/glucose -> keep 30<=age<=70 -> drop glucose<=0",
+    "dropped": {
+      "Diabetes_glucose_zero_placeholders": 18,
+      "out_of_age_window_and_missing_as_overlaps": "remaining exclusions"
+    },
+    "final_rows": 4464,
+    "final_group_n": {
+      "Stroke": 2885,
+      "Diabetes": 1306,
+      "CKD": 273
+    },
+    "qc": {
+      "nan_values": 0,
+      "glucose_min": 44.0,
+      "age_min": 30.0,
+      "age_max": 70.0,
+      "labels": [
+        "Diabetes",
+        "Stroke",
+        "CKD"
+      ],
+      "matches_upstream_plan_expected_shapes": true
+    },
+    "artifact": "harmonized_glucose_filtered.csv (4464 rows; re-derived from raw sources and written to workspace, identical group counts/stats to the upstream version)"
+  },
+  "group_profile_glucose_mg_dL": {
+    "Diabetes": {
+      "n": 1306,
+      "median": 125.0,
+      "mean": 129.52,
+      "iqr": [
+        105.0,
+        154.0
+      ],
+      "min": 44.0,
+      "max": 197.0
+    },
+    "Stroke": {
+      "n": 2885,
+      "median": 92.23,
+      "mean": 107.9,
+      "iqr": [
+        77.67,
+        114.47
+      ],
+      "min": 55.22,
+      "max": 271.74
+    },
+    "CKD": {
+      "n": 273,
+      "median": 123.0,
+      "mean": 151.18,
+      "iqr": [
+        100.0,
+        169.0
+      ],
+      "min": 70.0,
+      "max": 490.0
+    }
+  },
+  "statistics": {
+    "kruskal_wallis": {
+      "H": 628.1297472880678,
+      "df": 2,
+      "p_value": 4.011976834982009e-137,
+      "significant": true,
+      "epsilon_squared_effect_size": 0.14
+    },
+    "posthoc_method": "Dunn (1964) on pooled ranks with average-tie ranking and pooled tie correction (sigma^2 = N(N+1)/12 - sum(t^3-t)/(12(N-1))); two-sided normal p via erfc(|z|/sqrt2); Bonferroni x3 applied to p_value column; cross-validated against scikit-posthocs.posthoc_dunn (raw p Diabetes-CKD = 0.66166 both)",
+    "dunn_results": [
+      {
+        "comparison": "Diabetes vs Stroke",
+        "z": 23.369292894117425,
+        "p_raw": 8.774361858045915e-121,
+        "p_bonferroni": 2.6323085574137743e-120,
+        "significant": true,
+        "mean_rank": [
+          2879.38,
+          1874.9
+        ]
+      },
+      {
+        "comparison": "Diabetes vs CKD",
+        "z": -0.43762135560234433,
+        "p_raw": 0.6616607877623729,
+        "p_bonferroni": 1.0,
+        "significant": false,
+        "mean_rank": [
+          2879.38,
+          2916.91
+        ]
+      },
+      {
+        "comparison": "Stroke vs CKD",
+        "z": -12.768506131789152,
+        "p_raw": 2.4582719747529667e-37,
+        "p_bonferroni": 7.3748159242589e-37,
+        "significant": true,
+        "mean_rank": [
+          1874.9,
+          2916.91
+        ]
+      }
+    ],
+    "interpretation": "Kruskal-Wallis rejects equality of the three glucose distributions (H=628.13, p=4.01e-137). Post-hoc: Diabetes and CKD do not differ (median 125 vs 123 mg/dL, p_adj=1.0), while Stroke has markedly lower glucose (median 92.23) than both Diabetes and CKD (both p_adj < 1e-36). CKD shows the highest mean (151.2) and widest spread (IQR 100-169, max 490), Diabetes is highest by median but truncated at 199 in source data, Stroke is lowest and tightest.",
+    "limitations": "Measurement semantics differ (Diabetes = 2h OGTT plasma glucose, Stroke = long-run average glucose, CKD = random non-fasting bgr); with N=4464 tiny differences reach significance (effect size epsilon^2=0.14 -> moderate); Diabetes glucose is capped at 199, compressing its upper tail."
+  },
+  "outputs": {
+    "output.csv": {
+      "rows": 4,
+      "columns": [
+        "test",
+        "comparison",
+        "statistic",
+        "p_value",
+        "significant"
+      ],
+      "labels": [
+        "Kruskal-Wallis/all",
+        "Dunn post-hoc/Diabetes vs Stroke",
+        "Dunn post-hoc/Diabetes vs CKD",
+        "Dunn post-hoc/Stroke vs CKD"
+      ],
+      "significant_dtype": "True/False literals"
+    },
+    "output.png": {
+      "path": "output.png",
+      "size_bytes": 102605,
+      "dimensions": [
+        1500,
+        900
+      ],
+      "dpi": 150,
+      "plot": "overlaid density histogram, bins=50, alpha=0.6, Diabetes=red, Stroke=blue, CKD=green",
+      "annotation": "Kruskal-Wallis H=628.13, p=4.012e-137 shown on figure + legend with n/median, x clipped at pooled 99.5th percentile"
+    }
+  },
+  "execution_notes": [
+    "matplotlib had to be reached via site.getusersitepackages() because the interpreter runs in isolated mode (-I)",
+    "all statistics deterministic; re-running reproduces identical values"
+  ]
+}

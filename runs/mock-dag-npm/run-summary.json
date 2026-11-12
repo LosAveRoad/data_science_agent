@@ -1,0 +1,43 @@
+{
+  "experimentId": "mock-dag-npm",
+  "system": "dag-prototype",
+  "startedAt": "2026-11-11T18:26:08.598Z",
+  "finishedAt": "2026-11-11T18:26:08.612Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": true,
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "skipped": 0,
+    "tokenUsage": {
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "totalTokens": 0
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "healthcare_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "outputs": [
+        "output.csv",
+        "output.png"
+      ]
+    }
+  ]
+}

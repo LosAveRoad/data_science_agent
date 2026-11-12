@@ -1,0 +1,239 @@
+{
+  "artifact": "verification.json",
+  "node": "verifier",
+  "target_artifact": "meta_analysis_results.csv",
+  "status": "PASS",
+  "verified_at": "2026-11-12T03:45:19",
+  "overall_summary": "meta_analysis_results.csv 存在、格式合规、结果完整；独立重算（Cohen's d -> IVW/单研究 z 检验 -> BH-FDR -> score 排序 -> 置信分级）在 4/6 位小数精度内与交付文件完全一致，排名与置信分级 8/8 一致，无缺失值与重复行。",
+  "file_checks": {
+    "exists": true,
+    "size_bytes": 457,
+    "n_data_rows": 8,
+    "n_columns": 7,
+    "columns_match_spec": true,
+    "encoding": "UTF-8, LF, no BOM",
+    "null_cells": 0,
+    "dtype_issues": [],
+    "duplicate_condition_biomarker_pairs": 0,
+    "allowed_values_ok": {
+      "confidence_level": [
+        "high",
+        "low",
+        "medium"
+      ],
+      "conditions": [
+        "Diabetes",
+        "HeartDisease",
+        "Stroke"
+      ],
+      "biomarkers": [
+        "BMI",
+        "BloodPressure",
+        "Glucose"
+      ]
+    },
+    "rank_is_permutation_1_to_N": true,
+    "rounding_matches_spec": true
+  },
+  "reproducibility_checks": {
+    "method": "从 3 个原始数据集独立重算：Cohen's d(ddof=1 合并SD, var=(n1+n0)/(n1n0)+d^2/(2(n1+n0))) -> 逆方差加权固定效应合并(单研究退化为 d_1) -> 双侧标准正态 p -> 8 项 BH-FDR(含累积最小值) -> score=|d|*(-log10(q+1e-10)) -> 排序/分级(用未取整值)",
+    "per_study_effects_csv_max_abs_diff": {
+      "n_cases": 0,
+      "n_controls": 0,
+      "means": 4.6e-07,
+      "sds": 5e-07,
+      "cohens_d": 4.95e-07,
+      "se_d": 4.6e-07,
+      "note": "差异仅为 CSV 中 6 位小数取整误差"
+    },
+    "meta_effect_size_max_abs_diff": 3.2e-05,
+    "meta_p_value_max_abs_diff": 4.2e-07,
+    "fdr_corrected_p_max_abs_diff": 4.2e-07,
+    "meta_p_value_match_after_rounding": true,
+    "fdr_match_after_rounding": true,
+    "confidence_level_matches": 8,
+    "confidence_level_mismatches": 0,
+    "rank_matches": 8,
+    "rank_mismatches": 0,
+    "clinical_score_strictly_descending": true,
+    "heterogeneity_recomputed": {
+      "HDF_BP": {
+        "Q": 0.04218,
+        "df": 3,
+        "I2_pct": 0.0,
+        "p_Q": 0.9977,
+        "matches_summary_json": true
+      }
+    },
+    "summary_json_cross_check": {
+      "total_associations_analyzed": 8,
+      "confidence_distribution": {
+        "high": 4,
+        "medium": 2,
+        "low": 2
+      },
+      "per_association_detail_rows": 8,
+      "strongest_matches": true,
+      "weakest_matches": true,
+      "participants_sum_matches": true
+    }
+  },
+  "completeness_checks": {
+    "expected_associations": 8,
+    "delivered_associations": 8,
+    "k_studies_per_association": {
+      "Diabetes|Glucose": 1,
+      "HeartDisease|Glucose": 1,
+      "Diabetes|BMI": 1,
+      "Stroke|Glucose": 1,
+      "Diabetes|BloodPressure": 1,
+      "HeartDisease|BloodPressure": 4,
+      "Stroke|BMI": 1,
+      "HeartDisease|BMI": 1
+    },
+    "multi_study_pairs": 1,
+    "single_study_pairs": 7,
+    "binary_indicator_substitution_avoided": true,
+    "notes_on_coverage": [
+      "Stroke-BloodPressure 未纳入：stroke 数据集中血压仅为二分类 hypertension，符合“不使用二分类替代”的要求。",
+      "HeartDisease-Glucose 使用 stroke 数据集的 avg_glucose_level（连续）；heart_disease_uci 仅有 fbs 二分类血糖，未被使用。",
+      "HeartDisease-BloodPressure 使用 UCI trestbps（收缩压），并按 dataset 站点拆为 4 个子研究做真实 IVW 合并，无站点被丢弃。",
+      "Diabetes-BloodPressure 为舒张压、HeartDisease-BloodPressure 为收缩压，二者未混合合并（标签统一为 BloodPressure）。"
+    ]
+  },
+  "issues": [
+    {
+      "severity": "info",
+      "type": "rounding_information_loss",
+      "detail": "按任务要求把 meta_p_value / fdr_corrected_p 取整到 6 位小数，导致 5/8 行的两列在 CSV 中显示为 0.0（如 Diabetes-Glucose 实际 p=5.64e-166, q=4.51e-165）。未取整值完整保存在 meta_analysis_summary.json 的 per_association_detail 中，排名与分级基于未取整值计算，结论不受影响。",
+      "action": "无需修改；下游如做数值阈值判断请使用 summary json 中的未取整值。"
+    },
+    {
+      "severity": "info",
+      "type": "metric_labeling",
+      "detail": "meta_analysis_summary.json 的 total_participants_contributing=29020 是 8 个关联 n 的加总，存在跨关联重复计数；三个数据集的唯一受试者数合计为 8798（2768+5110+920），且 stroke 数据集同时贡献 Stroke 与 HeartDisease 关联。",
+      "action": "解读参与者规模时以唯一受试者数 8798 为准。"
+    },
+    {
+      "severity": "info",
+      "type": "statistical_scope",
+      "detail": "仅 1 个多研究关联（HeartDisease-BloodPressure, k=4）可做真正合并，其余 7 个为单研究效应量；该唯一合并对的 I²=0（Q=0.042, p=0.998），固定效应模型无问题，但跨数据集异质性检验能力有限；另 Diabetes-BloodPressure 置信分级为 medium 完全由 |d|=0.379<0.5 触发（q≈8.9e-20 极显著），体现分级按 |d| 与 q 双条件而非仅显著性。",
+      "action": "无需修改，仅提示解释边界。"
+    }
+  ],
+  "final_results_from_verification": [
+    {
+      "condition": "Diabetes",
+      "biomarker": "Glucose",
+      "k": 1,
+      "n_total": 2750,
+      "d": 1.1871294949562672,
+      "se": 0.043234985480891,
+      "z": 27.45761289733646,
+      "p": 5.635667395631037e-166,
+      "q": 4.508533916504829e-165,
+      "score": 11.871294949562671,
+      "conf": "high",
+      "rank": 1
+    },
+    {
+      "condition": "HeartDisease",
+      "biomarker": "Glucose",
+      "k": 1,
+      "n_total": 5110,
+      "d": 0.7254793108859985,
+      "se": 0.06230213052604247,
+      "z": 11.644534540961581,
+      "p": 2.4465372012286396e-31,
+      "q": 6.5240992032763725e-31,
+      "score": 7.254793108859985,
+      "conf": "high",
+      "rank": 2
+    },
+    {
+      "condition": "Diabetes",
+      "biomarker": "BMI",
+      "k": 1,
+      "n_total": 2729,
+      "d": 0.6398851757699608,
+      "se": 0.04113577901644861,
+      "z": 15.555440812585449,
+      "p": 1.4614555654900245e-54,
+      "q": 5.845822261960098e-54,
+      "score": 6.3988517576996085,
+      "conf": "high",
+      "rank": 3
+    },
+    {
+      "condition": "Stroke",
+      "biomarker": "Glucose",
+      "k": 1,
+      "n_total": 5110,
+      "d": 0.6181324456241206,
+      "se": 0.06526231315924914,
+      "z": 9.471506842176913,
+      "p": 2.7583546422264644e-21,
+      "q": 5.516709284452929e-21,
+      "score": 6.181324456226396,
+      "conf": "high",
+      "rank": 4
+    },
+    {
+      "condition": "Diabetes",
+      "biomarker": "BloodPressure",
+      "k": 1,
+      "n_total": 2643,
+      "d": 0.3790074505636698,
+      "se": 0.04140941694584213,
+      "z": 9.15268744448539,
+      "p": 5.553447499683404e-20,
+      "q": 8.885515999493446e-20,
+      "score": 3.790074505490442,
+      "conf": "medium",
+      "rank": 5
+    },
+    {
+      "condition": "HeartDisease",
+      "biomarker": "BloodPressure",
+      "k": 4,
+      "n_total": 860,
+      "d": 0.3034248879943755,
+      "se": 0.07592052469455804,
+      "z": 3.996612104764931,
+      "p": 6.425545965609507e-05,
+      "q": 8.567394620812676e-05,
+      "score": 1.2340747522135653,
+      "conf": "medium",
+      "rank": 6
+    },
+    {
+      "condition": "Stroke",
+      "biomarker": "BMI",
+      "k": 1,
+      "n_total": 4909,
+      "d": 0.21002389409943978,
+      "se": 0.07072444927125905,
+      "z": 2.969608052993198,
+      "p": 0.00298179926281558,
+      "q": 0.0034077705860749486,
+      "score": 0.5182401832188267,
+      "conf": "low",
+      "rank": 7
+    },
+    {
+      "condition": "HeartDisease",
+      "biomarker": "BMI",
+      "k": 1,
+      "n_total": 4909,
+      "d": 0.19078949323248912,
+      "se": 0.06582742748018748,
+      "z": 2.89832825823115,
+      "p": 0.003751577107101481,
+      "q": 0.003751577107101481,
+      "score": 0.46281450288113235,
+      "conf": "low",
+      "rank": 8
+    }
+  ],
+  "assumption_notes": "验证基于与上游一致的清洗规则复现（Healthcare-Diabetes 的 Glucose/BloodPressure/BMI 零值置 NaN；stroke 的 bmi 'N/A' 置 NaN；UCI trestbps 0 置 NaN、HeartDisease=(num>0)），与 execute_summary.json / analysis_plan.json 记录一致，未改写任何上游 Artifact。"
+}

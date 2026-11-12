@@ -1,0 +1,577 @@
+{
+  "dataset": "pub_fin_data.sqlite",
+  "doc": "dataset_pub_fin_data.md",
+  "source_note": "工作区初始为空，数据库与说明文档从 testbed 数据集目录 (agenticdatabench/testbed/datasets/financial) 复制到工作区后分析",
+  "db_type": "SQLite",
+  "schema_type": "星型模型：1 张维度表 dim_company + 3 张事实表",
+  "tables": {
+    "dim_company": {
+      "row_count": 174,
+      "column_count": 17,
+      "columns": [
+        "company_id",
+        "company_name",
+        "stock_code",
+        "stock_name",
+        "industry_name",
+        "province",
+        "address",
+        "email",
+        "website",
+        "listing_date",
+        "establishment_date",
+        "legal_repr",
+        "exchange",
+        "listed_sector",
+        "listed_status",
+        "created_at",
+        "updated_at"
+      ],
+      "column_types": {
+        "company_id": "TEXT",
+        "company_name": "TEXT",
+        "stock_code": "TEXT",
+        "stock_name": "TEXT",
+        "industry_name": "TEXT",
+        "province": "TEXT",
+        "address": "TEXT",
+        "email": "TEXT",
+        "website": "TEXT",
+        "listing_date": "DATE",
+        "establishment_date": "DATE",
+        "legal_repr": "TEXT",
+        "exchange": "TEXT",
+        "listed_sector": "TEXT",
+        "listed_status": "TEXT",
+        "created_at": "DATETIME",
+        "updated_at": "DATETIME"
+      },
+      "not_null_columns": [
+        "company_name",
+        "stock_code"
+      ],
+      "primary_key": [
+        "company_id"
+      ]
+    },
+    "fact_balance_sheet": {
+      "row_count": 1563,
+      "column_count": 43,
+      "columns": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type",
+        "currency",
+        "cash_equivalents",
+        "trading_assets",
+        "notes_receivable",
+        "accounts_receivable",
+        "prepayments",
+        "other_receivables",
+        "inventories",
+        "current_assets_others",
+        "current_assets_total",
+        "long_term_investments",
+        "fixed_assets",
+        "intangible_assets",
+        "goodwill",
+        "non_current_assets_others",
+        "non_current_assets_total",
+        "total_assets",
+        "short_term_loans",
+        "notes_payable",
+        "accounts_payable",
+        "advance_payments",
+        "employee_benefits_payable",
+        "taxes_payable",
+        "current_liabilities_others",
+        "current_liabilities_total",
+        "long_term_loans",
+        "bonds_payable",
+        "non_current_liabilities_others",
+        "non_current_liabilities_total",
+        "total_liabilities",
+        "share_capital",
+        "capital_reserve",
+        "surplus_reserve",
+        "retained_earnings",
+        "minority_interests",
+        "total_equity",
+        "source",
+        "created_at",
+        "updated_at"
+      ],
+      "column_types": {
+        "company_id": "TEXT",
+        "period_date": "DATE",
+        "period_type": "TEXT",
+        "report_type": "TEXT",
+        "currency": "TEXT",
+        "cash_equivalents": "NUMERIC",
+        "trading_assets": "NUMERIC",
+        "notes_receivable": "NUMERIC",
+        "accounts_receivable": "NUMERIC",
+        "prepayments": "NUMERIC",
+        "other_receivables": "NUMERIC",
+        "inventories": "NUMERIC",
+        "current_assets_others": "NUMERIC",
+        "current_assets_total": "NUMERIC",
+        "long_term_investments": "NUMERIC",
+        "fixed_assets": "NUMERIC",
+        "intangible_assets": "NUMERIC",
+        "goodwill": "NUMERIC",
+        "non_current_assets_others": "NUMERIC",
+        "non_current_assets_total": "NUMERIC",
+        "total_assets": "NUMERIC",
+        "short_term_loans": "NUMERIC",
+        "notes_payable": "NUMERIC",
+        "accounts_payable": "NUMERIC",
+        "advance_payments": "NUMERIC",
+        "employee_benefits_payable": "NUMERIC",
+        "taxes_payable": "NUMERIC",
+        "current_liabilities_others": "NUMERIC",
+        "current_liabilities_total": "NUMERIC",
+        "long_term_loans": "NUMERIC",
+        "bonds_payable": "NUMERIC",
+        "non_current_liabilities_others": "NUMERIC",
+        "non_current_liabilities_total": "NUMERIC",
+        "total_liabilities": "NUMERIC",
+        "share_capital": "NUMERIC",
+        "capital_reserve": "NUMERIC",
+        "surplus_reserve": "NUMERIC",
+        "retained_earnings": "NUMERIC",
+        "minority_interests": "NUMERIC",
+        "total_equity": "NUMERIC",
+        "source": "TEXT",
+        "created_at": "DATETIME",
+        "updated_at": "DATETIME"
+      },
+      "not_null_columns": [
+        "company_id",
+        "period_date",
+        "total_assets",
+        "total_liabilities",
+        "total_equity"
+      ],
+      "primary_key": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type"
+      ]
+    },
+    "fact_income_statement": {
+      "row_count": 1563,
+      "column_count": 26,
+      "columns": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type",
+        "currency",
+        "revenue",
+        "cost_of_revenue",
+        "selling_expenses",
+        "admin_expenses",
+        "rd_expenses",
+        "financial_expenses",
+        "investment_income",
+        "asset_impairment_loss",
+        "operating_profit",
+        "non_operating_income",
+        "non_operating_expenses",
+        "profit_before_tax",
+        "income_tax",
+        "net_profit",
+        "parent_company_profit",
+        "minority_profit",
+        "basic_eps",
+        "diluted_eps",
+        "source",
+        "created_at",
+        "updated_at"
+      ],
+      "column_types": {
+        "company_id": "TEXT",
+        "period_date": "DATE",
+        "period_type": "TEXT",
+        "report_type": "TEXT",
+        "currency": "TEXT",
+        "revenue": "NUMERIC",
+        "cost_of_revenue": "NUMERIC",
+        "selling_expenses": "NUMERIC",
+        "admin_expenses": "NUMERIC",
+        "rd_expenses": "NUMERIC",
+        "financial_expenses": "NUMERIC",
+        "investment_income": "NUMERIC",
+        "asset_impairment_loss": "NUMERIC",
+        "operating_profit": "NUMERIC",
+        "non_operating_income": "NUMERIC",
+        "non_operating_expenses": "NUMERIC",
+        "profit_before_tax": "NUMERIC",
+        "income_tax": "NUMERIC",
+        "net_profit": "NUMERIC",
+        "parent_company_profit": "NUMERIC",
+        "minority_profit": "NUMERIC",
+        "basic_eps": "NUMERIC",
+        "diluted_eps": "NUMERIC",
+        "source": "TEXT",
+        "created_at": "DATETIME",
+        "updated_at": "DATETIME"
+      },
+      "not_null_columns": [
+        "company_id",
+        "period_date",
+        "revenue",
+        "net_profit"
+      ],
+      "primary_key": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type"
+      ]
+    },
+    "fact_cash_flow": {
+      "row_count": 1563,
+      "column_count": 30,
+      "columns": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type",
+        "currency",
+        "cash_from_sales",
+        "cash_from_operating_others",
+        "cash_to_suppliers",
+        "cash_to_employees",
+        "cash_to_taxes",
+        "cash_to_operating_others",
+        "net_operating_cash_flow",
+        "cash_from_investment_disposal",
+        "cash_from_investment_income",
+        "cash_from_asset_disposal",
+        "cash_to_investments",
+        "cash_to_asset_acquisition",
+        "net_investing_cash_flow",
+        "cash_from_borrowings",
+        "cash_from_equity_issues",
+        "cash_to_debt_repayment",
+        "cash_to_dividends",
+        "net_financing_cash_flow",
+        "effect_of_exchange_rate",
+        "net_increase_in_cash",
+        "cash_at_beginning",
+        "cash_at_end",
+        "source",
+        "created_at",
+        "updated_at"
+      ],
+      "column_types": {
+        "company_id": "TEXT",
+        "period_date": "DATE",
+        "period_type": "TEXT",
+        "report_type": "TEXT",
+        "currency": "TEXT",
+        "cash_from_sales": "NUMERIC",
+        "cash_from_operating_others": "NUMERIC",
+        "cash_to_suppliers": "NUMERIC",
+        "cash_to_employees": "NUMERIC",
+        "cash_to_taxes": "NUMERIC",
+        "cash_to_operating_others": "NUMERIC",
+        "net_operating_cash_flow": "NUMERIC",
+        "cash_from_investment_disposal": "NUMERIC",
+        "cash_from_investment_income": "NUMERIC",
+        "cash_from_asset_disposal": "NUMERIC",
+        "cash_to_investments": "NUMERIC",
+        "cash_to_asset_acquisition": "NUMERIC",
+        "net_investing_cash_flow": "NUMERIC",
+        "cash_from_borrowings": "NUMERIC",
+        "cash_from_equity_issues": "NUMERIC",
+        "cash_to_debt_repayment": "NUMERIC",
+        "cash_to_dividends": "NUMERIC",
+        "net_financing_cash_flow": "NUMERIC",
+        "effect_of_exchange_rate": "NUMERIC",
+        "net_increase_in_cash": "NUMERIC",
+        "cash_at_beginning": "NUMERIC",
+        "cash_at_end": "NUMERIC",
+        "source": "TEXT",
+        "created_at": "DATETIME",
+        "updated_at": "DATETIME"
+      },
+      "not_null_columns": [
+        "company_id",
+        "period_date",
+        "net_operating_cash_flow"
+      ],
+      "primary_key": [
+        "company_id",
+        "period_date",
+        "period_type",
+        "report_type"
+      ]
+    }
+  },
+  "dim_company": {
+    "row_count": 174,
+    "industries": 39,
+    "industry_distribution": {
+      "货币金融服务": 15,
+      "医药制造业": 13,
+      "电气机械和器材制造业": 12,
+      "酒、饮料和精制茶制造业": 11,
+      "计算机、通信和其他电子设备制造业": 8,
+      "食品制造业": 7,
+      "非金属矿物制品业": 7,
+      "电力、热力生产和供应业": 7,
+      "煤炭开采和洗选业": 7,
+      "专用设备制造业": 7,
+      "资本市场服务": 6,
+      "土木工程建筑业": 6,
+      "软件和信息技术服务业": 5,
+      "水上运输业": 5,
+      "房地产业": 5,
+      "化学原料和化学制品制造业": 5,
+      "航空运输业": 4,
+      "汽车制造业": 4,
+      "保险业": 4,
+      "橡胶和塑料制品业": 3,
+      "家具制造业": 3,
+      "化学纤维制造业": 3,
+      "农副食品加工业": 3,
+      "铁路运输业": 2,
+      "铁路、船舶、航空航天和其他运输设备制造业": 2,
+      "通用设备制造业": 2,
+      "石油和天然气开采业": 2,
+      "水的生产和供应业": 2,
+      "有色金属矿采选业": 2,
+      "有色金属冶炼和压延加工业": 2,
+      "批发业": 2,
+      "零售业": 1,
+      "研究和试验发展": 1,
+      "石油加工、炼焦和核燃料加工业": 1,
+      "燃气生产和供应业": 1,
+      "文教、工美、体育和娱乐用品制造业": 1,
+      "商务服务业": 1,
+      "卫生": 1,
+      "其他金融业": 1
+    },
+    "exchange_distribution": {
+      "SSE": 128,
+      "SZSE": 46
+    }
+  },
+  "fact_tables_coverage": {
+    "period_range": [
+      "2024-06-30",
+      "2025-09-30"
+    ],
+    "period_types": [
+      "Q1",
+      "H1",
+      "Q3",
+      "FY"
+    ],
+    "report_types": [
+      "合并报表",
+      "母公司报表"
+    ],
+    "currency": "CNY（金额单位：元）",
+    "income_statement_period_matrix": [
+      {
+        "period_date": "2024-06-30",
+        "period_type": "H1",
+        "report_type": "合并报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2024-06-30",
+        "period_type": "H1",
+        "report_type": "母公司报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2024-09-30",
+        "period_type": "Q3",
+        "report_type": "合并报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2024-09-30",
+        "period_type": "Q3",
+        "report_type": "母公司报表",
+        "rows": 86
+      },
+      {
+        "period_date": "2024-12-31",
+        "period_type": "FY",
+        "report_type": "合并报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2024-12-31",
+        "period_type": "FY",
+        "report_type": "母公司报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2025-03-31",
+        "period_type": "Q1",
+        "report_type": "合并报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2025-03-31",
+        "period_type": "Q1",
+        "report_type": "母公司报表",
+        "rows": 88
+      },
+      {
+        "period_date": "2025-06-30",
+        "period_type": "H1",
+        "report_type": "合并报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2025-06-30",
+        "period_type": "H1",
+        "report_type": "母公司报表",
+        "rows": 172
+      },
+      {
+        "period_date": "2025-09-30",
+        "period_type": "Q3",
+        "report_type": "合并报表",
+        "rows": 9
+      },
+      {
+        "period_date": "2025-09-30",
+        "period_type": "Q3",
+        "report_type": "母公司报表",
+        "rows": 4
+      }
+    ],
+    "notes": "FY 2024-12-31 合并报表覆盖 172 家公司（全量），可用于全行业口径汇总；2025-09-30 Q3 仅少量公司披露，不可用于全量横向比较"
+  },
+  "data_quality": {
+    "revenue_null_count": 0,
+    "companies_with_FY2024_merged_income": 172,
+    "industry_sum_check": "货币金融服务 15 家公司 FY2024 合并报表营收均可获取，无缺失",
+    "caveat": "同一公司同一报告期存在合并报表与母公司报表两种口径，跨公司汇总/占比必须锁定单一口径（本任务使用合并报表）"
+  },
+  "task_focus": {
+    "target_company": {
+      "stock_name": "农业银行",
+      "company_name": "中国农业银行股份有限公司",
+      "stock_code": "601288",
+      "company_id": "CN000141",
+      "industry_name": "货币金融服务"
+    },
+    "filters_used": {
+      "period_date": "2024-12-31",
+      "period_type": "FY",
+      "report_type": "合并报表"
+    },
+    "revenue_cny": 710555000000.0,
+    "industry_total_revenue_cny": 4058749070000.0,
+    "industry_peer_count": 15,
+    "revenue_share_pct": 17.51,
+    "share_definition": "农业银行 FY2024 营业收入 / 同行业（货币金融服务）全部 15 家公司 FY2024 合并报表营业收入合计 × 100%",
+    "industry_ranking": [
+      {
+        "stock_name": "工商银行",
+        "revenue": 821803000000.0
+      },
+      {
+        "stock_name": "农业银行",
+        "revenue": 710555000000.0
+      },
+      {
+        "stock_name": "中国银行",
+        "revenue": 630090000000.0
+      },
+      {
+        "stock_name": "招商银行",
+        "revenue": 337488000000.0
+      },
+      {
+        "stock_name": "交通银行",
+        "revenue": 259826000000.0
+      },
+      {
+        "stock_name": "中信银行",
+        "revenue": 213646000000.0
+      },
+      {
+        "stock_name": "兴业银行",
+        "revenue": 212226000000.0
+      },
+      {
+        "stock_name": "浦发银行",
+        "revenue": 170748000000.0
+      },
+      {
+        "stock_name": "平安银行",
+        "revenue": 146695000000.0
+      },
+      {
+        "stock_name": "民生银行",
+        "revenue": 136290000000.0
+      },
+      {
+        "stock_name": "光大银行",
+        "revenue": 135415000000.0
+      },
+      {
+        "stock_name": "华夏银行",
+        "revenue": 97146000000.0
+      },
+      {
+        "stock_name": "北京银行",
+        "revenue": 69917000000.0
+      },
+      {
+        "stock_name": "宁波银行",
+        "revenue": 66631000000.0
+      },
+      {
+        "stock_name": "南京银行",
+        "revenue": 50273070000.0
+      }
+    ],
+    "top_industries_by_FY2024_revenue": [
+      {
+        "industry_name": "石油和天然气开采业",
+        "n_firms": 2,
+        "total_revenue": 6012543000000.0
+      },
+      {
+        "industry_name": "土木工程建筑业",
+        "n_firms": 6,
+        "total_revenue": 5921570795596.95
+      },
+      {
+        "industry_name": "货币金融服务",
+        "n_firms": 15,
+        "total_revenue": 4058749070000.0
+      },
+      {
+        "industry_name": "保险业",
+        "n_firms": 4,
+        "total_revenue": 2094136000000.0
+      },
+      {
+        "industry_name": "汽车制造业",
+        "n_firms": 4,
+        "total_revenue": 1700169848381.01
+      }
+    ]
+  },
+  "recommended_plan": [
+    "dim_company JOIN fact_income_statement ON company_id",
+    "筛选 period_date='2024-12-31' AND period_type='FY' AND report_type='合并报表'",
+    "营收 = 农业银行 revenue（元）；营收占比 = 农业银行 revenue / 同 industry_name 全部公司 revenue 合计，百分制保留两位小数",
+    "结果写入 output.csv，列名：营收,营收占比"
+  ]
+}

@@ -1,0 +1,937 @@
+{
+  "generated_at": "2026-11-12T03:36:30",
+  "node": "inspect / data profiling",
+  "workspace_files": [
+    {
+      "file": "Healthcare-Diabetes.csv",
+      "bytes": 98571
+    },
+    {
+      "file": "chronic_kidney_disease_full.arff",
+      "bytes": 47277
+    },
+    {
+      "file": "healthcare-dataset-stroke-data.csv",
+      "bytes": 316971
+    },
+    {
+      "file": "heart_disease_uci.csv",
+      "bytes": 79346
+    }
+  ],
+  "environment": {
+    "python": "3.13",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4",
+    "sklearn": "1.9.1 (present)",
+    "scipy": "1.18.1 (present)",
+    "bayes_libs": "pymc / numpyro / pystan / cmdstanpy / arviz / statsmodels NOT installed -> hierarchical Bayesian model must be implemented with numpy/scipy (e.g. Laplace/Newton MAP + delta-method, or custom Metropolis/Gibbs MCMC)"
+  },
+  "datasets": {
+    "Healthcare-Diabetes.csv": {
+      "file": "Healthcare-Diabetes.csv",
+      "format": "csv",
+      "rows": 2768,
+      "cols": 10,
+      "topic": "diabetes (Pima-Indians style, appears synthetically resampled/enlarged)",
+      "columns": {
+        "Id": "row id (unique)",
+        "Pregnancies": "int",
+        "Glucose": "plasma glucose mg/dL",
+        "BloodPressure": "diastolic BP mmHg",
+        "SkinThickness": "triceps skinfold mm",
+        "Insulin": "serum insulin muU/mL",
+        "BMI": "kg/m^2",
+        "DiabetesPedigreeFunction": "genetic score",
+        "Age": "years (21-81, adults only)",
+        "Outcome": "target: 1 = diabetes"
+      },
+      "dtypes": {
+        "Id": "int64",
+        "Pregnancies": "int64",
+        "Glucose": "int64",
+        "BloodPressure": "int64",
+        "SkinThickness": "int64",
+        "Insulin": "int64",
+        "BMI": "float64",
+        "DiabetesPedigreeFunction": "float64",
+        "Age": "int64",
+        "Outcome": "int64"
+      },
+      "missing_values": {
+        "explicit_nan": 0,
+        "zero_sentinels_treated_as_missing": {
+          "Glucose": 18,
+          "BloodPressure": 125,
+          "BMI": 39,
+          "SkinThickness": 800,
+          "Insulin": 1330
+        }
+      },
+      "duplicates": {
+        "rows": 2768,
+        "unique_rows_excluding_Id": 778,
+        "note": "1990 exact duplicate rows excluding Id -> dataset looks resampled; de-duplication changes N from 2768 to 778"
+      },
+      "outcome": {
+        "column": "Outcome",
+        "type": "binary 0/1",
+        "positive_rate": 0.3439,
+        "n_positive": 952
+      },
+      "numeric_summary": {
+        "Age": {
+          "n": 2768,
+          "mean": 33.132,
+          "sd": 11.777,
+          "min": 21.0,
+          "p25": 24.0,
+          "median": 29.0,
+          "p75": 40.0,
+          "max": 81.0,
+          "skew": 1.17,
+          "missing_rate": 0.0
+        },
+        "BMI": {
+          "n": 2768,
+          "mean": 32.137,
+          "sd": 8.076,
+          "min": 0.0,
+          "p25": 27.3,
+          "median": 32.2,
+          "p75": 36.625,
+          "max": 80.6,
+          "skew": -0.18,
+          "missing_rate": 0.0
+        },
+        "Glucose": {
+          "n": 2768,
+          "mean": 121.103,
+          "sd": 32.037,
+          "min": 0.0,
+          "p25": 99.0,
+          "median": 117.0,
+          "p75": 141.0,
+          "max": 199.0,
+          "skew": 0.16,
+          "missing_rate": 0.0
+        },
+        "BloodPressure": {
+          "n": 2768,
+          "mean": 69.134,
+          "sd": 19.231,
+          "min": 0.0,
+          "p25": 62.0,
+          "median": 72.0,
+          "p75": 80.0,
+          "max": 122.0,
+          "skew": -1.85,
+          "missing_rate": 0.0
+        },
+        "Pregnancies": {
+          "n": 2768,
+          "mean": 3.743,
+          "sd": 3.324,
+          "min": 0.0,
+          "p25": 1.0,
+          "median": 3.0,
+          "p75": 6.0,
+          "max": 17.0,
+          "skew": 0.96,
+          "missing_rate": 0.0
+        },
+        "Insulin": {
+          "n": 2768,
+          "mean": 80.128,
+          "sd": 112.302,
+          "min": 0.0,
+          "p25": 0.0,
+          "median": 37.0,
+          "p75": 130.0,
+          "max": 846.0,
+          "skew": 2.08,
+          "missing_rate": 0.0
+        },
+        "SkinThickness": {
+          "n": 2768,
+          "mean": 20.824,
+          "sd": 16.06,
+          "min": 0.0,
+          "p25": 0.0,
+          "median": 23.0,
+          "p75": 32.0,
+          "max": 110.0,
+          "skew": 0.18,
+          "missing_rate": 0.0
+        },
+        "DiabetesPedigreeFunction": {
+          "n": 2768,
+          "mean": 0.471,
+          "sd": 0.326,
+          "min": 0.078,
+          "p25": 0.244,
+          "median": 0.375,
+          "p75": 0.624,
+          "max": 2.42,
+          "skew": 1.84,
+          "missing_rate": 0.0
+        }
+      },
+      "risk_factor_mapping": {
+        "age": "Age",
+        "bmi": "BMI",
+        "bp": "BloodPressure (diastolic, mmHg)",
+        "glucose": "Glucose (mg/dL)"
+      }
+    },
+    "chronic_kidney_disease_full.arff": {
+      "file": "chronic_kidney_disease_full.arff",
+      "format": "ARFF (weka)",
+      "rows": 400,
+      "cols": 25,
+      "parser_notes": "3 raw @data lines have 25/26 vs expected field counts (trailing comma / empty field) -> must be padded/trimmed before use; \"?\" and empty string are missing markers",
+      "attributes": [
+        "age",
+        "bp",
+        "sg",
+        "al",
+        "su",
+        "rbc",
+        "pc",
+        "pcc",
+        "ba",
+        "bgr",
+        "bu",
+        "sc",
+        "sod",
+        "pot",
+        "hemo",
+        "pcv",
+        "wbcc",
+        "rbcc",
+        "htn",
+        "dm",
+        "cad",
+        "appet",
+        "pe",
+        "ane",
+        "class"
+      ],
+      "missing_rates": {
+        "age": 0.0225,
+        "bp": 0.03,
+        "sg": 0.1175,
+        "al": 0.115,
+        "su": 0.1225,
+        "rbc": 0.38,
+        "pc": 0.1625,
+        "pcc": 0.01,
+        "ba": 0.01,
+        "bgr": 0.11,
+        "bu": 0.0475,
+        "sc": 0.0425,
+        "sod": 0.2175,
+        "pot": 0.22,
+        "hemo": 0.13,
+        "pcv": 0.1775,
+        "wbcc": 0.265,
+        "rbcc": 0.3275,
+        "htn": 0.005,
+        "dm": 0.0075,
+        "cad": 0.005,
+        "appet": 0.0025,
+        "pe": 0.0025,
+        "ane": 0.0025
+      },
+      "numeric_summary": {
+        "age": {
+          "n": 391,
+          "mean": 51.483,
+          "sd": 17.17,
+          "min": 2.0,
+          "p25": 42.0,
+          "median": 55.0,
+          "p75": 64.5,
+          "max": 90.0,
+          "skew": -0.67,
+          "missing_rate": 0.0225
+        },
+        "bp": {
+          "n": 388,
+          "mean": 76.469,
+          "sd": 13.684,
+          "min": 50.0,
+          "p25": 70.0,
+          "median": 80.0,
+          "p75": 80.0,
+          "max": 180.0,
+          "skew": 1.61,
+          "missing_rate": 0.03
+        },
+        "bgr": {
+          "n": 356,
+          "mean": 148.037,
+          "sd": 79.282,
+          "min": 22.0,
+          "p25": 99.0,
+          "median": 121.0,
+          "p75": 163.0,
+          "max": 490.0,
+          "skew": 2.01,
+          "missing_rate": 0.11
+        },
+        "bu": {
+          "n": 381,
+          "mean": 57.426,
+          "sd": 50.503,
+          "min": 1.5,
+          "p25": 27.0,
+          "median": 42.0,
+          "p75": 66.0,
+          "max": 391.0,
+          "skew": 2.63,
+          "missing_rate": 0.0475
+        },
+        "sc": {
+          "n": 383,
+          "mean": 3.072,
+          "sd": 5.741,
+          "min": 0.4,
+          "p25": 0.9,
+          "median": 1.3,
+          "p75": 2.8,
+          "max": 76.0,
+          "skew": 7.51,
+          "missing_rate": 0.0425
+        },
+        "hemo": {
+          "n": 348,
+          "mean": 12.526,
+          "sd": 2.913,
+          "min": 3.1,
+          "p25": 10.3,
+          "median": 12.65,
+          "p75": 15.0,
+          "max": 17.8,
+          "skew": -0.34,
+          "missing_rate": 0.13
+        },
+        "sod": {
+          "n": 313,
+          "mean": 137.529,
+          "sd": 10.409,
+          "min": 4.5,
+          "p25": 135.0,
+          "median": 138.0,
+          "p75": 142.0,
+          "max": 163.0,
+          "skew": -7.0,
+          "missing_rate": 0.2175
+        },
+        "pot": {
+          "n": 312,
+          "mean": 4.627,
+          "sd": 3.194,
+          "min": 2.5,
+          "p25": 3.8,
+          "median": 4.4,
+          "p75": 4.9,
+          "max": 47.0,
+          "skew": 11.58,
+          "missing_rate": 0.22
+        }
+      },
+      "categorical_values": {
+        "class": {
+          "ckd": 250,
+          "notckd": 149,
+          "no": 1
+        },
+        "htn": {
+          "no": 251,
+          "yes": 147,
+          "nan": 2
+        },
+        "dm": {
+          "no": 260,
+          "yes": 137,
+          "nan": 3
+        },
+        "cad": {
+          "no": 364,
+          "yes": 34,
+          "nan": 2
+        },
+        "appet": {
+          "good": 316,
+          "poor": 82,
+          "nan": 1,
+          "no": 1
+        },
+        "pe": {
+          "no": 322,
+          "yes": 76,
+          "nan": 1,
+          "good": 1
+        },
+        "ane": {
+          "no": 339,
+          "yes": 60,
+          "nan": 1
+        }
+      },
+      "candidate_endpoints": {
+        "ckd": "class == \"ckd\"  (positive rate 0.625, 250/400)",
+        "hypertension": "htn == \"yes\" (0.3675)",
+        "cad": "cad == \"yes\" (0.085)",
+        "diabetes_mellitus": "dm == \"yes\" (0.3425, duplicate concept of Diabetes.csv outcome)"
+      },
+      "risk_factor_mapping": {
+        "age": "age (years)",
+        "bmi": "NOT AVAILABLE (no BMI/anthropometric column)",
+        "bp": "bp (diastolic BP mmHg)",
+        "glucose": "bgr (blood glucose random, mg/dL)"
+      },
+      "data_quality_issues": [
+        "2 rows have shifted/invalid categorical labels (row index 369: appet=\"no\", pe=\"good\", ane=\"no\", class=\"no\"; row 294 has appet/pe/ane = NaN and class=\"notckd\") -> repair or drop",
+        "class counts are 250 ckd / 149 notckd / 1 invalid value; header says 250/150",
+        "high missingness in rbc (38%), wbcc (26.5%), rbcc (32.8%), sod/pot (~22%) - not needed for this analysis"
+      ]
+    },
+    "healthcare-dataset-stroke-data.csv": {
+      "file": "healthcare-dataset-stroke-data.csv",
+      "format": "csv",
+      "rows": 5110,
+      "cols": 12,
+      "topic": "stroke (Kaggle healthcare stroke dataset)",
+      "columns": {
+        "id": "row id",
+        "gender": "Female/Male/Other (1 Other row)",
+        "age": "years (0.08-82, includes children)",
+        "hypertension": "0/1",
+        "heart_disease": "0/1",
+        "ever_married": "Yes/No",
+        "work_type": "5 categories",
+        "Residence_type": "Urban/Rural",
+        "avg_glucose_level": "average glucose mg/dL",
+        "bmi": "kg/m^2 (201 missing)",
+        "smoking_status": "4 categories incl \"Unknown\"",
+        "stroke": "target 0/1"
+      },
+      "missing_rate": {
+        "bmi": 0.0393
+      },
+      "numeric_summary": {
+        "age": {
+          "n": 5110,
+          "mean": 43.227,
+          "sd": 22.613,
+          "min": 0.08,
+          "p25": 25.0,
+          "median": 45.0,
+          "p75": 61.0,
+          "max": 82.0,
+          "skew": -0.14,
+          "missing_rate": 0.0
+        },
+        "avg_glucose_level": {
+          "n": 5110,
+          "mean": 106.148,
+          "sd": 45.284,
+          "min": 55.12,
+          "p25": 77.245,
+          "median": 91.885,
+          "p75": 114.09,
+          "max": 271.74,
+          "skew": 1.57,
+          "missing_rate": 0.0
+        },
+        "bmi": {
+          "n": 4909,
+          "mean": 28.893,
+          "sd": 7.854,
+          "min": 10.3,
+          "p25": 23.5,
+          "median": 28.1,
+          "p75": 33.1,
+          "max": 97.6,
+          "skew": 1.06,
+          "missing_rate": 0.0393
+        }
+      },
+      "outcomes": {
+        "stroke": 0.0487,
+        "hypertension": 0.0975,
+        "heart_disease": 0.054
+      },
+      "bmi_missing_by_outcome": {
+        "0": 0.0331,
+        "1": 0.1606
+      },
+      "risk_factor_mapping": {
+        "age": "age",
+        "bmi": "bmi",
+        "bp": "NOT AVAILABLE as a measurement (only binary hypertension flag)",
+        "glucose": "avg_glucose_level (mg/dL)"
+      },
+      "modeling_notes": [
+        "severe class imbalance: 249/5110 = 4.87% stroke -> class_weight=\"balanced\" is essential (as specified in the task)",
+        "bmi missing in 201 rows, disproportionately among stroke=1 (16.1% vs 3.3%) -> imputation must be done inside CV or via median + indicator",
+        "smoking_status has 1544 \"Unknown\" and gender has a single \"Other\" row -> encode as categorical or drop",
+        "age includes children (min 0.08y) -> outlier-sensitive",
+        "categorical encodings needed for gender/ever_married/work_type/Residence_type/smoking_status"
+      ]
+    },
+    "heart_disease_uci.csv": {
+      "file": "heart_disease_uci.csv",
+      "format": "csv",
+      "rows": 920,
+      "cols": 16,
+      "topic": "heart disease (UCI multi-centre: Cleveland 304, Hungary 293, VA Long Beach 200, Switzerland 123)",
+      "missing_rate": {
+        "trestbps": 0.0641,
+        "chol": 0.0326,
+        "fbs": 0.0978,
+        "restecg": 0.0022,
+        "thalch": 0.0598,
+        "exang": 0.0598,
+        "oldpeak": 0.0674,
+        "slope": 0.3359,
+        "ca": 0.6641,
+        "thal": 0.5283
+      },
+      "numeric_summary": {
+        "age": {
+          "n": 920,
+          "mean": 53.511,
+          "sd": 9.425,
+          "min": 28.0,
+          "p25": 47.0,
+          "median": 54.0,
+          "p75": 60.0,
+          "max": 77.0,
+          "skew": -0.2,
+          "missing_rate": 0.0
+        },
+        "trestbps": {
+          "n": 861,
+          "mean": 132.132,
+          "sd": 19.066,
+          "min": 0.0,
+          "p25": 120.0,
+          "median": 130.0,
+          "p75": 140.0,
+          "max": 200.0,
+          "skew": 0.21,
+          "missing_rate": 0.0641
+        },
+        "chol": {
+          "n": 890,
+          "mean": 199.13,
+          "sd": 110.781,
+          "min": 0.0,
+          "p25": 175.0,
+          "median": 223.0,
+          "p75": 268.0,
+          "max": 603.0,
+          "skew": -0.61,
+          "missing_rate": 0.0326
+        },
+        "thalch": {
+          "n": 865,
+          "mean": 137.546,
+          "sd": 25.926,
+          "min": 60.0,
+          "p25": 120.0,
+          "median": 140.0,
+          "p75": 157.0,
+          "max": 202.0,
+          "skew": -0.21,
+          "missing_rate": 0.0598
+        },
+        "oldpeak": {
+          "n": 858,
+          "mean": 0.879,
+          "sd": 1.091,
+          "min": -2.6,
+          "p25": 0.0,
+          "median": 0.5,
+          "p75": 1.5,
+          "max": 6.2,
+          "skew": 1.04,
+          "missing_rate": 0.0674
+        },
+        "num": {
+          "n": 920,
+          "mean": 0.996,
+          "sd": 1.143,
+          "min": 0.0,
+          "p25": 0.0,
+          "median": 1.0,
+          "p75": 2.0,
+          "max": 4.0,
+          "skew": 0.97,
+          "missing_rate": 0.0
+        }
+      },
+      "categorical_values": {
+        "sex": {
+          "Male": 726,
+          "Female": 194
+        },
+        "dataset": {
+          "Cleveland": 304,
+          "Hungary": 293,
+          "VA Long Beach": 200,
+          "Switzerland": 123
+        },
+        "cp": {
+          "asymptomatic": 496,
+          "non-anginal": 204,
+          "atypical angina": 174,
+          "typical angina": 46
+        },
+        "fbs": {
+          "False": 692,
+          "True": 138,
+          "nan": 90
+        },
+        "restecg": {
+          "normal": 551,
+          "lv hypertrophy": 188,
+          "st-t abnormality": 179,
+          "nan": 2
+        },
+        "exang": {
+          "False": 528,
+          "True": 337,
+          "nan": 55
+        },
+        "slope": {
+          "flat": 345,
+          "nan": 309,
+          "upsloping": 203,
+          "downsloping": 63
+        },
+        "thal": {
+          "nan": 486,
+          "normal": 196,
+          "reversable defect": 192,
+          "fixed defect": 46
+        }
+      },
+      "outcome": {
+        "column": "num",
+        "raw_distribution": {
+          "0": 411,
+          "1": 265,
+          "2": 109,
+          "3": 107,
+          "4": 28
+        },
+        "binary_definition": "heart_disease = num > 0",
+        "positive_rate": 0.5533
+      },
+      "risk_factor_mapping": {
+        "age": "age",
+        "bmi": "NOT AVAILABLE",
+        "bp": "trestbps (resting systolic BP mmHg; 1 zero value to treat as missing)",
+        "glucose": "NOT AVAILABLE (fbs is only a >120 mg/dL boolean; 90 missing)"
+      },
+      "data_quality_issues": [
+        "chol has 172 zero values (implausible) - unused for this task",
+        "ca missing 66%, thal missing 53%, slope missing 34% - unused for this task",
+        "2 duplicate rows excluding id",
+        "trestbps has 1 zero value and 59 NaN"
+      ]
+    }
+  },
+  "harmonization_plan": {
+    "endpoint_definitions": {
+      "diabetes": {
+        "source": "Healthcare-Diabetes.csv",
+        "definition": "Outcome == 1",
+        "n_rows": 778,
+        "n_positive": 272,
+        "positive_rate": 0.3496
+      },
+      "ckd": {
+        "source": "chronic_kidney_disease_full.arff",
+        "definition": "class == \"ckd\"",
+        "n_rows": 400,
+        "n_positive": 250,
+        "positive_rate": 0.625
+      },
+      "hypertension": {
+        "source": "CKD (htn) + Stroke (hypertension)",
+        "definition": "htn==\"yes\" | hypertension==1",
+        "n_rows": 5510,
+        "n_positive": 645,
+        "positive_rate": 0.1171
+      },
+      "cad": {
+        "source": "chronic_kidney_disease_full.arff",
+        "definition": "cad == \"yes\"",
+        "n_rows": 400,
+        "n_positive": 34,
+        "positive_rate": 0.085
+      },
+      "stroke": {
+        "source": "healthcare-dataset-stroke-data.csv",
+        "definition": "stroke == 1",
+        "n_rows": 5110,
+        "n_positive": 249,
+        "positive_rate": 0.0487
+      },
+      "heart_disease": {
+        "source": "heart_disease_uci.csv (num>0) + Stroke (heart_disease)",
+        "definition": "num>0 | heart_disease==1",
+        "n_rows": 6030,
+        "n_positive": 785,
+        "positive_rate": 0.1302
+      }
+    },
+    "note_on_six_diseases": "Six distinct binary disease endpoints are derivable from the 4 available files (diabetes, CKD, hypertension, CAD, stroke, heart disease). The task description also mentions sleep-health and insurance datasets; those files are NOT present in the workspace, so the six endpoints above are used instead.",
+    "long_format_plan": {
+      "row_unit": "one (patient x endpoint) row",
+      "columns": [
+        "dataset",
+        "endpoint",
+        "group_id (= dataset|endpoint)",
+        "y (0/1)",
+        "age",
+        "bmi",
+        "bp",
+        "glucose"
+      ],
+      "total_rows_one_row_per_unique_patient": 18228,
+      "n_groups_for_dataset_specific_intercepts": 8,
+      "groups": {
+        "CKD|cad": {
+          "n": 400,
+          "positive_rate": 0.085
+        },
+        "CKD|ckd": {
+          "n": 400,
+          "positive_rate": 0.625
+        },
+        "CKD|hypertension": {
+          "n": 400,
+          "positive_rate": 0.3675
+        },
+        "Diabetes|diabetes": {
+          "n": 778,
+          "positive_rate": 0.3496
+        },
+        "HeartUCI|heart_disease": {
+          "n": 920,
+          "positive_rate": 0.5533
+        },
+        "Stroke|heart_disease": {
+          "n": 5110,
+          "positive_rate": 0.054
+        },
+        "Stroke|hypertension": {
+          "n": 5110,
+          "positive_rate": 0.0975
+        },
+        "Stroke|stroke": {
+          "n": 5110,
+          "positive_rate": 0.0487
+        }
+      }
+    },
+    "covariate_coverage_by_group": {
+      "CKD|cad": {
+        "age": 0.978,
+        "bmi": 0.0,
+        "bp": 0.97,
+        "glucose": 0.89
+      },
+      "CKD|ckd": {
+        "age": 0.978,
+        "bmi": 0.0,
+        "bp": 0.97,
+        "glucose": 0.89
+      },
+      "CKD|hypertension": {
+        "age": 0.978,
+        "bmi": 0.0,
+        "bp": 0.97,
+        "glucose": 0.89
+      },
+      "Diabetes|diabetes": {
+        "age": 1.0,
+        "bmi": 0.986,
+        "bp": 0.954,
+        "glucose": 0.994
+      },
+      "HeartUCI|heart_disease": {
+        "age": 1.0,
+        "bmi": 0.0,
+        "bp": 0.935,
+        "glucose": 0.0
+      },
+      "Stroke|heart_disease": {
+        "age": 1.0,
+        "bmi": 0.961,
+        "bp": 0.0,
+        "glucose": 1.0
+      },
+      "Stroke|hypertension": {
+        "age": 1.0,
+        "bmi": 0.961,
+        "bp": 0.0,
+        "glucose": 1.0
+      },
+      "Stroke|stroke": {
+        "age": 1.0,
+        "bmi": 0.961,
+        "bp": 0.0,
+        "glucose": 1.0
+      }
+    },
+    "covariate_coverage_overall": {
+      "age": 0.9985,
+      "bmi": 0.85,
+      "bp": 0.1517,
+      "glucose": 0.942
+    },
+    "critical_limitations": [
+      "Missing covariates (measured on the 18228-row pooled frame): BMI 15.0% missing (2734 rows = all 1200 CKD rows + all 920 HeartUCI rows + 603 stroke rows); blood pressure 84.8% missing (15462 rows = all 15330 stroke rows); glucose 5.8% missing (1057 rows = all 920 HeartUCI rows + 132 CKD + 5 Diabetes). Age is 99.85% complete.",
+      "Blood pressure is NOT measured in the stroke cohort (only a binary hypertension flag), so the BP coefficient is estimated almost entirely from CKD (diastolic), Diabetes (diastolic) and HeartUCI (systolic) rows. Blind median imputation would set 85% of BP values to the cohort mean (z=0) and attenuate the BP coefficient toward 0; recommend within-dataset standardisation followed by z=0 imputation PLUS a missingness indicator, and report a sensitivity analysis on BP-observed rows only.",
+      "BP meaning is heterogeneous: Diabetes.BloodPressure = diastolic, CKD.bp = diastolic, HeartUCI.trestbps = resting systolic. Raw mmHg pooling is invalid.",
+      "Glucose is measured on different scales/populations: Diabetes.Glucose (median 117 mg/dL), CKD.bgr random glucose (median 121, skew 2.0), stroke.avg_glucose_level (median 91.9, skew 1.6), and it is entirely absent in HeartUCI (fbs is only a >120 mg/dL boolean). Log transform or per-dataset standardisation recommended.",
+      "Age ranges differ strongly: Diabetes is adults only (21-81, median 29), stroke includes infants (min 0.08 y), CKD 2-90, HeartUCI 28-77 -> per-dataset standardisation avoids giving the Diabetes cohort an artificially tiny effect size.",
+      "Cohort dominance: because the stroke csv supplies 3 endpoints, it contributes 15330/18228 = 84.1% of pooled rows (CKD 6.6%, HeartUCI 5.0%, Diabetes 4.3%). Global coefficients will therefore largely reflect the stroke cohort; consider group-level weighting (e.g. equal weight per endpoint or per cohort) or report a leave-one-cohort-out sensitivity analysis.",
+      "The diabetes file contains 1990 exact duplicate rows (excluding Id) -> 2768 raw rows collapse to 778 unique patients; the pooled frame uses de-duplicated diabetes rows. Using all 2768 rows would give the diabetes cohort ~4x its real weight."
+    ],
+    "recommended_standardisation": "z-score each risk factor within its source dataset (a 1-SD increase = 1 SD within cohort); this handles the diastolic-vs-systolic BP and glucose-scale heterogeneity. A single global z-score is an acceptable alternative only if documented as a limitation.",
+    "univariate_correlation_with_outcome": {
+      "cad": {
+        "age": 0.233,
+        "bp": 0.087,
+        "glucose": 0.23
+      },
+      "ckd": {
+        "age": 0.227,
+        "bp": 0.294,
+        "glucose": 0.42
+      },
+      "diabetes": {
+        "age": 0.244,
+        "bmi": 0.279,
+        "bp": 0.178,
+        "glucose": 0.486
+      },
+      "heart_disease": {
+        "age": 0.278,
+        "bmi": 0.041,
+        "bp": 0.117,
+        "glucose": 0.162
+      },
+      "hypertension": {
+        "age": 0.293,
+        "bmi": 0.168,
+        "bp": 0.274,
+        "glucose": 0.245
+      },
+      "stroke": {
+        "age": 0.245,
+        "bmi": 0.042,
+        "glucose": 0.132
+      }
+    },
+    "expected_coefficient_signs": "all four risk factors are positively associated with every endpoint in the pooled data (correlations 0.04-0.49) -> posterior means for age/bmi/bp/glucose are expected to be positive; a negative sign in the fitted model signals a bug",
+    "missing_counts_on_pooled_frame": {
+      "bmi": {
+        "missing_rows": 2734,
+        "by_dataset": {
+          "CKD": 1200,
+          "HeartUCI": 920,
+          "Stroke": 603,
+          "Diabetes": 11
+        }
+      },
+      "bp": {
+        "missing_rows": 15462,
+        "by_dataset": {
+          "Stroke": 15330,
+          "HeartUCI": 60,
+          "Diabetes": 36,
+          "CKD": 36
+        }
+      },
+      "glucose": {
+        "missing_rows": 1057,
+        "by_dataset": {
+          "HeartUCI": 920,
+          "CKD": 132,
+          "Diabetes": 5
+        }
+      },
+      "age": {
+        "missing_rows": 27
+      }
+    },
+    "cohort_dominance": {
+      "rows_by_dataset": {
+        "Stroke": 15330,
+        "CKD": 1200,
+        "HeartUCI": 920,
+        "Diabetes": 778
+      },
+      "row_share_pct": {
+        "Stroke": 84.1,
+        "CKD": 6.6,
+        "HeartUCI": 5.0,
+        "Diabetes": 4.3
+      },
+      "why": "stroke csv provides 3 of the 6 endpoints (stroke, hypertension, heart_disease); CKD provides 3 (ckd, hypertension, cad); Diabetes 1; HeartUCI 1"
+    },
+    "imputation_recommendation": "Within each source dataset: (1) treat zero sentinels (Diabetes Glucose/BP/BMI, HeartUCI trestbps==0) as missing; (2) z-standardise each observed risk factor using its own dataset mean/SD; (3) impute any remaining missing standardised value with 0.0 (= that cohort's mean), and add a binary missing-indicator column per risk factor for the sensitivity model; (4) alternatively run the model on complete cases for the affected factor and compare."
+  },
+  "next_node_inputs": {
+    "long_dataframe": "not materialised as an artifact by this node except the preview pickle long_preview.pkl (18228 x 7); the modeling node should rebuild it deterministically from the rules above",
+    "bayesian_model_spec": {
+      "formula": "y ~ Bernoulli(logit^-1(alpha_group + beta_age*z_age + beta_bmi*z_bmi + beta_bp*z_bp + beta_glucose*z_glucose))",
+      "alpha_group": "dataset-specific (=dataset|endpoint specific) intercepts, hierarchical: alpha_j ~ Normal(mu_alpha, sigma_alpha), mu_alpha ~ Normal(0,2.5), sigma_alpha ~ HalfNormal(1)",
+      "betas": "weakly informative global priors: Normal(0, 2.5) (log-odds scale)",
+      "output_columns": [
+        "risk_factor",
+        "posterior_mean",
+        "ci_lower_2.5%",
+        "ci_upper_97.5%"
+      ],
+      "expected_rows": "4 (age, bmi, bp, glucose)",
+      "sampler_hint": "no PyMC/Stan available -> use MAP + Laplace approximation (numpy/scipy) or a hand-written random-walk Metropolis / Gibbs sampler; report 2.5/97.5 percentiles of the draws"
+    },
+    "stroke_model_validation": {
+      "dataset": "healthcare-dataset-stroke-data.csv",
+      "target": "stroke (4.87% positive)",
+      "preprocessing_hints": [
+        "drop id",
+        "one-hot encode gender/ever_married/work_type/Residence_type/smoking_status",
+        "impute bmi (median) + missing indicator",
+        "scale numeric features (needed for LogisticRegression)",
+        "stratified train/test split (e.g. 80/20, random_state=42)"
+      ],
+      "models": {
+        "RandomForestClassifier": "n_estimators=50, max_depth=5, min_samples_split=10, min_samples_leaf=5, class_weight=\"balanced\", random_state=42",
+        "LogisticRegression": "C=0.1, penalty=\"l2\", max_iter=1000, class_weight=\"balanced\""
+      },
+      "calibration_check": "compare predicted probabilities vs observed rates (Brier score, calibration curve, ROC-AUC/PR-AUC given the imbalance)"
+    }
+  },
+  "numeric_summary_note": "All numeric_summary blocks are computed on RAW values (zero sentinels such as Diabetes Glucose/BloodPressure/BMI==0 and HeartUCI trestbps==0 are still present); see the per-dataset missing_values / sentinel fields for the corrected missingness. skew = Fisher-Pearson g1.",
+  "risk_factor_output_labels": {
+    "age": "age",
+    "bmi": "bmi",
+    "bp": "blood pressure (per 1 SD; heterogeneous diastolic/systolic by cohort)",
+    "glucose": "glucose (per 1 SD; fasting / random / average by cohort)"
+  },
+  "intermediate_artifacts": {
+    "ckd_clean.pkl": "cleaned CKD arff (400 x 25) after ARFF repair (3 malformed @data lines fixed, \"?\" -> NaN)",
+    "long_preview.pkl": "preview of the pooled long frame (18228 x 7: dataset, age, bmi, bp, glucose, endpoint, y) built with the documented harmonisation rules; the modeling node may reuse or rebuild it"
+  }
+}

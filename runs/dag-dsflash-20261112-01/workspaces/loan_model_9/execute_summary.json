@@ -1,0 +1,60 @@
+{
+  "node": "execute",
+  "task": "missing-rate filter + median impute -> time 70/30 split -> SMOTE on train -> LGBM -> output.json",
+  "steps": [
+    {
+      "step": "load_and_validate",
+      "detail": "features.csv(49910x100) 1:1 inner-merge with label.csv(49910x3) on (time,bizcode); joined=49910, 0 duplicate keys, 98 feature cols"
+    },
+    {
+      "step": "missing_rate_filter",
+      "detail": "NaN missing rate per feature; max=0.0, columns with any NaN=0; dropped (>30%)=[]; kept 98 features. Diagnostic: -1 sentinel max rate 0.2356 (e8-e11), documented but not treated as missing."
+    },
+    {
+      "step": "median_imputation",
+      "detail": "medians fit on train rows only, applied to train+test; 0 NaN left (no-op in practice since there were no NaNs)"
+    },
+    {
+      "step": "time_split",
+      "detail": "sorted 153 unique days; train = first 107 days (20230701-20231015, 30490 rows), test = last 46 days (20231016-20231130, 19420 rows)"
+    },
+    {
+      "step": "smote",
+      "detail": "SMOTE(sampling_strategy=1.0, k=5, seed=42) on train only: 30490 -> 55072 rows; ratio 0.096884 -> 0.5"
+    },
+    {
+      "step": "lgbm",
+      "detail": "LGBMClassifier(n_estimators=600, lr=0.03, num_leaves=31, subsample=0.8/freq1, colsample_bytree=0.7, min_child_samples=20, reg_lambda=1.0, seed=42) fit on resampled train"
+    },
+    {
+      "step": "evaluate",
+      "detail": "test KS=0.201967, test AUC=0.631071, train KS on resampled=0.954678 (overfit expected with 50/50 synthetic train)"
+    }
+  ],
+  "key_numbers": {
+    "train_positive_ratio_before_smote": 0.09688422433584781,
+    "train_positive_ratio_after_smote": 0.5,
+    "test_positive_ratio": 0.087333,
+    "test_ks": 0.201967,
+    "test_auc": 0.631071,
+    "n_train_rows_before_smote": 30490,
+    "n_train_rows_after_smote": 55072,
+    "n_test_rows": 19420,
+    "n_features_used": 98,
+    "n_features_dropped": 0
+  },
+  "notes": [
+    "output.json previously held a placeholder/baseline pair (0.5, 0.129349); the freshly executed pipeline gives test_ks=0.201967 (materially higher). Same split/seed/settings as documented in analysis_plan.json, so the difference is attributed to the earlier file not being produced by this exact run.",
+    "Missing-rate filtering is a no-op on this dataset (no NaNs at all); the -1 sentinel used by 90/98 features was deliberately NOT treated as missing, per the plan.",
+    "Test set never resampled; reported KS reflects the real 8.7% positive prior."
+  ],
+  "outputs": [
+    "output.json",
+    "missing_rate_report.json",
+    "smote_report.json",
+    "lgbm_metrics.json",
+    "split_data.npz",
+    "resampled.npz",
+    "p_te.npy"
+  ]
+}

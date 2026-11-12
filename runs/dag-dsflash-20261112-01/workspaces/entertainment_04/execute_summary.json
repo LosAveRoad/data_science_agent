@@ -1,0 +1,76 @@
+{
+  "node": "execute",
+  "objective": "为 2017/2018/2020 流行歌曲三大音频特征做统计与单因素方差分析、计算游戏发行商市场 HHI、计算图书/电影评分均值中位数，写入 output.json。",
+  "methods": {
+    "music_features": "读取 top2017.csv(n=100)/top2018.csv(n=100)/top50_2020.csv(n=50)，按列名选取 danceability/energy/valence（2020 列顺序不同，按名称选），to_numeric(coerce) 后无缺失。均值用 pandas Series.mean，标准差用样本标准差 ddof=1。",
+    "anova": "scipy.stats.f_oneway 对每年一组共三组独立样本做单因素 ANOVA，df=(2,247)；三个特征均无缺失，无需 listwise 删除。",
+    "game_market_hhi": "vgsales.csv 取 Publisher/Global_Sales，Publisher 去空格（strip），剔除 58 行缺失 Publisher（占 Global_Sales 0.17%），按 Publisher 汇总 Global_Sales 得 578 个发行商，share=Si/总额 8905.56，HHI=sum(share^2)（0-1 标度）。",
+    "ratings_books": "books.csv 用 csv.reader 解析，修复 4 行未加引号逗号造成 13 字段的问题（合并 fields[2]+fields[3] 到 authors），列名 strip（'  num_pages'），得 11127 行、average_rating 无缺失；mean/median 为 pandas 算术均值与线性插值中位数。",
+    "ratings_movies": "movies_metadata.csv 用 usecols=['vote_average','vote_count'] + low_memory=False 读取（33MB，避开脏的 id/popularity 列），vote_average 转数值后 dropna 得 n=45460（剔除 6 个缺失；保留 2998 个 vote_average==0 的未知评分作为主定义）。"
+  },
+  "key_intermediate_results": {
+    "group_sizes": {
+      "2017": 100,
+      "2018": 100,
+      "2020": 50
+    },
+    "feature_means": {
+      "danceability": {
+        "2017": 0.69682,
+        "2018": 0.71646,
+        "2020": 0.71672
+      },
+      "energy": {
+        "2017": 0.66069,
+        "2018": 0.65906,
+        "2020": 0.6093
+      },
+      "valence": {
+        "2017": 0.517049,
+        "2018": 0.484443,
+        "2020": 0.55571
+      }
+    },
+    "anova": {
+      "danceability": {
+        "F": 0.718273,
+        "p": 0.488609
+      },
+      "energy": {
+        "F": 2.447576,
+        "p": 0.088599
+      },
+      "valence": {
+        "F": 1.929154,
+        "p": 0.147454
+      }
+    },
+    "hhi": {
+      "publishers": 578,
+      "total_global_sales": 8905.56,
+      "hhi_0_1": 0.07929227304017357,
+      "hhi_0_10000": 792.9227304017357,
+      "missing_publisher_rows_dropped": 58,
+      "sensitivity_nan_as_unknown": 0.07904370708758951
+    },
+    "ratings": {
+      "books_n": 11127,
+      "books_mean": 3.933630807944639,
+      "books_median": 3.96,
+      "movies_n": 45460,
+      "movies_mean": 5.618207215134184,
+      "movies_median": 6.0,
+      "movies_sensitivity_vote_count_gt0": {
+        "n": 42561,
+        "mean": 6.000885787458002,
+        "median": 6.1
+      }
+    }
+  },
+  "findings": "三年间 danceability 稳定在 0.70-0.72；energy 由约 0.66 降至 0.61；valence 波动（2018 最低 0.484，2020 最高 0.556）。三项特征的 ANOVA p 值均大于 0.05（0.089 / 0.147 / 0.489），三年差异统计上不显著，仅 energy 接近边缘显著。游戏发行商市场 HHI≈0.079（经典标度 792.9），属高度分散的竞争性市场。图书均分 3.93（中位数 3.96），电影均分 5.62（中位数 6.0），两者评分尺度不同（5 分制 vs 10 分制）不宜直接比较。",
+  "validation": "output.json 字段数校验通过：music_features 18 个 float、anova 6 个 float、game_market_hhi 1 个 float、ratings 4 个 float；无 NaN/Infinity；数值与 analysis_plan.json / data_profile.json 中的参考值一致（HHI 0.0793、movies mean 5.6182 / median 6.0 等）。",
+  "artifacts": [
+    "output.json",
+    "execute_summary.json"
+  ]
+}

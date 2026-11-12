@@ -1,0 +1,903 @@
+{
+ "artifact": "data_profile.json",
+ "node_scope": "data inspection / profiling only (no modeling performed)",
+ "datasets": {
+  "Healthcare-Diabetes.csv": {
+   "n_rows": 2768,
+   "n_cols": 10,
+   "columns": [
+    {
+     "name": "Id",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 2768,
+     "stats": {
+      "min": 1.0,
+      "median": 1384.5,
+      "mean": 1384.5,
+      "max": 2768.0
+     }
+    },
+    {
+     "name": "Pregnancies",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 17,
+     "n_zero": 412,
+     "stats": {
+      "min": 0.0,
+      "median": 3.0,
+      "mean": 3.7428,
+      "max": 17.0
+     }
+    },
+    {
+     "name": "Glucose",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 136,
+     "n_zero": 18,
+     "stats": {
+      "min": 0.0,
+      "median": 117.0,
+      "mean": 121.1026,
+      "max": 199.0
+     }
+    },
+    {
+     "name": "BloodPressure",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 47,
+     "n_zero": 125,
+     "stats": {
+      "min": 0.0,
+      "median": 72.0,
+      "mean": 69.1344,
+      "max": 122.0
+     }
+    },
+    {
+     "name": "SkinThickness",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 53,
+     "n_zero": 800,
+     "stats": {
+      "min": 0.0,
+      "median": 23.0,
+      "mean": 20.8244,
+      "max": 110.0
+     }
+    },
+    {
+     "name": "Insulin",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 187,
+     "n_zero": 1330,
+     "stats": {
+      "min": 0.0,
+      "median": 37.0,
+      "mean": 80.1279,
+      "max": 846.0
+     }
+    },
+    {
+     "name": "BMI",
+     "dtype": "float64",
+     "n_missing": 0,
+     "n_unique": 253,
+     "n_zero": 39,
+     "stats": {
+      "min": 0.0,
+      "median": 32.2,
+      "mean": 32.1374,
+      "max": 80.6
+     }
+    },
+    {
+     "name": "DiabetesPedigreeFunction",
+     "dtype": "float64",
+     "n_missing": 0,
+     "n_unique": 523,
+     "stats": {
+      "min": 0.078,
+      "median": 0.375,
+      "mean": 0.4712,
+      "max": 2.42
+     }
+    },
+    {
+     "name": "Age",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 52,
+     "stats": {
+      "min": 21.0,
+      "median": 29.0,
+      "mean": 33.1322,
+      "max": 81.0
+     }
+    },
+    {
+     "name": "Outcome",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 2,
+     "n_zero": 1816,
+     "stats": {
+      "min": 0.0,
+      "median": 0.0,
+      "mean": 0.3439,
+      "max": 1.0
+     }
+    }
+   ],
+   "sample_rows": [
+    {
+     "Id": "1",
+     "Pregnancies": "6",
+     "Glucose": "148",
+     "BloodPressure": "72",
+     "SkinThickness": "35",
+     "Insulin": "0",
+     "BMI": "33.6",
+     "DiabetesPedigreeFunction": "0.627",
+     "Age": "50",
+     "Outcome": "1"
+    },
+    {
+     "Id": "2",
+     "Pregnancies": "1",
+     "Glucose": "85",
+     "BloodPressure": "66",
+     "SkinThickness": "29",
+     "Insulin": "0",
+     "BMI": "26.6",
+     "DiabetesPedigreeFunction": "0.351",
+     "Age": "31",
+     "Outcome": "0"
+    },
+    {
+     "Id": "3",
+     "Pregnancies": "8",
+     "Glucose": "183",
+     "BloodPressure": "64",
+     "SkinThickness": "0",
+     "Insulin": "0",
+     "BMI": "23.3",
+     "DiabetesPedigreeFunction": "0.672",
+     "Age": "32",
+     "Outcome": "1"
+    }
+   ]
+  },
+  "healthcare-dataset-stroke-data.csv": {
+   "n_rows": 5110,
+   "n_cols": 12,
+   "columns": [
+    {
+     "name": "id",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 5110,
+     "stats": {
+      "min": 67.0,
+      "median": 36932.0,
+      "mean": 36517.8294,
+      "max": 72940.0
+     }
+    },
+    {
+     "name": "gender",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 3
+    },
+    {
+     "name": "age",
+     "dtype": "float64",
+     "n_missing": 0,
+     "n_unique": 104,
+     "stats": {
+      "min": 0.08,
+      "median": 45.0,
+      "mean": 43.2266,
+      "max": 82.0
+     }
+    },
+    {
+     "name": "hypertension",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 2,
+     "n_zero": 4612,
+     "stats": {
+      "min": 0.0,
+      "median": 0.0,
+      "mean": 0.0975,
+      "max": 1.0
+     }
+    },
+    {
+     "name": "heart_disease",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 2,
+     "n_zero": 4834,
+     "stats": {
+      "min": 0.0,
+      "median": 0.0,
+      "mean": 0.054,
+      "max": 1.0
+     }
+    },
+    {
+     "name": "ever_married",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 2
+    },
+    {
+     "name": "work_type",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 5
+    },
+    {
+     "name": "Residence_type",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 2
+    },
+    {
+     "name": "avg_glucose_level",
+     "dtype": "float64",
+     "n_missing": 0,
+     "n_unique": 3979,
+     "stats": {
+      "min": 55.12,
+      "median": 91.88499999999999,
+      "mean": 106.1477,
+      "max": 271.74
+     }
+    },
+    {
+     "name": "bmi",
+     "dtype": "float64",
+     "n_missing": 201,
+     "n_unique": 418,
+     "stats": {
+      "min": 10.3,
+      "median": 28.1,
+      "mean": 28.8932,
+      "max": 97.6
+     }
+    },
+    {
+     "name": "smoking_status",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 4
+    },
+    {
+     "name": "stroke",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 2,
+     "n_zero": 4861,
+     "stats": {
+      "min": 0.0,
+      "median": 0.0,
+      "mean": 0.0487,
+      "max": 1.0
+     }
+    }
+   ],
+   "sample_rows": [
+    {
+     "id": "9046",
+     "gender": "Male",
+     "age": "67.0",
+     "hypertension": "0",
+     "heart_disease": "1",
+     "ever_married": "Yes",
+     "work_type": "Private",
+     "Residence_type": "Urban",
+     "avg_glucose_level": "228.69",
+     "bmi": "36.6",
+     "smoking_status": "formerly smoked",
+     "stroke": "1"
+    },
+    {
+     "id": "51676",
+     "gender": "Female",
+     "age": "61.0",
+     "hypertension": "0",
+     "heart_disease": "0",
+     "ever_married": "Yes",
+     "work_type": "Self-employed",
+     "Residence_type": "Rural",
+     "avg_glucose_level": "202.21",
+     "bmi": NaN,
+     "smoking_status": "never smoked",
+     "stroke": "1"
+    },
+    {
+     "id": "31112",
+     "gender": "Male",
+     "age": "80.0",
+     "hypertension": "0",
+     "heart_disease": "1",
+     "ever_married": "Yes",
+     "work_type": "Private",
+     "Residence_type": "Rural",
+     "avg_glucose_level": "105.92",
+     "bmi": "32.5",
+     "smoking_status": "never smoked",
+     "stroke": "1"
+    }
+   ]
+  },
+  "heart_disease_uci.csv": {
+   "n_rows": 920,
+   "n_cols": 16,
+   "columns": [
+    {
+     "name": "id",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 920,
+     "stats": {
+      "min": 1.0,
+      "median": 460.5,
+      "mean": 460.5,
+      "max": 920.0
+     }
+    },
+    {
+     "name": "age",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 50,
+     "stats": {
+      "min": 28.0,
+      "median": 54.0,
+      "mean": 53.5109,
+      "max": 77.0
+     }
+    },
+    {
+     "name": "sex",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 2
+    },
+    {
+     "name": "dataset",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 4
+    },
+    {
+     "name": "cp",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 4
+    },
+    {
+     "name": "trestbps",
+     "dtype": "float64",
+     "n_missing": 59,
+     "n_unique": 61,
+     "n_zero": 1,
+     "stats": {
+      "min": 0.0,
+      "median": 130.0,
+      "mean": 132.1324,
+      "max": 200.0
+     }
+    },
+    {
+     "name": "chol",
+     "dtype": "float64",
+     "n_missing": 30,
+     "n_unique": 217,
+     "n_zero": 172,
+     "stats": {
+      "min": 0.0,
+      "median": 223.0,
+      "mean": 199.1303,
+      "max": 603.0
+     }
+    },
+    {
+     "name": "fbs",
+     "dtype": "object",
+     "n_missing": 90,
+     "n_unique": 2
+    },
+    {
+     "name": "restecg",
+     "dtype": "str",
+     "n_missing": 2,
+     "n_unique": 3
+    },
+    {
+     "name": "thalch",
+     "dtype": "float64",
+     "n_missing": 55,
+     "n_unique": 119,
+     "stats": {
+      "min": 60.0,
+      "median": 140.0,
+      "mean": 137.5457,
+      "max": 202.0
+     }
+    },
+    {
+     "name": "exang",
+     "dtype": "object",
+     "n_missing": 55,
+     "n_unique": 2
+    },
+    {
+     "name": "oldpeak",
+     "dtype": "float64",
+     "n_missing": 62,
+     "n_unique": 53,
+     "n_zero": 370,
+     "stats": {
+      "min": -2.6,
+      "median": 0.5,
+      "mean": 0.8788,
+      "max": 6.2
+     }
+    },
+    {
+     "name": "slope",
+     "dtype": "str",
+     "n_missing": 309,
+     "n_unique": 3
+    },
+    {
+     "name": "ca",
+     "dtype": "float64",
+     "n_missing": 611,
+     "n_unique": 4,
+     "n_zero": 181,
+     "stats": {
+      "min": 0.0,
+      "median": 0.0,
+      "mean": 0.6764,
+      "max": 3.0
+     }
+    },
+    {
+     "name": "thal",
+     "dtype": "str",
+     "n_missing": 486,
+     "n_unique": 3
+    },
+    {
+     "name": "num",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 5,
+     "n_zero": 411,
+     "stats": {
+      "min": 0.0,
+      "median": 1.0,
+      "mean": 0.9957,
+      "max": 4.0
+     }
+    }
+   ],
+   "sample_rows": [
+    {
+     "id": "1",
+     "age": "63",
+     "sex": "Male",
+     "dataset": "Cleveland",
+     "cp": "typical angina",
+     "trestbps": "145.0",
+     "chol": "233.0",
+     "fbs": "True",
+     "restecg": "lv hypertrophy",
+     "thalch": "150.0",
+     "exang": "False",
+     "oldpeak": "2.3",
+     "slope": "downsloping",
+     "ca": "0.0",
+     "thal": "fixed defect",
+     "num": "0"
+    },
+    {
+     "id": "2",
+     "age": "67",
+     "sex": "Male",
+     "dataset": "Cleveland",
+     "cp": "asymptomatic",
+     "trestbps": "160.0",
+     "chol": "286.0",
+     "fbs": "False",
+     "restecg": "lv hypertrophy",
+     "thalch": "108.0",
+     "exang": "True",
+     "oldpeak": "1.5",
+     "slope": "flat",
+     "ca": "3.0",
+     "thal": "normal",
+     "num": "2"
+    },
+    {
+     "id": "3",
+     "age": "67",
+     "sex": "Male",
+     "dataset": "Cleveland",
+     "cp": "asymptomatic",
+     "trestbps": "120.0",
+     "chol": "229.0",
+     "fbs": "False",
+     "restecg": "lv hypertrophy",
+     "thalch": "129.0",
+     "exang": "True",
+     "oldpeak": "2.6",
+     "slope": "flat",
+     "ca": "2.0",
+     "thal": "reversable defect",
+     "num": "1"
+    }
+   ]
+  },
+  "Sleep_health_and_lifestyle_dataset.csv": {
+   "n_rows": 374,
+   "n_cols": 13,
+   "columns": [
+    {
+     "name": "Person ID",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 374,
+     "stats": {
+      "min": 1.0,
+      "median": 187.5,
+      "mean": 187.5,
+      "max": 374.0
+     }
+    },
+    {
+     "name": "Gender",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 2
+    },
+    {
+     "name": "Age",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 31,
+     "stats": {
+      "min": 27.0,
+      "median": 43.0,
+      "mean": 42.1845,
+      "max": 59.0
+     }
+    },
+    {
+     "name": "Occupation",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 11
+    },
+    {
+     "name": "Sleep Duration",
+     "dtype": "float64",
+     "n_missing": 0,
+     "n_unique": 27,
+     "stats": {
+      "min": 5.8,
+      "median": 7.2,
+      "mean": 7.1321,
+      "max": 8.5
+     }
+    },
+    {
+     "name": "Quality of Sleep",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 6,
+     "stats": {
+      "min": 4.0,
+      "median": 7.0,
+      "mean": 7.3128,
+      "max": 9.0
+     }
+    },
+    {
+     "name": "Physical Activity Level",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 16,
+     "stats": {
+      "min": 30.0,
+      "median": 60.0,
+      "mean": 59.1711,
+      "max": 90.0
+     }
+    },
+    {
+     "name": "Stress Level",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 6,
+     "stats": {
+      "min": 3.0,
+      "median": 5.0,
+      "mean": 5.385,
+      "max": 8.0
+     }
+    },
+    {
+     "name": "BMI Category",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 4
+    },
+    {
+     "name": "Blood Pressure",
+     "dtype": "str",
+     "n_missing": 0,
+     "n_unique": 25
+    },
+    {
+     "name": "Heart Rate",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 19,
+     "stats": {
+      "min": 65.0,
+      "median": 70.0,
+      "mean": 70.1658,
+      "max": 86.0
+     }
+    },
+    {
+     "name": "Daily Steps",
+     "dtype": "int64",
+     "n_missing": 0,
+     "n_unique": 20,
+     "stats": {
+      "min": 3000.0,
+      "median": 7000.0,
+      "mean": 6816.8449,
+      "max": 10000.0
+     }
+    },
+    {
+     "name": "Sleep Disorder",
+     "dtype": "str",
+     "n_missing": 219,
+     "n_unique": 2
+    }
+   ],
+   "sample_rows": [
+    {
+     "Person ID": "1",
+     "Gender": "Male",
+     "Age": "27",
+     "Occupation": "Software Engineer",
+     "Sleep Duration": "6.1",
+     "Quality of Sleep": "6",
+     "Physical Activity Level": "42",
+     "Stress Level": "6",
+     "BMI Category": "Overweight",
+     "Blood Pressure": "126/83",
+     "Heart Rate": "77",
+     "Daily Steps": "4200",
+     "Sleep Disorder": NaN
+    },
+    {
+     "Person ID": "2",
+     "Gender": "Male",
+     "Age": "28",
+     "Occupation": "Doctor",
+     "Sleep Duration": "6.2",
+     "Quality of Sleep": "6",
+     "Physical Activity Level": "60",
+     "Stress Level": "8",
+     "BMI Category": "Normal",
+     "Blood Pressure": "125/80",
+     "Heart Rate": "75",
+     "Daily Steps": "10000",
+     "Sleep Disorder": NaN
+    },
+    {
+     "Person ID": "3",
+     "Gender": "Male",
+     "Age": "28",
+     "Occupation": "Doctor",
+     "Sleep Duration": "6.2",
+     "Quality of Sleep": "6",
+     "Physical Activity Level": "60",
+     "Stress Level": "8",
+     "BMI Category": "Normal",
+     "Blood Pressure": "125/80",
+     "Heart Rate": "75",
+     "Daily Steps": "10000",
+     "Sleep Disorder": NaN
+    }
+   ]
+  }
+ },
+ "categorical_summaries": {
+  "Healthcare-Diabetes.csv": {},
+  "healthcare-dataset-stroke-data.csv": {
+   "gender": {
+    "Female": 2994,
+    "Male": 2115,
+    "Other": 1
+   },
+   "hypertension": {
+    "0": 4612,
+    "1": 498
+   },
+   "heart_disease": {
+    "0": 4834,
+    "1": 276
+   },
+   "ever_married": {
+    "Yes": 3353,
+    "No": 1757
+   },
+   "work_type": {
+    "Private": 2925,
+    "Self-employed": 819,
+    "children": 687,
+    "Govt_job": 657,
+    "Never_worked": 22
+   },
+   "Residence_type": {
+    "Urban": 2596,
+    "Rural": 2514
+   },
+   "smoking_status": {
+    "never smoked": 1892,
+    "Unknown": 1544,
+    "formerly smoked": 885,
+    "smokes": 789
+   },
+   "stroke (target)": {
+    "0": 4861,
+    "1": 249
+   }
+  },
+  "heart_disease_uci.csv": {
+   "sex": {
+    "Male": 726,
+    "Female": 194
+   },
+   "dataset": {
+    "Cleveland": 304,
+    "Hungary": 293,
+    "Switzerland": 123,
+    "VA Long Beach": 200
+   },
+   "fbs": {
+    "False": 692,
+    "True": 138,
+    "NaN": 90
+   },
+   "num (target 0-4)": {
+    "0": 411,
+    "1": 265,
+    "2": 109,
+    "3": 107,
+    "4": 28
+   }
+  },
+  "Sleep_health_and_lifestyle_dataset.csv": {
+   "BMI Category": {
+    "Normal": 195,
+    "Overweight": 148,
+    "Normal Weight": 21,
+    "Obese": 10
+   },
+   "Blood Pressure (format)": {
+    "systolic/diastolic string, e.g. '126/83'; 374/374 parseable; systolic 115-142, diastolic 65-95": 374
+   },
+   "Sleep Disorder (target source)": {
+    "NaN (=no disorder)": 219,
+    "Sleep Apnea": 78,
+    "Insomnia": 77
+   }
+  }
+ },
+ "harmonization_plan": {
+  "required_base_columns": [
+   "age",
+   "glucose",
+   "bmi",
+   "bp"
+  ],
+  "target": "binary chronic condition indicator per source (see per_source_mapping)",
+  "derived_features_expected_downstream": {
+   "glucose_bmi_ratio": "glucose/(bmi+1)",
+   "age_glucose_interaction": "age*glucose/1000",
+   "bp_bmi_ratio": "bp/(bmi+1)",
+   "source_encoded": "LabelEncoder over source column"
+  },
+  "per_source_mapping": {
+   "Healthcare-Diabetes.csv": {
+    "age": "Age",
+    "glucose": "Glucose (0 -> NaN first)",
+    "bmi": "BMI (0 -> NaN first)",
+    "bp": "BloodPressure (0 -> NaN first; this is DIASTOLIC mm Hg)",
+    "target": "Outcome",
+    "source_label": "diabetes",
+    "rows_after_zero_to_nan_and_dropna": 2612,
+    "rows_dropped": 156,
+    "target_prevalence": 0.34
+   },
+   "healthcare-dataset-stroke-data.csv": {
+    "age": "age",
+    "glucose": "avg_glucose_level",
+    "bmi": "bmi (201 NaN)",
+    "bp": "hypertension (binary 0/1 proxy, as instructed)",
+    "target": "stroke",
+    "source_label": "stroke",
+    "rows_after_dropna": 4909,
+    "rows_after_sample_to_1000_rs42": 1000,
+    "target_prevalence_after_sample": 0.054
+   },
+   "heart_disease_uci.csv": {
+    "age": "age",
+    "glucose": "NO native glucose column - only binary fbs (fasting blood sugar >120mg/dl); crude proxy fbsTrue->140, fbsFalse->90 mg/dL, fbs NaN -> NaN (90 rows)",
+    "bmi": "NO native BMI (and no height/weight) - cannot be derived from this file",
+    "bp": "trestbps (resting SYSTOLIC mm Hg, 59 NaN)",
+    "target": "num (>0 -> 1, prevalence 0.5533)",
+    "source_label": "heart_disease",
+    "feasibility": "only 2 of 4 base biomarkers truly available; rows are dropped by the 'drop records missing any of the four base biomarker columns' rule unless bmi is imputed with an external constant (e.g. pooled diabetes+stroke median BMI = 29.5)"
+   },
+   "Sleep_health_and_lifestyle_dataset.csv": {
+    "age": "Age",
+    "glucose": "NO glucose column at all (no proxy available)",
+    "bmi": "BMI Category is CATEGORICAL (Normal 195, Overweight 148, 'Normal Weight' 21, Obese 10) - needs ordinal/median mapping, or drop",
+    "bp": "Blood Pressure string 'sys/dia' -> systolic (split('/')[0], 115-142) or midpoint/diastolic",
+    "target": "Sleep Disorder notnull -> 1 (prevalence 0.4144; NaN means no disorder)",
+    "source_label": "sleep",
+    "feasibility": "lacks glucose entirely; excluded by the base-biomarker drop rule unless imputed"
+   },
+   "recommended_sources_for_modeling": {
+    "primary": [
+     "diabetes",
+     "stroke"
+    ],
+    "reason": "only these two supply all four base biomarkers natively; heart_disease and sleep can only enter via documented proxy/imputation",
+    "expected_combined_rows_primary": 3612,
+    "alternative_all_four": "impute glucose (heart: fbs proxy; sleep: pooled median) and bmi (heart: pooled median 29.5; sleep: BMI-category median mapping) so heart_disease and sleep survive the drop; increases rows to ~4906 but injects synthetic biomarker values"
+   }
+  }
+ },
+ "quality_flags": [
+  "Healthcare-Diabetes.csv: 0-coded missing values -> Glucose 18, BloodPressure 125, BMI 39 (also SkinThickness 800 / Insulin 1330, unused here); zero must be converted to NaN BEFORE dropping, else BP/glucose 0 corrupts ratios.",
+  "bp semantics differ across sources: diabetes BP = diastolic mm Hg (30-122), stroke 'hypertension' = binary 0/1, heart trestbps = systolic, sleep BP = systolic. After combining, bp is bimodal in scale (0/1 vs ~70-170); bp_bmi_ratio inherits this mismatch and StandardScaler will not fix the semantics. Consider documenting, or standardizing bp per source.",
+  "healthcare-dataset-stroke-data.csv: age min = 0.08 years (infant row) -> extreme outlier vs other sources; bmi 201 missing; strong class imbalance (249/5110 = 4.9%), 1000-row sample keeps ~5.4% positives (54 cases) -> coefficient stability will be limited.",
+  "heart_disease_uci.csv: fbs 90 NaN, slope 309 NaN, ca 611 NaN, thal 486 NaN; target num is ordinal 0-4, must be binarized.",
+  "Sleep_health_and_lifestyle_dataset.csv: 'Normal' and 'Normal Weight' are duplicate BMI labels; only 374 rows; no glucose; strong feature/row overlap with the source of the sleep-disorder label (noise).",
+  "Healthcare-Diabetes.csv is an oversampled/duplicated-looking Kaggle variant of the Pima layout (2768 rows vs 768); Id is a pure row index and must not be used as a feature.",
+  "ID-like columns to drop from modeling: Diabetes 'Id', stroke 'id', heart 'id', sleep 'Person ID', heart 'dataset' (site identifier - leakage-ish correlational artifact).",
+  "Random forest needs numeric-only input: heart_disease_uci has object columns (restecg/exang contain bool+NaN read as object) and sleep has categoricals."
+ ],
+ "downstream_expectations": {
+  "modeling_feature_matrix": "base 4 + 3 engineered + source_encoded = 8 candidate features, then RFE -> 5, PCA -> 3 components, hybrid = 8 columns",
+  "pca_requirement": "PCA on the full candidate feature set (post-median imputation); report explained_variance_ratio_ for the 3 components in the PNG's right panel",
+  "outputs_required": [
+   "feature_coefficients.csv",
+   "selected_features.csv",
+   "feature_analysis.png",
+   "top_coefficient.txt"
+  ]
+ }
+}

@@ -1,0 +1,290 @@
+{
+  "plan_id": "entertainment_04_analysis_plan",
+  "objective": "Compute (1) per-year mean/std of danceability, energy, valence for 2017/2018/2020 popular songs, (2) one-way ANOVA across the three years for each feature, (3) HHI of the video-game publisher market, (4) mean/median of book and movie ratings; write all results to output.json.",
+  "final_artifact": {
+    "path": "output.json",
+    "encoding": "UTF-8 JSON object, full float precision (json.dump default double repr), no NaN/Infinity allowed",
+    "top_level_keys": [
+      "music_features",
+      "anova",
+      "game_market_hhi",
+      "ratings"
+    ],
+    "key_contract": {
+      "music_features": {
+        "type": "object",
+        "n_fields": 18,
+        "fields": [
+          "danceability_2017_mean",
+          "danceability_2017_std",
+          "danceability_2018_mean",
+          "danceability_2018_std",
+          "danceability_2020_mean",
+          "danceability_2020_std",
+          "energy_2017_mean",
+          "energy_2017_std",
+          "energy_2018_mean",
+          "energy_2018_std",
+          "energy_2020_mean",
+          "energy_2020_std",
+          "valence_2017_mean",
+          "valence_2017_std",
+          "valence_2018_mean",
+          "valence_2018_std",
+          "valence_2020_mean",
+          "valence_2020_std"
+        ],
+        "value_type": "float"
+      },
+      "anova": {
+        "type": "object",
+        "n_fields": 6,
+        "fields": [
+          "danceability_f_statistic",
+          "danceability_p_value",
+          "energy_f_statistic",
+          "energy_p_value",
+          "valence_f_statistic",
+          "valence_p_value"
+        ],
+        "value_type": "float"
+      },
+      "game_market_hhi": {
+        "type": "float",
+        "scale": "0-1 (share fractions squared and summed)"
+      },
+      "ratings": {
+        "type": "object",
+        "fields": [
+          "books_mean",
+          "books_median",
+          "movies_mean",
+          "movies_median"
+        ],
+        "value_type": "float"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "file": "top2017.csv",
+      "use_cols": [
+        "danceability",
+        "energy",
+        "valence"
+      ],
+      "year": 2017,
+      "expected_rows": 100,
+      "cleaning": [
+        "pd.read_csv default quoting (no quote problems)",
+        "coerce 3 feature cols to numeric, drop NaN if any (expected 0)"
+      ],
+      "group_note": "100 distinct tracks, one row per track"
+    },
+    {
+      "file": "top2018.csv",
+      "use_cols": [
+        "danceability",
+        "energy",
+        "valence"
+      ],
+      "year": 2018,
+      "expected_rows": 100,
+      "cleaning": [
+        "same as 2017",
+        "expected 0 missing"
+      ]
+    },
+    {
+      "file": "top50_2020.csv",
+      "use_cols": [
+        "energy",
+        "danceability",
+        "valence"
+      ],
+      "year": 2020,
+      "expected_rows": 50,
+      "cleaning": [
+        "ignored leading 'Unnamed: 0' index column",
+        "column order differs from 2017/2018 (energy before danceability) -> select by name, never by position",
+        "expected 0 missing"
+      ]
+    },
+    {
+      "file": "vgsales.csv",
+      "use_cols": [
+        "Publisher",
+        "Global_Sales",
+        "Year"
+      ],
+      "cleaning": [
+        "Publisher has 58 NaN rows (0.17% of Global_Sales) -> drop them from both numerator and denominator (primary definition)",
+        "Strip whitespace on Publisher before grouping",
+        "Coerce Global_Sales to numeric"
+      ],
+      "expected_rows": 16598,
+      "expected_publishers_after_groupby": 578
+    },
+    {
+      "file": "books.csv",
+      "use_cols": [
+        "bookID",
+        "authors",
+        "average_rating"
+      ],
+      "cleaning": [
+        "Quoting is broken on 4 physical lines (lines 3350, 4704, 5879, 8981 -> 13 fields instead of 12) caused by an unquoted comma inside authors; parse with csv.reader and repair by merging fields[2] and fields[3] into authors when len(row)==13",
+        "Header has a space-padded name '  num_pages' (strip column names)",
+        "average_rating: coerce to float; expected 11127 rows, 0 missing, no duplicate bookID"
+      ],
+      "expected_rows": 11127
+    },
+    {
+      "file": "The Movies Dataset/movies_metadata.csv",
+      "use_cols": [
+        "vote_average",
+        "vote_count"
+      ],
+      "extra_read_kwargs": {
+        "low_memory": false
+      },
+      "cleaning": [
+        "MUST use usecols to avoid parsing the dirty 'id'/'popularity' columns (33 MB file)",
+        "pd.to_numeric(..., errors='coerce'); drop rows with NaN vote_average -> expected n=45460",
+        "Do NOT drop vote_average==0 in the primary definition (they are genuine 0-vote/unknown-rated rows); reported separately as sensitivity"
+      ],
+      "expected_rows": 45466
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_music_stats",
+      "description": "For each year file and each feature: mean (arithmetic, pandas Series.mean) and standard deviation with sample correction ddof=1 (pandas default). Emit keys '{feature}_{year}_mean' and '{feature}_{year}_std'.",
+      "formula": {
+        "mean": "sum(x)/n",
+        "std": "sqrt(sum((x-mean)^2)/(n-1))"
+      },
+      "groups_n": {
+        "2017": 100,
+        "2018": 100,
+        "2020": 50
+      },
+      "output": "music_features (18 floats)",
+      "decisions": "ddof=1 is chosen (pandas/scipy default, consistent with data_profile.json 'values_ddof1'); ddof=0 values exist in the profile as an alternate but are NOT used."
+    },
+    {
+      "id": "s2_anova",
+      "description": "One-way ANOVA across the three independent year groups for each of the 3 features via scipy.stats.f_oneway(g2017, g2018, g2020).",
+      "formula": "F = MS_between / MS_within, df=(k-1=2, N-k=247); two-sided p from the F(2,247) survival function",
+      "checks": [
+        "no NaN -> no listwise deletion",
+        "use raw (unrounded) values",
+        "significance level alpha=0.05 for interpretation only"
+      ],
+      "output": "anova (6 floats)"
+    },
+    {
+      "id": "s3_game_hhi",
+      "description": "Group vgsales by Publisher, sum Global_Sales, compute market shares over the total, HHI = sum(share_i^2).",
+      "formula": "share_i = S_i / sum(S); HHI = sum_i share_i^2 (0-1 scale)",
+      "primary_value": 0.0793,
+      "alternatives_to_report_in_notes_only": {
+        "0_10000_scale": "HHI * 10000 (= 792.92), classic antitrust scale",
+        "missing_publisher_as_Unknown": "treat NaN Publisher as one extra group -> 0.079044 (robustness, not the primary value)"
+      },
+      "output": "game_market_hhi (1 float, 0-1 scale)"
+    },
+    {
+      "id": "s4_ratings",
+      "description": "books: mean/median of books.average_rating (n=11127). movies: mean/median of movies.vote_average over non-null rows (n=45460).",
+      "formula": "arithmetic mean; median = numpy linear-interpolated 50th percentile",
+      "output": "ratings (4 floats: books_mean, books_median, movies_mean, movies_median)",
+      "sensitivity_notes": {
+        "movies_vote_count_gt0": "mean 6.0009 / median 6.1 (n=42561)",
+        "movies_vote_count_weighted": "6.6815",
+        "books": "no alternative needed (no missing, range 0-5)"
+      }
+    },
+    {
+      "id": "s5_write_output",
+      "description": "Assemble the 4 top-level objects into output.json, validate schema, then finish."
+    }
+  ],
+  "validation_rules": [
+    "music_features has exactly 18 keys, all values Python float (round-trip float(x))",
+    "anova has exactly 6 keys, all values float, both 0 <= p_value <= 1 and f_statistic >= 0",
+    "game_market_hhi is a float in (0, 1]",
+    "ratings has exactly 4 keys, book values within [0,5], movie values within [0,10]",
+    "no NaN / Infinity in the JSON (check json.dumps(..., allow_nan=False))",
+    "cross-check every value against the upstream data_profile.json reference values with abs tolerance 1e-6; a mismatch means a parsing bug, not a new result"
+  ],
+  "reference_values_from_data_profile": {
+    "music_features_ddof1": {
+      "danceability_2017_mean": 0.69682,
+      "danceability_2017_std": 0.12507972245610782,
+      "danceability_2018_mean": 0.71646,
+      "danceability_2018_std": 0.1310701423750742,
+      "danceability_2020_mean": 0.71672,
+      "danceability_2020_std": 0.12497526939032247,
+      "energy_2017_mean": 0.66069,
+      "energy_2017_std": 0.13920718481109481,
+      "energy_2018_mean": 0.65906,
+      "energy_2018_std": 0.1450671610397102,
+      "energy_2020_mean": 0.6093,
+      "energy_2020_std": 0.15434816857629746,
+      "valence_2017_mean": 0.517049,
+      "valence_2017_std": 0.21643606586022235,
+      "valence_2018_mean": 0.484443,
+      "valence_2018_std": 0.20614516374720906,
+      "valence_2020_mean": 0.55571,
+      "valence_2020_std": 0.21638641951615264
+    },
+    "anova": {
+      "danceability": {
+        "f_statistic": 0.7182730772011928,
+        "p_value": 0.48860914133273275
+      },
+      "energy": {
+        "f_statistic": 2.447575558653471,
+        "p_value": 0.08859872893058825
+      },
+      "valence": {
+        "f_statistic": 1.929153777682068,
+        "p_value": 0.14745363009449414
+      }
+    },
+    "game_market_hhi": 0.07929227304017357,
+    "ratings": {
+      "books_mean": 3.933630807944639,
+      "books_median": 3.96,
+      "movies_mean": 5.618207215134184,
+      "movies_median": 6.0
+    }
+  },
+  "expected_findings": [
+    "Danceability is flat across years (0.697 / 0.716 / 0.717) and not significantly different (p~0.49).",
+    "Energy declines monotonically 0.661 -> 0.659 -> 0.609 and has the smallest p-value (~0.089) but still misses alpha=0.05.",
+    "Valence is non-monotonic (0.517 -> 0.484 -> 0.556), p~0.147.",
+    "All ANOVA p-values > 0.05 -> no year-over-year trend in these audio features at 5% level; report this honestly rather than claiming a trend.",
+    "Game market HHI ~0.079 (792.9 on 0-10000 scale) = highly unconcentrated, driven by Nintendo (~20%) and EA (~12.5%).",
+    "Books average_rating mean 3.93 < median 3.96 (left-skewed); movies vote_average mean 5.62 < median 6.0, and the 2998 zero-vote rows pull the mean down (6.00/6.1 if restricted to vote_count>0)."
+  ],
+  "expected_findings_note": "These are hypotheses carried over from the upstream data_profile.json (already computed there); they must be independently re-verified from the raw files during execution and must not be copied without recomputation.",
+  "risks": [
+    "2020 group has n=50 (half of the other groups) -> unbalanced design; f_oneway handles unbalanced groups but power differs; mention unequal n when reporting.",
+    "Using ddof=0 instead of ddof=1 changes std only in the 3rd decimal; the ddof=1 convention must be stated in the report.",
+    "If movies rows with vote_average==0 are excluded, movie mean/median shift materially -> definitions must be documented with the reported numbers.",
+    "books.csv cannot be read safely with a naive pd.read_csv (4 ragged rows); use the merge-fix parser.",
+    "HHI depends on the missing-Publisher handling: dropping (0.07929) vs 'Unknown' bucket (0.07904) - document the choice."
+  ],
+  "execution_notes": {
+    "environment": {
+      "python": "3.13.18",
+      "pandas": "3.1.1",
+      "numpy": "2.5.4",
+      "scipy": "1.18.1"
+    },
+    "runtime_budget": "single run_python call under 120s is sufficient; movies_metadata.csv reads in a few seconds with usecols+low_memory=False",
+    "output_written_by": "the execution node (this node only produces the plan)"
+  }
+}

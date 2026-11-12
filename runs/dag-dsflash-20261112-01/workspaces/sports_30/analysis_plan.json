@@ -1,0 +1,215 @@
+{
+  "plan_version": "1.0",
+  "objective": "Estimate the empirical probability that a randomly selected Olympic medalist record (1980-2016) from a country that also produced at least one NBA player on a team founded after 1970 has a height strictly greater than the median height of those qualifying NBA players. Also report shared-country count, NBA median height (cm) and Olympic medalist record count, and persist to output.json.",
+  "unit_of_analysis": {
+    "olympic_side": "athlete-event record (one row per athlete per event); a multi-medal or multi-event athlete contributes multiple rows (matches task wording 'medalist record')",
+    "nba_side": "player record from common_player_info filtered to teams founded after 1970",
+    "probability": "numerator = # Olympic medalist rows from shared countries with Height_cm > NBA_median_cm; denominator = # Olympic medalist rows from shared countries"
+  },
+  "data_inventory_verified": {
+    "athlete_events.csv": {
+      "rows": 271116,
+      "columns": ["ID","Name","Sex","Age","Height","Weight","Team","NOC","Games","Year","Season","City","Sport","Event","Medal"],
+      "year_min_max": [1896, 2016],
+      "height_null_ratio_all": 0.2219,
+      "medal_values": ["Gold","Silver","Bronze"],
+      "seasons": ["Summer","Winter"],
+      "medalist_rows_1980_2016": 21926,
+      "medalist_rows_1980_2016_height_null": 383,
+      "row_level_fact": "one row per athlete per event; Team text column is messy (historical/combined team names), NOC is the reliable country key"
+    },
+    "noc_regions.csv": {
+      "rows": 230,
+      "columns": ["NOC","region","notes"],
+      "unique_noc": 230,
+      "region_null_nocs": ["ROT","TUV","UNK"],
+      "olympic_nocs_missing_from_map": ["SGP"],
+      "rows_lost_if_dropped": 8
+    },
+    "NBA Database/common_player_info.csv": {
+      "rows": 4171,
+      "key_columns": ["person_id","country","height","position","team_id","team_name","team_abbreviation","from_year","to_year"],
+      "height_format": "feet-inches string, e.g. '6-10' (feet-inches)",
+      "height_null_all": 96,
+      "country_unique": 73,
+      "position_groups": ["Guard","Forward","Center","Guard-Forward","Forward-Center","Center-Forward","Forward-Guard"],
+      "team_id_notes": "team_id 0 and 1610610023-1610610037 are defunct/all-star/unmatched ids absent from team.csv"
+    },
+    "NBA Database/team.csv": {
+      "rows": 30,
+      "columns": ["id","full_name","abbreviation","nickname","city","state","year_founded"],
+      "year_founded_range": [1946, 2002],
+      "teams_founded_gt_1970": 13,
+      "teams_founded_gt_1970_names": ["New Orleans Pelicans","Dallas Mavericks","Denver Nuggets","Miami Heat","Minnesota Timberwolves","Brooklyn Nets","Orlando Magic","Indiana Pacers","San Antonio Spurs","Toronto Raptors","Utah Jazz","Memphis Grizzlies","Charlotte Hornets"],
+      "join_caveat": "match on team.csv.id == common_player_info.team_id; do NOT join on abbreviation (differs: GOS vs GSW, VAN/BKN franchise shifts)"
+    }
+  },
+  "steps": [
+    {
+      "id": "S1",
+      "name": "Load and normalize Olympic medalist records",
+      "actions": [
+        "Read athlete_events.csv with explicit dtypes (ID int32, Year int16, Height/Weight float32; categorical NOC/Sport/Event/Medal) to control memory.",
+        "Filter Year between 1980 and 2016 inclusive (both Summer and Winter).",
+        "Filter Medal.notna() (Gold/Silver/Bronze).",
+        "Expected: 21926 records."
+      ],
+      "outputs": "olympic_medals (21926 x cols)"
+    },
+    {
+      "id": "S2",
+      "name": "Attach and standardize Olympic country names",
+      "actions": [
+        "Left-join noc_regions on NOC to get 'region' as canonical country name.",
+        "Drop/report rows with null region (ROT/TUV/UNK + SGP unmapped): expected 8 rows lost; document as a decision.",
+        "Apply alias normalization to canonical region labels so they are comparable with NBA country strings (see country_alias_map)."
+      ],
+      "outputs": "olympic_medals with country_std"
+    },
+    {
+      "id": "S3",
+      "name": "Impute missing Olympic heights (sport-specific medians)",
+      "actions": [
+        "Compute sport-level median Height over the 1980-2016 medalist subset.",
+        "Fill null Height with the row's sport median; fallback to full medalist-subset median if a sport has no non-null heights.",
+        "Report imputed count (expected 383 of 21926) and the sports with most imputations; verify no heights remain null.",
+        "Guardrail: sanity-check imputed values against plausible sport ranges (e.g. no imputed value outside 130-230 cm)."
+      ],
+      "outputs": "olympic_medals with height_cm_olympic (single imputation pass, no iterative refinement)"
+    },
+    {
+      "id": "S4",
+      "name": "Select qualifying NBA players",
+      "actions": [
+        "Read team.csv; select id where year_founded > 1970 (13 teams, strict '>' since Cleveland Cavaliers and LA Clippers are exactly 1970 and must be excluded).",
+        "Filter common_player_info to team_id in that id set (expected 911 players).",
+        "Report/exclude players whose team_id is not in team.csv (defunct/unknown ids) and players with null country (expected 1) from the country set.",
+        "Sensitivity note: team_id in this dataset is the player's listed (most recent) team only, not full career history."
+      ],
+      "outputs": "nba_qual (911 rows)"
+    },
+    {
+      "id": "S5",
+      "name": "Convert and impute NBA heights",
+      "actions": [
+        "Parse feet-inches: split height on '-', height_cm = (feet*12 + inches)*2.54.",
+        "Handle nulls: fill with position-group median (map Guard-Forward->Guard, Forward-Guard->Guard, Forward-Center->Forward, Center-Forward->Forward; Center->Center). Expected 0 nulls inside the 911-player filter, so this is a no-op fallback.",
+        "Verify plausible range 150-250 cm and that the modal values look correct (e.g. 6-6 -> 198.12)."
+      ],
+      "outputs": "nba_qual with height_cm"
+    },
+    {
+      "id": "S6",
+      "name": "Standardize NBA country names",
+      "actions": [
+        "Strip whitespace, apply country_alias_map to map NBA labels onto the same canonical vocabulary used for Olympic regions.",
+        "Key concern: noc_regions uses abbreviated/odd region labels ('UK', 'Trinidad', 'Virgin Islands, US', 'Cape Verde', 'Republic of Congo', 'Antigua', 'Saint Vincent', 'Saint Kitts', 'Boliva'), so normalization must reconcile both directions.",
+        "Report the NBA country labels that fail to match any Olympic country - expected unmatched: Belize, Bosnia and Herzegovina, Congo, Saint Lucia, Scotland (these have no 1980-2016 medalist records, or map via alias only if a match exists)."
+      ],
+      "outputs": "nba_qual with country_std"
+    },
+    {
+      "id": "S7",
+      "name": "Compute shared countries and NBA median height",
+      "actions": [
+        "shared_countries = set(nba_qual.country_std) INTERSECT set(olympic_medals.country_std) (countries with >=1 qualifying NBA player and >=1 Olympic medalist record).",
+        "nba_median_height = median of height_cm over nba_qual players whose country_std is in shared_countries (equivalently over all qualified players if no excluded country is in shared set - check and report which convention is used; preferred: median over the shared-country qualified NBA players per task wording 'the median height of those NBA players').",
+        "Expected reference values: shared countries ~42, nba_median ~200.66 cm (6-7 = 200.66)."
+      ],
+      "outputs": "shared_countries (list), nba_median_height"
+    },
+    {
+      "id": "S8",
+      "name": "Compute probability",
+      "actions": [
+        "denominator = # olympic_medals rows with country_std in shared_countries (expected 16243 of 21926).",
+        "numerator = # of those rows with height_cm_olympic > nba_median_height (strict inequality).",
+        "probability = numerator / denominator, rounded to 4 dp.",
+        "Also compute a tie diagnostic: count rows with height exactly equal to the median (ties excluded from numerator) and report sensitivity if ties were included."
+      ],
+      "outputs": "probability, numerator, denominator"
+    },
+    {
+      "id": "S9",
+      "name": "Write output.json and validate",
+      "actions": [
+        "Write output.json with the exact required schema: probability (float, 4dp), shared_countries_count (int), nba_median_height (float, 2dp), olympic_athletes_count (int).",
+        "Validate: probability within [0,1]; shared_countries_count <= min(nba country count, olympic country count); olympic_athletes_count <= 21926; JSON parses; only the 4 required keys present.",
+        "Persist intermediates (per-country stats, imputation log) to analysis_details.json for auditability."
+      ],
+      "outputs": "output.json, analysis_details.json"
+    }
+  ],
+  "country_alias_map": {
+    "direction": "canonical label = noc_regions.region style; NBA labels mapped onto it",
+    "olympic_side_region_fixes": {
+      "UK": "United Kingdom",
+      "Virgin Islands, US": "US Virgin Islands",
+      "Virgin Islands, British": "British Virgin Islands",
+      "Trinidad": "Trinidad and Tobago",
+      "Cape Verde": "Cabo Verde",
+      "Republic of Congo": "Congo",
+      "Democratic Republic of the Congo": "DR Congo",
+      "Antigua": "Antigua and Barbuda",
+      "Saint Vincent": "St. Vincent & Grenadines",
+      "Saint Kitts": "Saint Kitts and Nevis",
+      "Boliva": "Bolivia",
+      "Taiwan": "Chinese Taipei",
+      "Individual Olympic Athletes": "Individual Olympic Athletes"
+    },
+    "nba_side_fixes": {
+      "US Virgin Islands": "US Virgin Islands",
+      "Trinidad and Tobago": "Trinidad and Tobago",
+      "St. Vincent & Grenadines": "St. Vincent & Grenadines",
+      "Saint Kitts and Nevis": "Saint Kitts and Nevis",
+      "Cabo Verde": "Cabo Verde",
+      "Congo": "Congo",
+      "Congo, Democratic Republic of the": "DR Congo",
+      "Macedonia": "Macedonia",
+      "Scotland": "UNMATCHED (no separate Olympic region; UK is used by GBR records) - keep as its own label and report",
+      "USA": "USA",
+      "United Kingdom": "United Kingdom"
+    },
+    "matching_rule": "compare case-insensitively, strip punctuation/whitespace, then apply alias map; unmatched labels are logged, never silently fused"
+  },
+  "verification_checkpoints": {
+    "olympic_medalist_records_1980_2016": 21926,
+    "olympic_missing_height_rows": 383,
+    "nba_teams_founded_gt_1970": 13,
+    "nba_players_on_those_teams": 911,
+    "nba_players_missing_height_in_filter": 0,
+    "nba_country_labels_in_filter": 47,
+    "expected_shared_countries": 42,
+    "expected_olympic_records_from_shared_countries": 16243,
+    "expected_nba_median_height_cm": 200.66,
+    "expected_probability": 0.0283,
+    "tolerance_policy": "any deviation from the expected reference values must be explained by a documented decision (filter boundary, alias, tie handling, imputation method) rather than accepted silently"
+  },
+  "risks_and_edge_cases": [
+    "Team column in athlete_events is historically messy (e.g. 'Yugoslavia', 'Soviet Union', 'Mixed team'); must use NOC -> region, never the Team text, for country matching.",
+    "Historical NOCs (URS, TCH, YUG, GDR, FRG) disintegrate into successor countries in the NBA data (Serbia, Croatia, Slovenia, Russia, Germany, etc.) - no attempt is made to retro-map successors; matching is on exactly the post-1980 NOC->region label. This is the single largest driver of the shared-country list.",
+    "Strict year_founded > 1970 excludes Cleveland Cavaliers and LA Clippers (founded exactly 1970) - material, since both are roster-heavy franchises.",
+    "team_id represents only the player's listed team; players whose only post-1970 tenure is elsewhere are still counted via their listed team only. Documented as a data limitation.",
+    "Strict '>' comparison against the median: Olympic records exactly equal to the NBA median are counted in the denominator but not the numerator (probability is small, so tie sensitivity is reported).",
+    "383 imputed Olympic heights (1.7% of records) - imputation via sport median can shift the numerator by a few dozen records at most; quantify by running a drop-nulls sensitivity variant.",
+    "Single-pass imputation: sport medians computed on the pre-imputation subset, not re-estimated after filling.",
+    "SGP is missing from noc_regions (8 medalist rows) - excluded; alternative is mapping SGP manually to Singapore; report the delta.",
+    "Mixed/duplicated athletes: same ID appearing in multiple events inflates counts by design (record-level unit).",
+    "NBA position strings are compound (Guard-Forward etc.); median imputation must use the grouped position, not the raw string."
+  ],
+  "final_output_schema": {
+    "file": "output.json",
+    "keys": {
+      "probability": "float, empirical probability rounded to 4 decimals",
+      "shared_countries_count": "int, # countries common to Olympic medalists (1980-2016) and qualifying NBA players",
+      "nba_median_height": "float, median height of qualifying NBA players in cm, 2 decimals",
+      "olympic_athletes_count": "int, # Olympic medalist records from shared countries"
+    }
+  },
+  "acceptance_criteria": [
+    "output.json exists, parses as JSON, and contains exactly the four required keys with the specified types/rounding.",
+    "All artefacts reproducible from a single script run against the four input files with no manual edits.",
+    "Every documented decision in this plan is reflected in code comments and in analysis_details.json.",
+    "Reported numbers reconcile with the verification_checkpoints or the deviation is explained."
+  ]
+}

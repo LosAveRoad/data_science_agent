@@ -1,0 +1,199 @@
+{
+  "task": "NBA Physical Attributes Impact on Career Performance",
+  "generated_by": "inspect node",
+  "workspace_files": [
+    {
+      "path": "NBA Database/common_player_info.csv",
+      "rows": 4171,
+      "cols": 34,
+      "role": "player master: height('6-10' str), weight, from_year/to_year, season_exp, draft_year, draft_round, draft_number",
+      "key": "person_id (unique, no duplicates)",
+      "notable_nulls": {
+        "height": 96,
+        "from_year": 15,
+        "to_year": 15,
+        "season_exp": 0,
+        "draft_round": 164,
+        "draft_number": 223
+      },
+      "notes": "draft_round/draft_number are dtype object: values are '1','2',... or 'Undrafted' -> must use pd.to_numeric(errors='coerce')"
+    },
+    {
+      "path": "NBA Database/draft_combine_stats.csv",
+      "rows": 1202,
+      "cols": 47,
+      "role": "physical measurements per draft-combine invitee (2001-2023, 18 seasons, 1176 unique players)",
+      "key": "player_id (== common_player_info.person_id); 26 duplicate player_ids (players measured twice) -> keep latest season; 3 rows with player_id<=0 (invalid ids)",
+      "measurement_columns": [
+        "height_wo_shoes",
+        "wingspan",
+        "max_vertical_leap",
+        "three_quarter_sprint",
+        "standing_vertical_leap",
+        "lane_agility_time",
+        "weight",
+        "standing_reach",
+        "bench_press",
+        "height_w_shoes",
+        "body_fat_pct"
+      ],
+      "units": {
+        "height_wo_shoes": "inches",
+        "height_w_shoes": "inches",
+        "wingspan": "inches",
+        "standing_reach": "inches",
+        "max_vertical_leap": "inches",
+        "standing_vertical_leap": "inches",
+        "lane_agility_time": "seconds",
+        "three_quarter_sprint": "seconds"
+      },
+      "notable_nulls": {
+        "height_wo_shoes": 49,
+        "wingspan": 49,
+        "max_vertical_leap": 185,
+        "three_quarter_sprint": 190,
+        "standing_vertical_leap": 185,
+        "lane_agility_time": 194
+      }
+    },
+    {
+      "path": "NBA Database/draft_history.csv",
+      "rows": 7990,
+      "cols": 14,
+      "role": "one row per draft pick: season, round_number, round_pick, overall_pick",
+      "key": "person_id (7990 rows, 7866 unique ids -> a few players drafted more than once)",
+      "notes": "704 combine player_ids match draft_history person_id; round_number agrees with common_player_info.draft_round, so draft_history is only a fallback / cross-check. organization/organization_type have 19 nulls (irrelevant here)."
+    }
+  ],
+  "join_plan": {
+    "primary": "draft_combine_stats.player_id -> common_player_info.person_id (INNER join; 702 matching rows, 691 unique players after dedupe)",
+    "fallback": "draft_history on person_id to backfill missing round_number (0 of the 691 needed it)",
+    "coverage": "691 of 1176 combine invitees (58.8%) have an NBA player record; the rest never appear in common_player_info (never played / not in this dataset snapshot). 687 of 691 have nba_flag='Y'.",
+    "combine_season_range_of_matched_players": "2001-2022"
+  },
+  "derived_fields": {
+    "career_span_years": "to_year - from_year + 1 (integer years, inclusive). Range 1-21 for matched players -> ALL satisfy the 0-25 validity filter (691/691). season_exp is an alternative (span-1 in median; max 22 league-wide); career_span_years chosen as it is literally 'career span'. Valid-career filter [0,25] drops 0 of 691 matched players.",
+    "draft_round": "common_player_info.draft_round coerced to numeric. Two invalid cases must be dropped: 'Undrafted' (114 rows) and missing (5 rows) -> no round, plus one row with draft_round == 0 which is not a real round. Valid numeric rounds = 571, values only {1: 337, 2: 234} because the combine era has just 2 draft rounds.",
+    "height": "combine height_wo_shoes used as the physical attribute (20 nulls can be backfilled from common_player_info.height parsed \"6-10\" -> 82 in; parses cleanly for all non-null).",
+    "sprint_speed": "three_quarter_sprint in SECONDS - lower is faster. This attribute is direction-inverted vs height/wingspan/vertical-leap, important when reading the sign of the composite score."
+  },
+  "attribute_stats_matched_sample": {
+    "height_wo_shoes": {
+      "count": 671,
+      "mean": 77.41,
+      "std": 3.34,
+      "min": 67.75,
+      "p25": 75.25,
+      "median": 77.5,
+      "p75": 79.75,
+      "max": 89.25
+    },
+    "wingspan": {
+      "count": 672,
+      "mean": 82.46,
+      "std": 3.98,
+      "min": 70.0,
+      "p25": 79.69,
+      "median": 82.5,
+      "p75": 85.25,
+      "max": 98.25
+    },
+    "max_vertical_leap": {
+      "count": 585,
+      "mean": 35.23,
+      "std": 3.57,
+      "min": 25.0,
+      "p25": 33.0,
+      "median": 35.5,
+      "p75": 37.5,
+      "max": 44.0
+    },
+    "three_quarter_sprint": {
+      "count": 583,
+      "mean": 3.27,
+      "std": 0.13,
+      "min": 2.96,
+      "p25": 3.18,
+      "median": 3.26,
+      "p75": 3.34,
+      "max": 3.81
+    },
+    "standing_vertical_leap": {
+      "count": 586,
+      "mean": 29.64,
+      "std": 2.97,
+      "min": 22.0,
+      "p25": 27.5,
+      "median": 29.5,
+      "p75": 31.5,
+      "max": 39.5
+    },
+    "lane_agility_time": {
+      "count": 578,
+      "mean": 11.31,
+      "std": 0.55,
+      "min": 9.65,
+      "p25": 10.94,
+      "median": 11.24,
+      "p75": 11.64,
+      "max": 13.32
+    }
+  },
+  "target_stats_matched_sample": {
+    "career_span_years": {
+      "count": 691,
+      "mean": 6.11,
+      "std": 4.28,
+      "min": 1.0,
+      "p25": 2.0,
+      "median": 5.0,
+      "p75": 9.0,
+      "max": 21.0
+    },
+    "draft_round": {
+      "count": 571,
+      "note": "valid rounds only (1<=round<=2 in the combine era); mean=1.41, std=0.49, median=1 -> effectively binary 1st vs 2nd round"
+    }
+  },
+  "data_quality": {
+    "implausible_values": "none found: no zero/negative heights, wingspans, jumps or sprints; wingspan - height (apex) mean = +5.04 in, consistent with NBA norms; max_vertical_leap 25-44 in, three_quarter_sprint 2.96-3.81 s, lane_agility_time 9.65-13.32 s -> all physiologically plausible (no outlier trimming needed; keep or use plausibility bounds rather than statistics-based cuts).",
+    "missingness": "max_vertical_leap (106 null), three_quarter_sprint (108), lane_agility_time (113), wingspan (19), height_wo_shoes (20) among the 691 matched players. 19 players have all core attributes missing.",
+    "complete_case_sample": 477,
+    "key_limitation": "draft round is effectively binary (round 1 vs round 2) in the combine era, so 'correlation_with_draft' is a point-biserial on a restricted range and slightly noisy - recommend reporting p-values and, as a sensitivity check, the continuous overall draft pick (common_player_info.draft_number, 578 numeric values 1-60).",
+    "season_exp_note": "career_span_years >= season_exp for 100% of players (median gap 1 year, max 7 for players with seasons out of the league) - span counts calendar years, season_exp counts seasons played.",
+    "direction_note": "composite_score = -r(draft) + r(career) assumes every attribute is 'higher = better'. For three_quarter_sprint (a time) the interpretation flips: a negative -r(draft) term for sprint actually favours slower players on this scale. Downstream should flag this in the write-up / plot labels.",
+    "draft_round_zero_anomaly": "1 matched player has draft_round == 0 (invalid sentinel) - filter draft_round between 1 and 10 (or just >=1)."
+  },
+  "recommended_pipeline_spec": {
+    "load": [
+      "NBA Database/draft_combine_stats.csv",
+      "NBA Database/common_player_info.csv",
+      "NBA Database/draft_history.csv"
+    ],
+    "steps": [
+      "read all three with pandas",
+      "combine: drop rows with player_id<=0, sort by season, drop_duplicates('player_id', keep='last')",
+      "inner merge combine -> common_player_info on player_id==person_id",
+      "career_span_years = to_year - from_year + 1; drop rows outside [0,25] (none dropped in practice)",
+      "draft_round_num = pd.to_numeric(draft_round, errors='coerce'); keep only 1 <= draft_round_num <= 10 (drops 'Undrafted'/NaN and the single round-0 sentinel) -> 571 players; correlations use pairwise-complete observations per attribute (n between ~400 and ~571)",
+      "pearson r + two-sided p (scipy.stats.pearsonr) of each attribute vs draft_round_num and vs career_span_years, pairwise complete observations",
+      "composite_score = -r_draft + r_career; normalized_weight = |composite| / sum(|composite|)"
+    ],
+    "attributes_for_output": [
+      "height_wo_shoes",
+      "wingspan",
+      "max_vertical_leap",
+      "three_quarter_sprint"
+    ],
+    "attribute_labels": [
+      "Height (in, no shoes)",
+      "Wingspan (in)",
+      "Max Vertical Leap (in)",
+      "3/4 Court Sprint (s, lower=faster)"
+    ],
+    "expected_n": 477,
+    "figures": [
+      "2x2 matplotlib: heatmap (4 attrs x [draft round, career span] correlation matrix), bar chart of normalized weights, scatter height vs draft round (+regression line), scatter max vertical leap vs career span (+regression line)"
+    ]
+  }
+}

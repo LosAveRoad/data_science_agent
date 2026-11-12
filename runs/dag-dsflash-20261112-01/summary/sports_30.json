@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "sports_30",
+  "startedAt": "2026-11-11T20:13:02.111Z",
+  "finishedAt": "2026-11-11T20:15:48.692Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.json",
+  "totalSteps": 165,
+  "tokenUsage": {
+    "inputTokens": 33985,
+    "outputTokens": 29107,
+    "totalTokens": 63092
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:13:02.202Z",
+      "finishedAt": "2026-11-11T20:13:59.121Z",
+      "elapsedMs": 56919,
+      "error": null,
+      "steps": 47,
+      "tokenUsage": {
+        "inputTokens": 8179,
+        "outputTokens": 9461,
+        "totalTokens": 17640
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:13:59.122Z",
+      "finishedAt": "2026-11-11T20:14:40.913Z",
+      "elapsedMs": 41791,
+      "error": null,
+      "steps": 32,
+      "tokenUsage": {
+        "inputTokens": 6076,
+        "outputTokens": 7152,
+        "totalTokens": 13228
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:14:40.915Z",
+      "finishedAt": "2026-11-11T20:15:14.806Z",
+      "elapsedMs": 33891,
+      "error": null,
+      "steps": 50,
+      "tokenUsage": {
+        "inputTokens": 12330,
+        "outputTokens": 6142,
+        "totalTokens": 18472
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:15:14.808Z",
+      "finishedAt": "2026-11-11T20:15:48.689Z",
+      "elapsedMs": 33881,
+      "error": null,
+      "steps": 36,
+      "tokenUsage": {
+        "inputTokens": 7400,
+        "outputTokens": 6352,
+        "totalTokens": 13752
+      }
+    }
+  ]
+}

@@ -1,12 +1,28 @@
-import { executionOrder } from './dag/graph.js';
-import { defaultWorkflow } from './dag/workflow.js';
+/**
+ * CLI 分发入口：node dist/src/main.js baseline|dag [--...] 转调 experiments 入口，
+ * 无参数 / 未知命令时打印用法。
+ */
+import { runExperimentFromCli, usageText } from './experiments/runner.js';
 
-/** Phase 0 占位入口：验证脚手架与固定工作流定义。 */
-export function main(): void {
-  const order = executionOrder(defaultWorkflow())
-    .map((node) => node.id)
-    .join(' → ');
-  console.log(`agentic-data-dag 脚手架就绪，固定工作流: ${order}`);
+const USAGE_HEADER = [
+  'agentic-data-dag — AgenticDataBench 实验入口（Pi Baseline / DAG Prototype）',
+  '',
+].join('\n');
+
+async function main(): Promise<void> {
+  const [, , command, ...rest] = process.argv;
+  if (command === 'baseline' || command === 'dag') {
+    await runExperimentFromCli(command, rest);
+    return;
+  }
+  console.log(`${USAGE_HEADER}${usageText()}`);
+  if (command !== undefined && command !== '-h' && command !== '--help') {
+    console.error(`\n未知命令: ${command}（应为 baseline 或 dag）`);
+    process.exitCode = 1;
+  }
 }
 
-main();
+main().catch((err: unknown) => {
+  console.error(`运行失败: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`);
+  process.exitCode = 1;
+});

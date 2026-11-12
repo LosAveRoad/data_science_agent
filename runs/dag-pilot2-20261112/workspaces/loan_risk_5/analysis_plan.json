@@ -1,0 +1,131 @@
+{
+  "plan_version": "1.0",
+  "objective": "Compute score distribution statistics per group_id, both overall and per apply month (YYYYMM), and emit two CSV artifacts: output_1.csv (overall, 8 columns) and output_2.csv (monthly, 9 columns).",
+  "inputs": [
+    {
+      "path": "data.csv",
+      "format": "csv, utf-8 with BOM",
+      "columns": ["apply_date", "score", "group_id"],
+      "n_rows": 1203,
+      "verified_by": "this node (csv.DictReader, streaming)"
+    },
+    {
+      "path": "data_profile.json",
+      "role": "upstream profile; used to cross-check row counts, group/month lists, tie counts and edge cases. All key numbers re-verified in this node."
+    }
+  ],
+  "environment_constraints": {
+    "python": "3.13.18",
+    "pandas": "NOT installed",
+    "numpy": "NOT installed",
+    "implication": "Implementation MUST be pure standard library: csv for I/O, collections.Counter for frequency/mode, statistics module (mean/median/stdev) or manual formulas. Do not attempt pandas imports.",
+    "output_limit": "tool output truncated at 4000 chars -> print only aggregates/validation summaries, never full data or full result rows."
+  },
+  "data_facts_verified": {
+    "n_rows": 1203,
+    "n_cols": 3,
+    "nulls": {"apply_date": 0, "score": 0, "group_id": 0},
+    "apply_date": {
+      "all_length_8": true,
+      "range": ["20240101", "20240628"],
+      "n_months": 6,
+      "months": ["202401", "202402", "202403", "202404", "202405", "202406"]
+    },
+    "score": {
+      "parseable_float": true,
+      "min": 487.0,
+      "max": 999.0,
+      "all_integer_valued": true,
+      "note": "integer-valued scores (written as '693.0') => many exact mode ties; tie policy is critical"
+    },
+    "group_id": {
+      "n_groups": 7,
+      "groups": ["G001", "G002", "G003", "G004", "G005", "G006", "G007"],
+      "counts": {"G001": 420, "G002": 330, "G003": 261, "G004": 150, "G005": 40, "G006": 1, "G007": 1}
+    },
+    "group_month_cells": {
+      "n_observed_cells": 32,
+      "expected_full_grid": 42,
+      "cell_size_min": 1,
+      "cell_size_max": 88,
+      "dtype": "sparse: only observed (group, month) pairs exist; missing cells must NOT be emitted as 0/NaN rows",
+      "cells_with_n_lt_2": [["G005", "202403"], ["G006", "202406"], ["G007", "202406"]]
+    },
+    "duplicates": "5 duplicate full rows exist in raw file; DO NOT drop them (no dedup step in task spec; counts must sum to 1203 and all profile sanity checks hold with duplicates kept)"
+  },
+  "execution_steps": [
+    {
+      "step": 1,
+      "name": "load_and_clean",
+      "action": "Stream data.csv with csv.DictReader (encoding='utf-8-sig' to strip BOM). For each row: strip whitespace on all fields; parse score as float; derive apply_month = apply_date[:6]. Skip rows lacking any of the three required values (verified: 0 such rows).",
+      "checks": ["header == ['apply_date','score','group_id']", "every apply_date matches ^[0-9]{8}$", "every score parses as float", "group_id non-empty"]
+    },
+    {
+      "step": 2,
+      "name": "aggregate_groupings",
+      "action": "Build an accumulator dict keyed by (group_id, apply_month) with the score list. Also build an 'overall' view by reusing the same key namespace with month='overall' -> list of all scores for that group. Single pass over rows, append score to both the (group, month) cell and the (group, 'overall') cell.",
+      "rationale": "One pass, ~2x memory of 1203 floats (negligible), guarantees overall and monthly are computed from identical row sets."
+    },
+    {
+      "step": 3,
+      "name": "compute_metrics",
+      "action": "For every accumulated cell compute the 7 metrics with the definitions below. Pure stdlib (statistics.mean, statistics.median, statistics.stdev) plus a Counter-based mode with min-tiebreak.",
+      "metrics_definition": {
+        "cnt": "float(len(values))  -- must be cast to float per spec",
+        "max_score": "float(max(values))",
+        "min_score": "float(min(values))",
+        "mode_score": "modes = [v for v,c in Counter(values).items() if c == max_count]; mode_score = float(min(modes))  (minimum value among tied modes)",
+        "mean_score": "float(statistics.mean(values))",
+        "median_score": "float(statistics.median(values))  (average of the two middle values for even n)",
+        "std_score": "float(statistics.stdev(values)) if len(values) >= 2 else 0.0  (SAMPLE std, ddof=1)"
+      }
+    },
+    {
+      "step": 4,
+      "name": "emit_output_1_overall",
+      "action": "Write output_1.csv with csv.writer, header exactly: group_id,cnt,max_score,min_score,mode_score,mean_score,median_score,std_score. Rows sorted by group_id ascending (G001..G007). The internal 'overall' month marker is used only as the accumulator key and is NOT written as a column.",
+      "expected_rows": 7
+    },
+    {
+      "step": 5,
+      "name": "emit_output_2_monthly",
+      "action": "Write output_2.csv with csv.writer, header exactly: group_id,apply_month,cnt,max_score,min_score,mode_score,mean_score,median_score,std_score. Rows sorted by (group_id, apply_month). Only observed cells (32 rows).",
+      "expected_rows": 32
+    },
+    {
+      "step": 6,
+      "name": "validate",
+      "action": "Assert the checks listed in section validation_checks; print a compact summary (row counts, column names, sums, the 3 small-cell rows) to stdout only."
+    }
+  ],
+  "edge_case_policies": {
+    "mode_ties": "minimum value among tied modes. Known overall ties: G001 -> [722,726] => 722; G005 -> [682,683,722,726] => 682. Profile reports 16 (group, month) cells with ties overall — the min-tiebreak must be applied uniformly, do not use Counter.most_common(1) alone (its tie order is insertion-order dependent and therefore wrong here).",
+    "std_insufficient_sample": "sample size < 2 => std_score = 0.0. Affected: overall G006 (n=1), overall G007 (n=1); monthly (G005,202403), (G006,202406), (G007,202406).",
+    "single_observation_groups": "G006/G007 (n=1 overall): cnt=1.0, max=min=mode=mean=median=score, std=0.0. No NaN/empty cells allowed.",
+    "sparse_group_month": "Do not cross-join groups x months; emit only observed pairs (32 rows, not 42).",
+    "number_formatting": "write floats with repr-free consistent formatting; plain Python str(float) is acceptable, values are exact enough (integer-valued scores, means have finite decimals). Prefer rounding to a fixed 10 decimal places for reproducibility of string output (e.g. round(x, 10)).",
+    "missing_or_bad_values": "none present; rows would be dropped and counted if they appeared (log skip count, must be 0)."
+  },
+  "validation_checks": [
+    "output_1 row count == 7 and sum(cnt) == 1203.0",
+    "output_2 row count == 32 and sum(cnt) == 1203.0",
+    "sum over output_2 cnt grouped by group_id == that group's overall cnt in output_1",
+    "for every group: min_score <= median_score <= max_score, min_score <= mean_score <= max_score, mode_score within [min_score, max_score]",
+    "all cnt, max_score, min_score, mode_score, mean_score, median_score, std_score values are floats (JSON/CSV numeric, no scientific-notation artifacts needed); cnt has no decimal drift (equals integer value)",
+    "std_score == 0.0 exactly for the 3 small monthly cells and for G006/G007 overall",
+    "header column order matches spec exactly (output_1: 8 cols, output_2: 9 cols, apply_month second in output_2)",
+    "no 'overall' string appears anywhere in output_1.csv or output_2.csv",
+    "spot-check G001 overall: cnt=420, mode_score=722, std computed via statistics.stdev"
+  ],
+  "risks_and_notes": [
+    "pandas/numpy absent is the main environment risk: any plan step assuming pandas must be rewritten with csv+statistics (done).",
+    "Mode tie order from Counter.most_common is not stable -> explicit min() over tied values required.",
+    "statistics.stdev raises StatisticsError for n<2 -> guard with n>=2 else 0.0.",
+    "Kept duplicate rows: matches upstream profile counts (1203). If a downstream reviewer expects dedup, note the difference explicitly; task spec contains no dedup instruction.",
+    "G005 has 40 records but one month cell (202403) with n=1 -> expect a visibly larger std in other G005 cells vs that one; this is data, not a bug."
+  ],
+  "deliverables": [
+    {"path": "output_1.csv", "rows": 7, "columns": ["group_id", "cnt", "max_score", "min_score", "mode_score", "mean_score", "median_score", "std_score"]},
+    {"path": "output_2.csv", "rows": 32, "columns": ["group_id", "apply_month", "cnt", "max_score", "min_score", "mode_score", "mean_score", "median_score", "std_score"]}
+  ]
+}

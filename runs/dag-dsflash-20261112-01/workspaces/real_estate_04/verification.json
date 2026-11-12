@@ -1,0 +1,129 @@
+{
+  "node": "verify",
+  "target_artifact": "top5_cagr_disparity.csv",
+  "overall_status": "pass",
+  "checks": [
+    {
+      "check": "file_exists",
+      "status": "pass",
+      "detail": "top5_cagr_disparity.csv exists, 121 bytes"
+    },
+    {
+      "check": "row_count",
+      "status": "pass",
+      "detail": "5 data rows (expected 5)"
+    },
+    {
+      "check": "columns",
+      "status": "pass",
+      "detail": "columns=['region name', 'growth rate difference'] (expected ['region name','growth rate difference'])"
+    },
+    {
+      "check": "required_fields_present",
+      "status": "pass",
+      "detail": "region name + growth rate difference both present"
+    },
+    {
+      "check": "no_missing_values",
+      "status": "pass",
+      "detail": "nulls=0, empty region names=0"
+    },
+    {
+      "check": "dtype_numeric",
+      "status": "pass",
+      "detail": "growth rate difference dtype=float64"
+    },
+    {
+      "check": "non_negative",
+      "status": "pass",
+      "detail": "min=2.4172 (max-minus-min of CAGR is non-negative by construction)"
+    },
+    {
+      "check": "descending_sorted",
+      "status": "pass",
+      "detail": "values=[4.2281, 2.7633, 2.6992, 2.6926, 2.4172]"
+    },
+    {
+      "check": "no_duplicate_regions",
+      "status": "pass",
+      "detail": "unique regions=5"
+    },
+    {
+      "check": "source_data_coverage",
+      "status": "pass",
+      "detail": "8 files x 51 regions = 408 rows; target-date columns '2010-12-31'/'2019-12-31' present in all files; 0 NaN / 0 non-positive values"
+    },
+    {
+      "check": "no_duplicate_rows",
+      "status": "pass",
+      "detail": "0 duplicate (region, type) pairs"
+    },
+    {
+      "check": "top5_regions_match_recompute",
+      "status": "pass",
+      "detail": "recomputed top5=['District of Columbia', 'Florida', 'Nevada', 'Georgia', 'Kansas']; file=['District of Columbia', 'Florida', 'Nevada', 'Georgia', 'Kansas']"
+    },
+    {
+      "check": "top5_values_match_recompute",
+      "status": "pass",
+      "detail": "max |file - recomputed| = 0.00e+00 (values reported in percentage points; recomputed pp = [4.2281, 2.7633, 2.6992, 2.6926, 2.4172])"
+    },
+    {
+      "check": "disparity_gap_above_6th",
+      "status": "pass",
+      "detail": "5th=2.4172pp vs 6th (Texas)=2.1623pp -> no tie ambiguity"
+    },
+    {
+      "check": "consistent_with_analysis_summary",
+      "status": "pass",
+      "detail": "analysis_summary top5_detail=[('District of Columbia', 4.2281), ('Florida', 2.7633), ('Nevada', 2.6992), ('Georgia', 2.6926), ('Kansas', 2.4172)]"
+    },
+    {
+      "check": "consistent_with_execute_summary",
+      "status": "pass",
+      "detail": "execute_summary reports total_observations=408, unique_regions=51 (matches recomputation)"
+    },
+    {
+      "check": "consistent_with_state_cagr_disparity",
+      "status": "pass",
+      "detail": "top5 of state_cagr_disparity.csv = ['District of Columbia', 'Florida', 'Nevada', 'Georgia', 'Kansas']; identical order to file (True); max |x100(decimal) - pp| = 0.0e+00; rank column in state_cagr_disparity is 1..51 consistent"
+    }
+  ],
+  "summary": {
+    "rows": 5,
+    "columns": [
+      "region name",
+      "growth rate difference"
+    ],
+    "top5": [
+      {
+        "region name": "District of Columbia",
+        "growth rate difference": 4.2281
+      },
+      {
+        "region name": "Florida",
+        "growth rate difference": 2.7633
+      },
+      {
+        "region name": "Nevada",
+        "growth rate difference": 2.6992
+      },
+      {
+        "region name": "Georgia",
+        "growth rate difference": 2.6926
+      },
+      {
+        "region name": "Kansas",
+        "growth rate difference": 2.4172
+      }
+    ],
+    "unit": "growth rate difference reported in percentage points (pp) = (max CAGR - min CAGR) x 100; annualised CAGR = (v2019-12-31/v2010-12-31)^(1/9)-1",
+    "independent_recompute": "Recomputed from the 8 raw Zillow state files (51 regions x 8 types = 408 observations; 0 NaN, 0 non-positive values). Ranking and values reproduce exactly (max abs diff < 1e-3 pp).",
+    "notes": [
+      "51 regions = 50 states + District of Columbia; every region has exactly 8 house types, so the disparity is computed over 8 CAGRs per state.",
+      "Reported magnitude is unit-dependent (decimal 0.0423 vs pp 4.2281); the upstream file uses pp, and the top-5 ranking is unit-invariant, so selection is robust to this convention.",
+      "Gap between rank 5 (Kansas 2.4172 pp) and rank 6 (Texas 2.1623 pp) is 0.25 pp, so the top-5 cutoff is not a near-tie."
+    ],
+    "failed_checks": []
+  }
+}

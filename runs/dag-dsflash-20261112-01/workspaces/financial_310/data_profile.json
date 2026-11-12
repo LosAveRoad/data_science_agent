@@ -1,0 +1,1236 @@
+{
+  "dataset": "pub_fin_data",
+  "source": {
+    "origin_path": "agenticdatabench/testbed/datasets/financial/pub_fin_data.sqlite",
+    "staged_in_workspace": [
+      "pub_fin_data.sqlite",
+      "dataset_pub_fin_data.md"
+    ],
+    "md5_of_sqlite": "39afb454335e61016bb6c916a1aaa100",
+    "file_size_bytes": 1556480,
+    "engine": "SQLite (SQLAlchemy/sqlite3 compatible, read-only access recommended)",
+    "documented_metric_definitions": {
+      "net_profit_margin": "net_profit / revenue",
+      "report_scopes": [
+        "合并报表（consolidated）",
+        "母公司报表（parent-only）"
+      ],
+      "period_types": [
+        "Q1",
+        "H1",
+        "Q3",
+        "FY"
+      ],
+      "ratio_format_rule": "比例类指标按百分制、保留两位小数输出数值"
+    }
+  },
+  "schema": {
+    "tables": {
+      "dim_company": {
+        "row_count": 174,
+        "columns": [
+          {
+            "name": "company_id",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "company_name",
+            "type": "TEXT",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "stock_code",
+            "type": "TEXT",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "stock_name",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "industry_name",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "province",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "address",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "email",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "website",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "listing_date",
+            "type": "DATE",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "establishment_date",
+            "type": "DATE",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "legal_repr",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "exchange",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "listed_sector",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "listed_status",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          }
+        ],
+        "null_counts": {
+          "company_id": 0,
+          "company_name": 0,
+          "stock_code": 0,
+          "stock_name": 0,
+          "industry_name": 0,
+          "province": 0,
+          "address": 0,
+          "email": 0,
+          "website": 1,
+          "listing_date": 0,
+          "establishment_date": 0,
+          "legal_repr": 0,
+          "exchange": 0,
+          "listed_sector": 0,
+          "listed_status": 0,
+          "created_at": 0,
+          "updated_at": 0
+        }
+      },
+      "fact_balance_sheet": {
+        "row_count": 1563,
+        "columns": [
+          {
+            "name": "company_id",
+            "type": "TEXT",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_date",
+            "type": "DATE",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "report_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "currency",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_equivalents",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "trading_assets",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "notes_receivable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "accounts_receivable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "prepayments",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "other_receivables",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "inventories",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "current_assets_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "current_assets_total",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "long_term_investments",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "fixed_assets",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "intangible_assets",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "goodwill",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_current_assets_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_current_assets_total",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "total_assets",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "short_term_loans",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "notes_payable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "accounts_payable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "advance_payments",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "employee_benefits_payable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "taxes_payable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "current_liabilities_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "current_liabilities_total",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "long_term_loans",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "bonds_payable",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_current_liabilities_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_current_liabilities_total",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "total_liabilities",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "share_capital",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "capital_reserve",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "surplus_reserve",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "retained_earnings",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "minority_interests",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "total_equity",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "source",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          }
+        ],
+        "null_counts": {
+          "company_id": 0,
+          "period_date": 0,
+          "period_type": 0,
+          "report_type": 0,
+          "currency": 0,
+          "cash_equivalents": 0,
+          "trading_assets": 533,
+          "notes_receivable": 810,
+          "accounts_receivable": 306,
+          "prepayments": 270,
+          "other_receivables": 648,
+          "inventories": 345,
+          "current_assets_others": 274,
+          "current_assets_total": 236,
+          "long_term_investments": 91,
+          "fixed_assets": 3,
+          "intangible_assets": 39,
+          "goodwill": 882,
+          "non_current_assets_others": 393,
+          "non_current_assets_total": 236,
+          "total_assets": 0,
+          "short_term_loans": 503,
+          "notes_payable": 726,
+          "accounts_payable": 267,
+          "advance_payments": 1129,
+          "employee_benefits_payable": 12,
+          "taxes_payable": 1,
+          "current_liabilities_others": 389,
+          "current_liabilities_total": 236,
+          "long_term_loans": 536,
+          "bonds_payable": 811,
+          "non_current_liabilities_others": 1094,
+          "non_current_liabilities_total": 246,
+          "total_liabilities": 0,
+          "share_capital": 0,
+          "capital_reserve": 8,
+          "surplus_reserve": 6,
+          "retained_earnings": 0,
+          "minority_interests": 749,
+          "total_equity": 0,
+          "source": 1563,
+          "created_at": 0,
+          "updated_at": 0
+        }
+      },
+      "fact_income_statement": {
+        "row_count": 1563,
+        "columns": [
+          {
+            "name": "company_id",
+            "type": "TEXT",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_date",
+            "type": "DATE",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "report_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "currency",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "revenue",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "cost_of_revenue",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "selling_expenses",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "admin_expenses",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "rd_expenses",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "financial_expenses",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "investment_income",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "asset_impairment_loss",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "operating_profit",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_operating_income",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "non_operating_expenses",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "profit_before_tax",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "income_tax",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "net_profit",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "parent_company_profit",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "minority_profit",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "basic_eps",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "diluted_eps",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "source",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          }
+        ],
+        "null_counts": {
+          "company_id": 0,
+          "period_date": 0,
+          "period_type": 0,
+          "report_type": 0,
+          "currency": 0,
+          "revenue": 0,
+          "cost_of_revenue": 282,
+          "selling_expenses": 394,
+          "admin_expenses": 241,
+          "rd_expenses": 367,
+          "financial_expenses": 236,
+          "investment_income": 33,
+          "asset_impairment_loss": 1414,
+          "operating_profit": 0,
+          "non_operating_income": 63,
+          "non_operating_expenses": 49,
+          "profit_before_tax": 0,
+          "income_tax": 82,
+          "net_profit": 0,
+          "parent_company_profit": 0,
+          "minority_profit": 750,
+          "basic_eps": 647,
+          "diluted_eps": 678,
+          "source": 1563,
+          "created_at": 0,
+          "updated_at": 0
+        }
+      },
+      "fact_cash_flow": {
+        "row_count": 1563,
+        "columns": [
+          {
+            "name": "company_id",
+            "type": "TEXT",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_date",
+            "type": "DATE",
+            "notnull": true,
+            "pk": true
+          },
+          {
+            "name": "period_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "report_type",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": true
+          },
+          {
+            "name": "currency",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_sales",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_operating_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_suppliers",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_employees",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_taxes",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_operating_others",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "net_operating_cash_flow",
+            "type": "NUMERIC",
+            "notnull": true,
+            "pk": false
+          },
+          {
+            "name": "cash_from_investment_disposal",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_investment_income",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_asset_disposal",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_investments",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_asset_acquisition",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "net_investing_cash_flow",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_borrowings",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_from_equity_issues",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_debt_repayment",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_to_dividends",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "net_financing_cash_flow",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "effect_of_exchange_rate",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "net_increase_in_cash",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_at_beginning",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "cash_at_end",
+            "type": "NUMERIC",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "source",
+            "type": "TEXT",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "notnull": false,
+            "pk": false
+          }
+        ],
+        "null_counts": {
+          "company_id": 0,
+          "period_date": 0,
+          "period_type": 0,
+          "report_type": 0,
+          "currency": 0,
+          "cash_from_sales": 277,
+          "cash_from_operating_others": 0,
+          "cash_to_suppliers": 290,
+          "cash_to_employees": 2,
+          "cash_to_taxes": 6,
+          "cash_to_operating_others": 0,
+          "net_operating_cash_flow": 0,
+          "cash_from_investment_disposal": 374,
+          "cash_from_investment_income": 131,
+          "cash_from_asset_disposal": 251,
+          "cash_to_investments": 217,
+          "cash_to_asset_acquisition": 33,
+          "net_investing_cash_flow": 5,
+          "cash_from_borrowings": 453,
+          "cash_from_equity_issues": 968,
+          "cash_to_debt_repayment": 219,
+          "cash_to_dividends": 36,
+          "net_financing_cash_flow": 16,
+          "effect_of_exchange_rate": 251,
+          "net_increase_in_cash": 0,
+          "cash_at_beginning": 2,
+          "cash_at_end": 2,
+          "source": 1563,
+          "created_at": 0,
+          "updated_at": 0
+        }
+      }
+    },
+    "model": "star schema: dim_company (1) -> fact_balance_sheet / fact_income_statement / fact_cash_flow (N)",
+    "primary_keys": {
+      "fact_balance_sheet": "(company_id, period_date, period_type, report_type)",
+      "fact_income_statement": "(company_id, period_date, period_type, report_type)",
+      "fact_cash_flow": "(company_id, period_date, period_type, report_type)"
+    },
+    "join_key": "company_id"
+  },
+  "coverage": {
+    "period_x_report_matrix": [
+      {
+        "period_date": "2024-06-30",
+        "period_type": "H1",
+        "report_type": "合并报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2024-06-30",
+        "period_type": "H1",
+        "report_type": "母公司报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2024-09-30",
+        "period_type": "Q3",
+        "report_type": "合并报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2024-09-30",
+        "period_type": "Q3",
+        "report_type": "母公司报表",
+        "rows": 86,
+        "distinct_companies": 86
+      },
+      {
+        "period_date": "2024-12-31",
+        "period_type": "FY",
+        "report_type": "合并报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2024-12-31",
+        "period_type": "FY",
+        "report_type": "母公司报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2025-03-31",
+        "period_type": "Q1",
+        "report_type": "合并报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2025-03-31",
+        "period_type": "Q1",
+        "report_type": "母公司报表",
+        "rows": 88,
+        "distinct_companies": 88
+      },
+      {
+        "period_date": "2025-06-30",
+        "period_type": "H1",
+        "report_type": "合并报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2025-06-30",
+        "period_type": "H1",
+        "report_type": "母公司报表",
+        "rows": 172,
+        "distinct_companies": 172
+      },
+      {
+        "period_date": "2025-09-30",
+        "period_type": "Q3",
+        "report_type": "合并报表",
+        "rows": 9,
+        "distinct_companies": 9
+      },
+      {
+        "period_date": "2025-09-30",
+        "period_type": "Q3",
+        "report_type": "母公司报表",
+        "rows": 4,
+        "distinct_companies": 4
+      }
+    ],
+    "period_dates": [
+      "2024-06-30",
+      "2024-09-30",
+      "2024-12-31",
+      "2025-03-31",
+      "2025-06-30",
+      "2025-09-30"
+    ],
+    "notes": [
+      "2024-06-30(H1)、2024-12-31(FY)、2025-03-31(Q1)、2025-06-30(H1) 为两报表口径全覆盖",
+      "2024-09-30(Q3) 母公司报表仅 86 行、2025-03-31(Q1) 母公司报表仅 88 行，母公司口径在这些期存在缺行",
+      "2025-09-30(Q3) 只有 13 行（9 家合并 + 4 家母公司），该期不可用于完整横截面对比"
+    ]
+  },
+  "dimensions": {
+    "dim_company": {
+      "companies": 174,
+      "companies_with_facts": 172,
+      "industries": 39,
+      "industry_distribution": [
+        {
+          "industry_name": "货币金融服务",
+          "companies": 15
+        },
+        {
+          "industry_name": "医药制造业",
+          "companies": 13
+        },
+        {
+          "industry_name": "电气机械和器材制造业",
+          "companies": 12
+        },
+        {
+          "industry_name": "酒、饮料和精制茶制造业",
+          "companies": 11
+        },
+        {
+          "industry_name": "计算机、通信和其他电子设备制造业",
+          "companies": 8
+        },
+        {
+          "industry_name": "专用设备制造业",
+          "companies": 7
+        },
+        {
+          "industry_name": "煤炭开采和洗选业",
+          "companies": 7
+        },
+        {
+          "industry_name": "电力、热力生产和供应业",
+          "companies": 7
+        },
+        {
+          "industry_name": "非金属矿物制品业",
+          "companies": 7
+        },
+        {
+          "industry_name": "食品制造业",
+          "companies": 7
+        },
+        {
+          "industry_name": "土木工程建筑业",
+          "companies": 6
+        },
+        {
+          "industry_name": "资本市场服务",
+          "companies": 6
+        },
+        {
+          "industry_name": "化学原料和化学制品制造业",
+          "companies": 5
+        },
+        {
+          "industry_name": "房地产业",
+          "companies": 5
+        },
+        {
+          "industry_name": "水上运输业",
+          "companies": 5
+        },
+        {
+          "industry_name": "软件和信息技术服务业",
+          "companies": 5
+        },
+        {
+          "industry_name": "保险业",
+          "companies": 4
+        },
+        {
+          "industry_name": "汽车制造业",
+          "companies": 4
+        },
+        {
+          "industry_name": "航空运输业",
+          "companies": 4
+        },
+        {
+          "industry_name": "农副食品加工业",
+          "companies": 3
+        },
+        {
+          "industry_name": "化学纤维制造业",
+          "companies": 3
+        },
+        {
+          "industry_name": "家具制造业",
+          "companies": 3
+        },
+        {
+          "industry_name": "橡胶和塑料制品业",
+          "companies": 3
+        },
+        {
+          "industry_name": "批发业",
+          "companies": 2
+        },
+        {
+          "industry_name": "有色金属冶炼和压延加工业",
+          "companies": 2
+        },
+        {
+          "industry_name": "有色金属矿采选业",
+          "companies": 2
+        },
+        {
+          "industry_name": "水的生产和供应业",
+          "companies": 2
+        },
+        {
+          "industry_name": "石油和天然气开采业",
+          "companies": 2
+        },
+        {
+          "industry_name": "通用设备制造业",
+          "companies": 2
+        },
+        {
+          "industry_name": "铁路、船舶、航空航天和其他运输设备制造业",
+          "companies": 2
+        },
+        {
+          "industry_name": "铁路运输业",
+          "companies": 2
+        },
+        {
+          "industry_name": "其他金融业",
+          "companies": 1
+        },
+        {
+          "industry_name": "卫生",
+          "companies": 1
+        },
+        {
+          "industry_name": "商务服务业",
+          "companies": 1
+        },
+        {
+          "industry_name": "文教、工美、体育和娱乐用品制造业",
+          "companies": 1
+        },
+        {
+          "industry_name": "燃气生产和供应业",
+          "companies": 1
+        },
+        {
+          "industry_name": "石油加工、炼焦和核燃料加工业",
+          "companies": 1
+        },
+        {
+          "industry_name": "研究和试验发展",
+          "companies": 1
+        },
+        {
+          "industry_name": "零售业",
+          "companies": 1
+        }
+      ],
+      "single_company_industries": [
+        "其他金融业",
+        "卫生",
+        "商务服务业",
+        "文教、工美、体育和娱乐用品制造业",
+        "燃气生产和供应业",
+        "石油加工、炼焦和核燃料加工业",
+        "研究和试验发展",
+        "零售业"
+      ],
+      "exchange": {
+        "SSE": 128,
+        "SZSE": 46
+      },
+      "listed_sector": {
+        "主板": 156,
+        "创业板": 15,
+        "科创板": 3
+      },
+      "listing_date_range": [
+        "1991-01-29",
+        "2020-07-16"
+      ],
+      "no_missing_industry_name": true
+    }
+  },
+  "h1_consolidated_slice": {
+    "filter": "report_type='合并报表' AND period_type='H1' AND period_date IN ('2024-06-30','2025-06-30')",
+    "rows": 344,
+    "panel": "balanced: 172 家公司在两个 H1 期均有合并报表记录，39 个行业均覆盖",
+    "stats_by_period": {
+      "2024-06-30": {
+        "companies": 172,
+        "revenue_sum": 14205024709116.479,
+        "net_profit_sum": 1690327067022.5,
+        "industries": 39,
+        "loss_making_company_share": 0.093,
+        "margin_median_pct": 12.41,
+        "margin_p05_pct": -6.86,
+        "margin_p95_pct": 40.28,
+        "margin_min_pct": -83.21,
+        "margin_max_pct": 266.35,
+        "revenue_min": 330030883.29,
+        "revenue_max": 1576131000000.0
+      },
+      "2025-06-30": {
+        "companies": 172,
+        "revenue_sum": 13858678509538.77,
+        "net_profit_sum": 1699743929086.12,
+        "industries": 39,
+        "loss_making_company_share": 0.1221,
+        "margin_median_pct": 11.97,
+        "margin_p05_pct": -8.74,
+        "margin_p95_pct": 43.51,
+        "margin_min_pct": -265.18,
+        "margin_max_pct": 352.87,
+        "revenue_min": 121496561.0,
+        "revenue_max": 1450099000000.0
+      }
+    }
+  },
+  "data_quality": {
+    "currency": "全部 CNY，无需汇率换算",
+    "revenue_zero_rows": 32,
+    "revenue_zero_detail": "均出现在母公司报表（2024H1 9 行、2024Q3 3 行、2024FY 7 行、2025Q1 4 行、2025H1 9 行）；合并报表营业收入全部 > 0，因此净利率计算无除零风险",
+    "nulls_in_income_statement": "net_profit / revenue / operating_profit / profit_before_tax / parent_company_profit 无缺失；cost_of_revenue 缺 282 行、minority_profit 缺 750 行、basic_eps 缺 647 行",
+    "identity_checks": {
+      "balance_assets_current_plus_noncurrent_mismatch": 5,
+      "total_liabilities_plus_equity_vs_assets_mismatch": 5,
+      "profit_before_tax_minus_tax_vs_net_profit_mismatch": 2,
+      "parent_plus_minority_vs_net_profit_mismatch": 1,
+      "comment": "恒等式偏差行数极少（<0.5%），不影响行业层面聚合"
+    },
+    "outliers": "公司层面净利率极端值存在（2024H1 区间 -83.2% ~ 266.4%；2025H1 区间 -265.2% ~ 352.9%），个别小体量公司（如某软件公司净利率由 -13.6% 恶化至 -265.2%、某房企 -83.2%→-238.8%）会主导等权平均值",
+    "dim_missing_company_websites": 1,
+    "unmatched_fact_rows": 0
+  },
+  "recommendations_for_next_stage": {
+    "aggregation": "行业净利率建议按 SUM(net_profit)/SUM(revenue) 计算（营收加权，等价于把行业视为一个整体），再比较 2025H1 与 2024H1 的百分点差；等权平均企业净利率会被单公司极端值扭曲（软件和信息技术服务业等权均值变动 -49pp，而加权口径仅 +0.2pp）",
+    "scope": "必须限定 report_type='合并报表'；母公司报表存在营业收入为 0 的记录，若混入口径会污染净利率",
+    "caveats": [
+      "39 个行业中有 8 个行业仅含 1 家公司，行业结论代表性弱，可作为敏感性/备注项",
+      "只使用 H1（2024-06-30 vs 2025-06-30）两个齐全报告期，不要用 2025-09-30（仅 13 条）"
+    ],
+    "reference_sql": "SELECT d.industry_name, f.period_date, SUM(f.net_profit) np, SUM(f.revenue) rev, SUM(f.net_profit)*100.0/SUM(f.revenue) margin_pct FROM fact_income_statement f JOIN dim_company d USING(company_id) WHERE f.report_type='合并报表' AND f.period_type='H1' AND f.period_date IN ('2024-06-30','2025-06-30') GROUP BY 1,2;"
+  },
+  "platform": {
+    "python": "3.13",
+    "libs": [
+      "sqlite3",
+      "pandas",
+      "numpy"
+    ]
+  }
+}

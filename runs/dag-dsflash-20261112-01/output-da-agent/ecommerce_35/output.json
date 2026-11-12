@@ -1,0 +1,8 @@
+{
+  "total_state_pairs": 243,
+  "total_months": 21,
+  "avg_delivery_delay_overall": -11.7726,
+  "avg_review_score_overall": 4.0823,
+  "total_orders_overall": 14143,
+  "avg_haversine_distance_overall": 677.3147
+}

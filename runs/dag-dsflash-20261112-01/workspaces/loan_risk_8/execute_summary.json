@@ -1,0 +1,111 @@
+{
+  "artifact": "execute_summary.json",
+  "task_id": "loan_risk_8",
+  "node_role": "execute",
+  "objective": "Compute new-vs-old score gap exceedance sample proportions for score1/score2 at thresholds 1e-3/1e-4/1e-5/1e-6 and write summary_output.csv.",
+  "input": {
+    "path": "input.csv",
+    "n_rows": 10000,
+    "n_cols": 6,
+    "score_columns": [
+      "score1_old",
+      "score1_new",
+      "score2_old",
+      "score2_new"
+    ],
+    "nulls_in_score_columns": 0,
+    "duplicate_uniq_id": 0,
+    "stored_precision": "up to 6 decimal places (verified from raw strings)"
+  },
+  "method": {
+    "step_1": "Loaded input.csv with dtype=str so score values keep their exact written precision (no float parsing).",
+    "step_2": "gap = scoreX_new - scoreX_old computed in decimal.Decimal; abs_gap = |gap|.",
+    "step_3": "Verified all abs_gap values lie exactly on the 1e-6 grid (0 off-grid values for both scores), so the stored values are the intended exact numbers.",
+    "step_4": "STRICT comparison abs_gap > threshold performed with Decimal, never raw float '>'.",
+    "step_5": "ratio = count / 10000 (full row denominator, no nulls), rounded to 4 decimal places at output only.",
+    "command": "pd.DataFrame(...).to_csv('summary_output.csv', index=False, float_format='%.4f')"
+  },
+  "key_intermediate_results": {
+    "score1": {
+      "n": 10000,
+      "nonzero_gaps": 9597,
+      "max_abs_gap": "0.010000",
+      "mean_abs_gap": "0.0002317071",
+      "counts_strict_gt": {
+        "1e-3": 224,
+        "1e-4": 224,
+        "1e-5": 3071,
+        "1e-6": 8791
+      },
+      "gaps_exactly_equal_to_threshold": {
+        "1e-3": 0,
+        "1e-4": 0,
+        "1e-5": 489,
+        "1e-6": 806
+      },
+      "ratios": {
+        "gap_gt_1e3_ratio": 0.0224,
+        "gap_gt_1e4_ratio": 0.0224,
+        "gap_gt_1e5_ratio": 0.3071,
+        "gap_gt_1e6_ratio": 0.8791
+      }
+    },
+    "score2": {
+      "n": 10000,
+      "nonzero_gaps": 9620,
+      "max_abs_gap": "0.010000",
+      "mean_abs_gap": "0.0002319384",
+      "counts_strict_gt": {
+        "1e-3": 224,
+        "1e-4": 224,
+        "1e-5": 3199,
+        "1e-6": 8807
+      },
+      "gaps_exactly_equal_to_threshold": {
+        "1e-3": 0,
+        "1e-4": 0,
+        "1e-5": 461,
+        "1e-6": 813
+      },
+      "ratios": {
+        "gap_gt_1e3_ratio": 0.0224,
+        "gap_gt_1e4_ratio": 0.0224,
+        "gap_gt_1e5_ratio": 0.3199,
+        "gap_gt_1e6_ratio": 0.8807
+      }
+    },
+    "float_boundary_note": "Naive float '>' would have over-counted: score1 1e-5 3342 vs correct 3071, 1e-6 9370 vs correct 8791; score2 1e-5 3463 vs 3199, 1e-6 9395 vs 8807. Decimal comparison used to avoid this."
+  },
+  "outputs": [
+    {
+      "path": "summary_output.csv",
+      "rows": 2,
+      "columns": [
+        "score_type",
+        "gap_gt_1e3_ratio",
+        "gap_gt_1e4_ratio",
+        "gap_gt_1e5_ratio",
+        "gap_gt_1e6_ratio"
+      ],
+      "score_type_values": [
+        "score1",
+        "score2"
+      ],
+      "decimal_places": 4,
+      "has_index_column": false
+    }
+  ],
+  "validation": {
+    "columns_exact_match": true,
+    "score_type_values_ok": true,
+    "ratios_in_0_1": true,
+    "monotone_nesting_within_row": true,
+    "four_decimal_format_verified_on_raw_text": true,
+    "cross_check_vs_plan_precheck": "exact match on all 8 ratios"
+  },
+  "limitations": [
+    "Column names omit the leading '1e-' by spec: gap_gt_1e3_ratio denotes threshold 1e-3 (column labels are literal as required, not 1e3).",
+    "score1/score2 share identical 1e-3 and 1e-4 ratios (224 rows each) because gaps are quantized on the 1e-6 grid and equal-threshold rows are excluded by the strict comparison; this is a genuine data property, not an artifact.",
+    "No temporal or model-quality interpretation attempted; deliverable is purely descriptive distribution of absolute gaps."
+  ]
+}

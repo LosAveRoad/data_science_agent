@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "energy_03",
+  "startedAt": "2026-11-11T18:50:48.390Z",
+  "finishedAt": "2026-11-11T18:52:12.895Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.png",
+  "totalSteps": 77,
+  "tokenUsage": {
+    "inputTokens": 11537,
+    "outputTokens": 13558,
+    "totalTokens": 25095
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:50:48.645Z",
+      "finishedAt": "2026-11-11T18:52:12.891Z",
+      "elapsedMs": 84246,
+      "error": null,
+      "steps": 77,
+      "tokenUsage": {
+        "inputTokens": 11537,
+        "outputTokens": 13558,
+        "totalTokens": 25095
+      }
+    }
+  ]
+}

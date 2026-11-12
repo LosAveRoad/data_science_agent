@@ -1,0 +1,172 @@
+{
+  "plan_id": "plan_agri_bank_fy2024_revenue_share",
+  "dataset": "pub_fin_data.sqlite",
+  "doc": "dataset_pub_fin_data.md",
+  "task": {
+    "question": "基于 pub_fin_data.sqlite，求农业银行 2024 财年营业收入及其在其所属行业中的营收占比",
+    "output_artifact": "output.csv",
+    "output_columns": [
+      "营收",
+      "营收占比"
+    ],
+    "numeric_rules": {
+      "营收": "元（CNY）原值，整数/浮点均可，不加单位、不加千分位",
+      "营收占比": "百分制数值，保留 2 位小数，仅数值（不带 % 号）",
+      "encoding": "CSV 需兼容列名中文（建议 UTF-8，若既有产物为 utf-8-sig 则保持一致）"
+    }
+  },
+  "data_structure_findings": {
+    "schema_type": "星型模型：dim_company（174 行，17 列）+ fact_income_statement / fact_balance_sheet / fact_cash_flow",
+    "income_table": "fact_income_statement（1563 行），关键字段 company_id, period_date, period_type, report_type, currency, revenue",
+    "join_key": "fact_income_statement.company_id = dim_company.company_id",
+    "period_coverage": [
+      "2024-06-30",
+      "2024-09-30",
+      "2024-12-31",
+      "2025-03-31",
+      "2025-06-30",
+      "2025-09-30"
+    ],
+    "period_types": [
+      "Q1",
+      "H1",
+      "Q3",
+      "FY"
+    ],
+    "report_types": [
+      "合并报表",
+      "母公司报表"
+    ],
+    "amount_unit": "元（CNY）",
+    "industry_field": "dim_company.industry_name（国民经济行业分类，共 39 个行业，货币金融服务 15 家）"
+  },
+  "entity_resolution": {
+    "target": {
+      "stock_name": "农业银行",
+      "company_name": "中国农业银行股份有限公司",
+      "stock_code": "601288",
+      "company_id": "CN000141",
+      "industry_name": "货币金融服务"
+    },
+    "resolution_rule": "用 dim_company 按 stock_name='农业银行' 或 stock_code='601288' 精确匹配，唯一命中 1 家公司（已校验）；不要用 LIKE '%银行%'（会命中多家银行）",
+    "industry_scope": "以命中公司的 industry_name='货币金融服务' 作为'其行业'口径（15 家公司），不使用 exchange/listed_sector 替代行业"
+  },
+  "filters": {
+    "fiscal_year_2024": {
+      "period_date": "2024-12-31",
+      "period_type": "FY"
+    },
+    "report_type": "合并报表",
+    "rationale": [
+      "FY（period_date=2024-12-31）为 2024 财年全年口径；H1/Q3 为累计未满年，不可用于'2024 财年营收'",
+      "同一公司同一报告期同时存在合并报表与母公司报表两种口径，营收对比/占比必须锁定单一口径；本任务统一使用合并报表（数据整体覆盖更全：FY2024 合并报表 172 家公司）"
+    ],
+    "grain_guard": "(company_id, period_date, period_type, report_type) 为复合主键，已验证全表无重复组合，故无需去重"
+  },
+  "metrics": {
+    "营收": {
+      "formula": "revenue（农业银行, period_date='2024-12-31', period_type='FY', report_type='合并报表'）",
+      "unit": "元"
+    },
+    "营收占比": {
+      "formula": "农业银行 revenue / SUM(同 industry_name='货币金融服务' 全部公司 revenue，同一 2024-12-31 + FY + 合并报表 口径) * 100",
+      "definition_note": "分母为行业内 15 家公司的营收合计（含农业银行自身），口径与分子完全一致；百分制四舍五入保留 2 位小数",
+      "unit": "%"
+    }
+  },
+  "execution_steps": [
+    {
+      "step": 1,
+      "action": "只读连接数据库（sqlite3 或 pandas.read_sql），先确认表清单与关键字段存在，禁止全量导出大表",
+      "output": "schema 确认"
+    },
+    {
+      "step": 2,
+      "action": "在 dim_company 中解析 农业银行 -> company_id / industry_name，校验唯一命中",
+      "output": "target_keys"
+    },
+    {
+      "step": 3,
+      "action": "统计候选口径下目标公司与行业内公司记录数（应为 15 家、15 条），并校验 revenue 均非空且为正",
+      "output": "peer_check"
+    },
+    {
+      "step": 4,
+      "action": "用单条 SQL（JOIN + WHERE 三类筛选 + 条件聚合）一次性算出 营收 与 行业营收合计，避免两次口径不一致",
+      "output": "revenue, industry_total"
+    },
+    {
+      "step": 5,
+      "action": "计算占比 = revenue/industry_total*100，round(…, 2)，写入 output.csv（列 营收,营收占比，单行结果）",
+      "output": "output.csv"
+    },
+    {
+      "step": 6,
+      "action": "自检：口径一致性（分子分母均为 FY2024 合并报表）、行业成员数 15、占比区间合理（0~100）、列名与格式符合要求，并把关键中间量写入 analysis_plan.json 的 validation 段落",
+      "output": "validation_report"
+    }
+  ],
+  "reference_sql": {
+    "main_query": "SELECT SUM(CASE WHEN d.company_id = :cid THEN f.revenue ELSE 0 END) AS bank_rev, SUM(f.revenue) AS industry_total, COUNT(*) AS peer_cnt FROM fact_income_statement f JOIN dim_company d ON d.company_id = f.company_id WHERE d.industry_name = :industry AND f.period_date = '2024-12-31' AND f.period_type = 'FY' AND f.report_type = '合并报表';",
+    "target_lookup": "SELECT company_id, company_name, stock_code, stock_name, industry_name FROM dim_company WHERE stock_name = '农业银行' OR stock_code = '601288';"
+  },
+  "plan_grounding_checks": {
+    "note": "以下为制定计划阶段用轻量查询（单公司/单行业聚合，非全表读取）确认的事实，供执行节点对齐预期量级；最终数值仍以执行节点查询结果为准",
+    "target_rows_for_FY2024": [
+      {
+        "report_type": "合并报表",
+        "revenue": 710555000000.0
+      },
+      {
+        "report_type": "母公司报表",
+        "revenue": 689620000000.0
+      }
+    ],
+    "industry_peer_count_FY2024_merged": 15,
+    "industry_peer_revenue_non_null": 15,
+    "industry_total_revenue_FY2024_merged": 4058749070000.0,
+    "share_pct_computed": 17.51,
+    "industry_peer_count_FY2024_parent": 15,
+    "industry_total_revenue_FY2024_parent": 3664179536000.0,
+    "口径敏感性": "若误用母公司报表口径，行业合计为 3,664,179,536,000，占比约 18.82%；若误用全公司/全行业（跨行业）合计，占比将显著偏低，故口径锁定是本任务的核心风险点",
+    "duplicate_primary_key_combos": 0,
+    "revenue_null_rows": 0,
+    "FY2024_merged_rows_with_revenue_le_0": 0
+  },
+  "risks_and_mitigations": [
+    {
+      "risk": "混淆合并报表 / 母公司报表",
+      "mitigation": "SQL 与校验步骤均硬编码 report_type='合并报表'，并记录母公司口径备查值"
+    },
+    {
+      "risk": "把 H1/Q3 累计值误当财年营收",
+      "mitigation": "强制 period_date='2024-12-31' AND period_type='FY'"
+    },
+    {
+      "risk": "'其行业'被误解为交易所/板块/其他金融大类",
+      "mitigation": "以 dim_company.industry_name 精确等值匹配（货币金融服务），行业成员以该行业全部公司为准"
+    },
+    {
+      "risk": "占比重复四舍五入或单位未换算百分制",
+      "mitigation": "仅在最后一步 round(x*100, 2)，全流程保持 ratio 不提前取整"
+    },
+    {
+      "risk": "CSV 中文列名乱码 / BOM 不一致",
+      "mitigation": "写文件时指定 encoding='utf-8-sig'，与既有 output.csv 一致"
+    },
+    {
+      "risk": "分母遗漏公司导致占比偏高",
+      "mitigation": "单独校验 COUNT(*)=15 与 SUM(revenue) 非空、无明显缺失，并与 dim_company 该行业公司数交叉核对"
+    }
+  ],
+  "acceptance_criteria": [
+    "output.csv 存在，表头恰为 ['营收','营收占比']，仅 1 行数据",
+    "营收 = 710555000000（元，2024 财年、合并报表、农业银行 601288）",
+    "营收占比 = 17.51（百分制、2 位小数）",
+    "口径在报告/计划中明确记录：FY 2024-12-31 + 合并报表 + 行业=货币金融服务（15 家）"
+  ],
+  "artifacts": {
+    "this_node_output": "analysis_plan.json",
+    "downstream_output": "output.csv"
+  }
+}

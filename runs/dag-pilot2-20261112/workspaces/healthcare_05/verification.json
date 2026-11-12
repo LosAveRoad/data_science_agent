@@ -1,0 +1,179 @@
+{
+  "node": "verifier",
+  "status": "passed",
+  "checks": [
+    {
+      "check": "output_csv_exists",
+      "passed": true,
+      "severity": "error",
+      "detail": "output.csv present, 328 bytes"
+    },
+    {
+      "check": "output_csv_columns",
+      "passed": true,
+      "severity": "error",
+      "detail": "columns=['test', 'comparison', 'statistic', 'p_value', 'significant'] (expected ['test', 'comparison', 'statistic', 'p_value', 'significant'])"
+    },
+    {
+      "check": "output_csv_rowcount",
+      "passed": true,
+      "severity": "error",
+      "detail": "4 rows expected (1 KW + 3 Dunn), got 4"
+    },
+    {
+      "check": "significant_is_bool_text",
+      "passed": true,
+      "severity": "error",
+      "detail": "significant column values are literal True/False"
+    },
+    {
+      "check": "test_labels",
+      "passed": true,
+      "severity": "error",
+      "detail": "test values=['Kruskal-Wallis', 'Dunn post-hoc', 'Dunn post-hoc', 'Dunn post-hoc']"
+    },
+    {
+      "check": "comparison_labels",
+      "passed": true,
+      "severity": "error",
+      "detail": "comparison values=['all', 'Diabetes vs Stroke', 'Diabetes vs CKD', 'Stroke vs CKD']"
+    },
+    {
+      "check": "numeric_columns",
+      "passed": true,
+      "severity": "error",
+      "detail": "statistic/p_value finite and non-null"
+    },
+    {
+      "check": "unified_schema",
+      "passed": true,
+      "severity": "error",
+      "detail": "schema=['source', 'age', 'glucose_mgdl'], dtypes=['str', 'float64', 'float64']"
+    },
+    {
+      "check": "source_labels",
+      "passed": true,
+      "severity": "error",
+      "detail": "source values=['CKD', 'Diabetes', 'Stroke']"
+    },
+    {
+      "check": "age_filter_30_70",
+      "passed": true,
+      "severity": "error",
+      "detail": "age range 30.0-70.0, all within [30,70]"
+    },
+    {
+      "check": "glucose_filter",
+      "passed": true,
+      "severity": "error",
+      "detail": "glucose min=44.00, no zeros/NaN"
+    },
+    {
+      "check": "unified_reproducible_from_raw",
+      "passed": true,
+      "severity": "error",
+      "detail": "Diabetes n=1306/1306 identical=True; Stroke n=2885/2885 identical=True; CKD n=273/273 identical=True"
+    },
+    {
+      "check": "kruskal_recomputed_match",
+      "passed": true,
+      "severity": "error",
+      "detail": "max |stat diff| vs independent recompute = 0.00e+00 (H=628.129747, p=4.0120e-137)"
+    },
+    {
+      "check": "dunn_bonferroni_recomputed_match",
+      "passed": true,
+      "severity": "info",
+      "detail": "max |p diff| vs independent recompute = 0.00e+00; Dunn p_value column = Bonferroni-adjusted p (x3, capped at 1), statistic column = z-score"
+    },
+    {
+      "check": "kw_significance_triggers_posthoc",
+      "passed": true,
+      "severity": "error",
+      "detail": "KW p=4.012e-137 < 0.05, so 3 Dunn comparisons are required and present"
+    },
+    {
+      "check": "significant_flags_consistent_with_p",
+      "passed": true,
+      "severity": "error",
+      "detail": "significant == (p_value < 0.05) for all rows"
+    },
+    {
+      "check": "output_png_valid",
+      "passed": true,
+      "severity": "error",
+      "detail": "valid PNG signature, 76774 bytes, 1500x900 px, colortype 6 (RGBA)"
+    },
+    {
+      "check": "png_three_color_series",
+      "passed": true,
+      "severity": "error",
+      "detail": "colored pixel counts -> red(Diabetes)=33549, blue(Stroke)=46074, green(CKD)=24877"
+    },
+    {
+      "check": "png_has_text_annotation",
+      "passed": true,
+      "severity": "info",
+      "detail": "13652 dark text pixels present (axis/legend/KW p-value annotation)"
+    }
+  ],
+  "metrics": {
+    "group_counts": {
+      "Stroke": 2885,
+      "Diabetes": 1306,
+      "CKD": 273
+    },
+    "total_n": 4464,
+    "raw_filtered_counts": {
+      "Diabetes": 1306,
+      "Stroke": 2885,
+      "CKD": 273
+    },
+    "kruskal": {
+      "H": 628.1297472880678,
+      "p": 4.011976834982009e-137,
+      "significant": true
+    },
+    "dunn": [
+      {
+        "comparison": "Diabetes vs Stroke",
+        "statistic": 23.369292894117425,
+        "p_adj_bonferroni": 2.632308557413407e-120,
+        "significant": true
+      },
+      {
+        "comparison": "Diabetes vs CKD",
+        "statistic": -0.43762135560234433,
+        "p_adj_bonferroni": 1.0,
+        "significant": false
+      },
+      {
+        "comparison": "Stroke vs CKD",
+        "statistic": -12.768506131789152,
+        "p_adj_bonferroni": 7.3748159242587045e-37,
+        "significant": true
+      }
+    ],
+    "medians": {
+      "Diabetes": 125.0,
+      "Stroke": 92.23,
+      "CKD": 123.0
+    },
+    "image": {
+      "width": 1500,
+      "height": 900,
+      "bytes": 76774,
+      "red_px": 33549,
+      "blue_px": 46074,
+      "green_px": 24877,
+      "dark_text_px": 13652
+    }
+  },
+  "notes": [
+    "glucose_unified.csv was independently re-derived from the 3 raw sources (Diabetes age/Glucose with 0-sentinel, Stroke age/avg_glucose_level, CKD ARFF age/bgr with 25 attributes and 3 malformed 26-field rows repaired) and matches exactly row-for-row and value-for-value (1306/2885/273 = 4464).",
+    "output.csv statistic for Dunn rows is the z-score; p_value is the Bonferroni-adjusted p (raw p x 3, capped at 1) - consistent with the requested 'Dunn's post-hoc test with Bonferroni correction'.",
+    "Kruskal-Wallis H=628.13, p=4.01e-137: distributions differ significantly; Diabetes vs Stroke and Stroke vs CKD remain significant after Bonferroni (p_adj 2.63e-120 and 7.37e-37), Diabetes vs CKD is not (p_adj=1.0).",
+    "Medians: CKD 123.0, Diabetes 125.0, Stroke 92.23 mg/dL - Diabetes and CKD are not statistically distinguishable, both above Stroke.",
+    "PNG annotation content (exact KW p-value string) could not be OCR-verified; presence of text and the three colored series was confirmed programmatically."
+  ]
+}

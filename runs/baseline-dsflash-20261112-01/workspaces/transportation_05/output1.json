@@ -1,0 +1,110 @@
+[
+  {
+    "borough": "Bronx",
+    "month": 1,
+    "avg_trip_distance": 6.514748,
+    "avg_total_fare": 35.63225,
+    "trip_count": 6845,
+    "absolute_increase": 0.802408,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Bronx",
+    "month": 2,
+    "avg_trip_distance": 6.772922,
+    "avg_total_fare": 36.434658,
+    "trip_count": 6909,
+    "absolute_increase": 0.802408,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Brooklyn",
+    "month": 1,
+    "avg_trip_distance": 5.499517,
+    "avg_total_fare": 33.603957,
+    "trip_count": 24925,
+    "absolute_increase": 0.807798,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Brooklyn",
+    "month": 2,
+    "avg_trip_distance": 5.386118,
+    "avg_total_fare": 32.796159,
+    "trip_count": 27623,
+    "absolute_increase": 0.807798,
+    "is_max_increase": false
+  },
+  {
+    "borough": "EWR",
+    "month": 1,
+    "avg_trip_distance": 1.056127,
+    "avg_total_fare": 111.096514,
+    "trip_count": 284,
+    "absolute_increase": 10.650887,
+    "is_max_increase": true
+  },
+  {
+    "borough": "EWR",
+    "month": 2,
+    "avg_trip_distance": 1.432115,
+    "avg_total_fare": 100.445627,
+    "trip_count": 279,
+    "absolute_increase": 10.650887,
+    "is_max_increase": true
+  },
+  {
+    "borough": "Manhattan",
+    "month": 1,
+    "avg_trip_distance": 2.270504,
+    "avg_total_fare": 22.863303,
+    "trip_count": 2616402,
+    "absolute_increase": 0.286161,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Manhattan",
+    "month": 2,
+    "avg_trip_distance": 2.289639,
+    "avg_total_fare": 23.149465,
+    "trip_count": 2676800,
+    "absolute_increase": 0.286161,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Queens",
+    "month": 1,
+    "avg_trip_distance": 12.337082,
+    "avg_total_fare": 70.931761,
+    "trip_count": 266750,
+    "absolute_increase": 0.254073,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Queens",
+    "month": 2,
+    "avg_trip_distance": 12.230141,
+    "avg_total_fare": 71.185834,
+    "trip_count": 244193,
+    "absolute_increase": 0.254073,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Staten Island",
+    "month": 1,
+    "avg_trip_distance": 6.783676,
+    "avg_total_fare": 59.286618,
+    "trip_count": 68,
+    "absolute_increase": 4.671803,
+    "is_max_increase": false
+  },
+  {
+    "borough": "Staten Island",
+    "month": 2,
+    "avg_trip_distance": 7.848148,
+    "avg_total_fare": 54.614815,
+    "trip_count": 54,
+    "absolute_increase": 4.671803,
+    "is_max_increase": false
+  }
+]

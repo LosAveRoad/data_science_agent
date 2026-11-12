@@ -1,0 +1,287 @@
+{
+  "node": "verify",
+  "target_artifact": "output.json",
+  "status": "passed",
+  "summary": "output.json 存在、可严格解析为 UTF-8 JSON 对象，4 个顶层键与 29 个数值字段全部齐全且为有限 float；所有数值经独立重算（pandas/numpy/scipy f_oneway + 手算平方和 ANOVA + 手工 HHI + csv.reader 修复版 books 解析 + usecols 版 movies 读取）在 1e-9 容差内完全一致（mean/std/HHI/ratings 的 abs diff 为 0.0，ANOVA 手动实现 abs diff ≤ 1.7e-14），并与 analysis_plan.json / data_profile.json 参考值一致（≤1.1e-16）。",
+  "file_checks": {
+    "exists": true,
+    "size_bytes": 1311,
+    "encoding": "UTF-8",
+    "strict_json_parse": true,
+    "nan_infinity_absent": true,
+    "top_level_keys": [
+      "music_features",
+      "anova",
+      "game_market_hhi",
+      "ratings"
+    ],
+    "top_level_keys_exact": true,
+    "unexpected_top_level_keys": []
+  },
+  "schema_checks": {
+    "music_features": {
+      "present": true,
+      "n_keys": 18,
+      "expected_n_keys": 18,
+      "keys_exact": true,
+      "all_float": true
+    },
+    "anova": {
+      "present": true,
+      "n_keys": 6,
+      "expected_n_keys": 6,
+      "keys_exact": true,
+      "all_float": true
+    },
+    "game_market_hhi": {
+      "present": true,
+      "type": "float",
+      "in_range_0_1": true
+    },
+    "ratings": {
+      "present": true,
+      "n_keys": 4,
+      "expected_n_keys": 4,
+      "keys_exact": true,
+      "all_float": true
+    }
+  },
+  "validity_checks": {
+    "all_values_finite": true,
+    "no_int_where_float_expected": true,
+    "p_values_within_0_1": true,
+    "f_statistics_non_negative": true,
+    "std_non_negative": true,
+    "books_ratings_within_0_5": true,
+    "movies_ratings_within_0_10": true,
+    "hhi_within_0_1": true
+  },
+  "independent_recomputation": {
+    "method": "从头读取原始文件重算：top2017/top2018/top50_2020（按列名选取 3 个特征，样本标准差 ddof=1）；scipy.stats.f_oneway 与手算 SSbetween/SSwithin 双路径 ANOVA；vgsales 按 Publisher strip 后汇总 Global_Sales 求份额平方和；books.csv 用 csv.reader 修复 13 字段行后取 average_rating；movies_metadata.csv 用 usecols=['vote_average','vote_count'] 读取后 dropna。",
+    "max_abs_diff_music_features_anova_ratings_hhi": 0.0,
+    "max_abs_diff_manual_anova": 1.63202784619898e-14,
+    "max_rel_diff_all_fields": 0.0,
+    "tolerance": "1e-9 (abs)",
+    "all_fields_within_tolerance": true,
+    "input_integrity": {
+      "group_sizes": {
+        "2017": 100,
+        "2018": 100,
+        "2020": 50
+      },
+      "music_missing_values": 0,
+      "anova_df": [
+        2,
+        247
+      ],
+      "anova_total_N": 250,
+      "hhi": {
+        "rows": 16598,
+        "nan_publisher_rows": 58,
+        "publishers": 578,
+        "total_global_sales": 8905.56
+      },
+      "books": {
+        "n": 11127,
+        "repaired_13_field_rows": 4
+      },
+      "movies": {
+        "n_raw": 45466,
+        "dropped_nan_vote_average": 6,
+        "n_used": 45460
+      }
+    }
+  },
+  "cross_artifact_consistency": {
+    "matches_analysis_plan_reference_values_tol_1e-6": true,
+    "matches_data_profile_reference_values": true,
+    "note": "music_features 使用 ddof=1（与 plan/data_profile 的主定义一致）；game_market_hhi 采用 0-1 标度（经典 0-10000 标度为 792.92，仅作备注）；movies 评分主定义为 vote_average 非空全部行（含 2998 行 0 分），与 plan 主定义一致。"
+  },
+  "semantic_consistency_with_expected_findings": {
+    "all_anova_p_above_0_05": true,
+    "energy_p_is_minimum": true,
+    "energy_means_monotone_declining": true,
+    "hhi_indicates_unconcentrated_market": true,
+    "books_mean_below_median": true,
+    "movies_mean_below_median": true,
+    "conclusion": "数值与上游预期的统计结论（三年音频特征差异不显著、HHI 高度分散、评分均值略低于中位数）一致，无自相矛盾之处。"
+  },
+  "issues": [],
+  "warnings": [
+    "ANOVA 为不平衡设计（n=100/100/50），f_oneway 可用但 2020 组检验效能较低；这是数据本身的限制，不属输出错误。",
+    "游戏 HHI 主值剔除了 58 行 Publisher 缺失（若当作单一 Unknown 组则 HHI≈0.079044，差异极小，不影响结论）。",
+    "电影评分主定义包含 vote_average==0 的未知评分行；限定 vote_count>0 时 mean≈6.0009、median≈6.1，属敏感性差异，plan 已明确主定义，故不视为错误。"
+  ],
+  "per_key_comparison": {
+    "music_features.danceability_2017_mean": {
+      "output": 0.6968199999999999,
+      "recomputed": 0.6968199999999999,
+      "data_profile_ref": 0.6968199999999999,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.danceability_2017_std": {
+      "output": 0.12507972245610782,
+      "recomputed": 0.12507972245610782,
+      "data_profile_ref": 0.12507972245610782,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.danceability_2018_mean": {
+      "output": 0.7164600000000001,
+      "recomputed": 0.7164600000000001,
+      "data_profile_ref": 0.7164600000000001,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.danceability_2018_std": {
+      "output": 0.1310701423750742,
+      "recomputed": 0.1310701423750742,
+      "data_profile_ref": 0.1310701423750742,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.danceability_2020_mean": {
+      "output": 0.7167200000000001,
+      "recomputed": 0.7167200000000001,
+      "data_profile_ref": 0.7167200000000001,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.danceability_2020_std": {
+      "output": 0.12497526939032247,
+      "recomputed": 0.12497526939032247,
+      "data_profile_ref": 0.12497526939032247,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2017_mean": {
+      "output": 0.6606899999999999,
+      "recomputed": 0.6606899999999999,
+      "data_profile_ref": 0.6606899999999999,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2017_std": {
+      "output": 0.13920718481109481,
+      "recomputed": 0.13920718481109481,
+      "data_profile_ref": 0.13920718481109481,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2018_mean": {
+      "output": 0.6590600000000001,
+      "recomputed": 0.6590600000000001,
+      "data_profile_ref": 0.6590600000000001,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2018_std": {
+      "output": 0.1450671610397102,
+      "recomputed": 0.1450671610397102,
+      "data_profile_ref": 0.1450671610397102,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2020_mean": {
+      "output": 0.6093,
+      "recomputed": 0.6093,
+      "data_profile_ref": 0.6093,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.energy_2020_std": {
+      "output": 0.15434816857629746,
+      "recomputed": 0.15434816857629746,
+      "data_profile_ref": 0.15434816857629746,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2017_mean": {
+      "output": 0.517049,
+      "recomputed": 0.517049,
+      "data_profile_ref": 0.517049,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2017_std": {
+      "output": 0.21643606586022235,
+      "recomputed": 0.21643606586022235,
+      "data_profile_ref": 0.21643606586022235,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2018_mean": {
+      "output": 0.4844429999999999,
+      "recomputed": 0.4844429999999999,
+      "data_profile_ref": 0.4844429999999999,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2018_std": {
+      "output": 0.20614516374720906,
+      "recomputed": 0.20614516374720906,
+      "data_profile_ref": 0.20614516374720906,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2020_mean": {
+      "output": 0.55571,
+      "recomputed": 0.55571,
+      "data_profile_ref": 0.55571,
+      "abs_diff_recomputed": 0.0
+    },
+    "music_features.valence_2020_std": {
+      "output": 0.21638641951615264,
+      "recomputed": 0.21638641951615264,
+      "data_profile_ref": 0.21638641951615264,
+      "abs_diff_recomputed": 0.0
+    },
+    "anova.danceability_f_statistic": {
+      "output": 0.7182730772011928,
+      "recomputed": 0.7182730772011928,
+      "manual_ss_anova": 0.7182730772012091,
+      "data_profile_ref": 0.7182730772011928
+    },
+    "anova.danceability_p_value": {
+      "output": 0.48860914133273275,
+      "recomputed": 0.48860914133273275,
+      "manual_ss_anova": 0.4886091413327249,
+      "data_profile_ref": 0.48860914133273275
+    },
+    "anova.energy_f_statistic": {
+      "output": 2.447575558653471,
+      "recomputed": 2.447575558653471,
+      "manual_ss_anova": 2.4475755586534733,
+      "data_profile_ref": 2.447575558653471
+    },
+    "anova.energy_p_value": {
+      "output": 0.08859872893058825,
+      "recomputed": 0.08859872893058825,
+      "manual_ss_anova": 0.08859872893058797,
+      "data_profile_ref": 0.08859872893058825
+    },
+    "anova.valence_f_statistic": {
+      "output": 1.929153777682068,
+      "recomputed": 1.929153777682068,
+      "manual_ss_anova": 1.9291537776820755,
+      "data_profile_ref": 1.929153777682068
+    },
+    "anova.valence_p_value": {
+      "output": 0.14745363009449414,
+      "recomputed": 0.14745363009449414,
+      "manual_ss_anova": 0.147453630094493,
+      "data_profile_ref": 0.14745363009449414
+    },
+    "game_market_hhi": {
+      "output": 0.07929227304017357,
+      "recomputed": 0.07929227304017357,
+      "data_profile_ref": 0.07929227304017357,
+      "alt_scale_0_10000": 792.9227304017357
+    },
+    "ratings.books_mean": {
+      "output": 3.933630807944639,
+      "recomputed": 3.933630807944639,
+      "data_profile_ref": 3.933630807944639
+    },
+    "ratings.books_median": {
+      "output": 3.96,
+      "recomputed": 3.96,
+      "data_profile_ref": 3.96
+    },
+    "ratings.movies_mean": {
+      "output": 5.618207215134184,
+      "recomputed": 5.618207215134184,
+      "data_profile_ref": 5.618207215134184
+    },
+    "ratings.movies_median": {
+      "output": 6.0,
+      "recomputed": 6.0,
+      "data_profile_ref": 6.0
+    }
+  }
+}

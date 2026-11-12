@@ -1,0 +1,46 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "strategy_2",
+  "startedAt": "2026-11-11T20:15:48.695Z",
+  "finishedAt": "2026-11-11T20:16:12.840Z",
+  "status": "failed",
+  "error": "节点 plan 的依赖产物缺失: 上游节点 inspect 未产出声明的产物 data_profile.json",
+  "result": "节点 plan 的依赖产物缺失: 上游节点 inspect 未产出声明的产物 data_profile.json",
+  "totalSteps": 20,
+  "tokenUsage": {
+    "inputTokens": 3361,
+    "outputTokens": 4169,
+    "totalTokens": 7530
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T20:15:48.708Z",
+      "finishedAt": "2026-11-11T20:16:12.838Z",
+      "elapsedMs": 24130,
+      "error": null,
+      "steps": 20,
+      "tokenUsage": {
+        "inputTokens": 3361,
+        "outputTokens": 4169,
+        "totalTokens": 7530
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "failed",
+      "startedAt": "2026-11-11T20:16:12.839Z",
+      "finishedAt": "2026-11-11T20:16:12.839Z",
+      "elapsedMs": 0,
+      "error": "节点 plan 的依赖产物缺失: 上游节点 inspect 未产出声明的产物 data_profile.json",
+      "steps": 0,
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

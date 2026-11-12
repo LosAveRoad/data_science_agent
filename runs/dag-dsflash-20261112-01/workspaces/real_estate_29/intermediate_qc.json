@@ -1,0 +1,27 @@
+{
+  "zhvi_states": 51,
+  "unemp_states": 51,
+  "unmapped_names": [],
+  "all_day1": true,
+  "dup_zhvi": 0,
+  "dup_unemp": 0,
+  "zhvi_range": [
+    "1996-01-01",
+    "2020-03-01"
+  ],
+  "unemp_range": [
+    "1976-01-01",
+    "2025-11-01"
+  ],
+  "zhvi_rm_nonnull_in_window_min": 120,
+  "unemp_rm_nonnull_in_window_min": 120,
+  "neg_std_count": 0,
+  "states_in_cc": 51,
+  "min_lag_obs": 96,
+  "max_lag_obs": 120,
+  "nan_corr_count": 0,
+  "lag_values_per_state": 49,
+  "selftest_A_unemp_leads_6_expect_lag_-6": -6,
+  "selftest_B_zhvi_leads_6_expect_lag_+6": 6,
+  "sign_convention_note": "r(k)=corr(ZHVI_t, Unemp_{t+k}); k<0 => unemployment leads ZHVI; k>0 => ZHVI leads"
+}

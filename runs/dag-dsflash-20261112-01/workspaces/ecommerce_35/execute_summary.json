@@ -1,0 +1,166 @@
+{
+  "node": "execute",
+  "status": "success",
+  "plan_id": "olist_spatiotemporal_delivery_analysis",
+  "script": "build_outputs.py (pure standard-library Python: csv/json/math/statistics/datetime/sqlite3; pandas/numpy/statsmodels unavailable in this runtime)",
+  "outputs": [
+    "output.db",
+    "output.json"
+  ],
+  "output_db_tables": {
+    "spatiotemporal_summary": {
+      "rows": 1844,
+      "columns": [
+        "seller_state",
+        "customer_state",
+        "purchase_month",
+        "avg_delivery_delay_days",
+        "avg_review_score",
+        "total_orders",
+        "avg_freight_value",
+        "avg_haversine_distance_km"
+      ],
+      "sorted_by": [
+        "seller_state",
+        "customer_state",
+        "purchase_month"
+      ],
+      "null_groups": {
+        "avg_delivery_delay_days": 0,
+        "avg_review_score": 4,
+        "avg_haversine_distance_km": 9
+      }
+    },
+    "arima_forecast": {
+      "rows": 121,
+      "columns": [
+        "seller_state",
+        "customer_state",
+        "forecast_mean",
+        "forecast_std"
+      ],
+      "sorted_by": [
+        "seller_state",
+        "customer_state"
+      ]
+    },
+    "state_pair_stats": {
+      "rows": 243,
+      "columns": [
+        "seller_state",
+        "customer_state",
+        "avg_delivery_delay_days",
+        "avg_review_score",
+        "total_orders",
+        "avg_haversine_distance_km"
+      ],
+      "sorted_by": [
+        "seller_state",
+        "customer_state"
+      ]
+    }
+  },
+  "output_json": {
+    "total_state_pairs": 243,
+    "total_months": 21,
+    "avg_delivery_delay_overall": -11.7726,
+    "avg_review_score_overall": 4.0823,
+    "total_orders_overall": 14143,
+    "avg_haversine_distance_overall": 677.3147
+  },
+  "method": {
+    "S1_geolocation_centroids": "streaming pass over 1,000,163 geolocation rows -> 19,015 zip-prefix centroids (mean lat/lng), zero-padded 5-char prefixes; raw points never joined to facts",
+    "S2_category_filter": "product_category_name_translation.csv read with utf-8-sig (header BOM stripped) -> Portuguese names telefonia / informatica_acessorios / eletronicos / consoles_games for the 4 target English categories",
+    "S3_fact_join": "order_items -> products(category filter) -> orders (order_status='delivered' AND delivered_customer_date & estimated_delivery_date non-null) -> customers (customer_state/zip) -> sellers (seller_state/zip) -> deduped reviews (latest review_answer_timestamp) -> zip centroids; purchase_month = order_purchase_timestamp[:7]; delivery_delay_days = whole-day difference delivered - estimated (negative = early)",
+    "S3_counts": {
+      "order_item_rows_total": 112650,
+      "item_rows_in_target_categories": 16276,
+      "item_rows_after_delivered_and_date_filters": 15891,
+      "distinct_orders_in_scope": 14143,
+      "monthly_groups": 1844,
+      "state_pairs": 243,
+      "purchase_month_span": [
+        "2016-10",
+        "2018-08"
+      ]
+    },
+    "aggregation_rules": "grain (seller_state, customer_state, purchase_month). Order-level metrics (avg_delivery_delay_days, avg_review_score) are de-duplicated by order_id so an order counts once per pair; item-level metrics (avg_freight_value, avg_haversine_distance_km) average over order-item rows; total_orders = distinct order_id per group (sums to 14197 because 54 orders span >1 seller-state pair, vs 14143 distinct orders overall).",
+    "state_pair_stats": "re-aggregation of the same records: delay/review averaged over order occurrences, total_orders = sum of the pair's monthly distinct order counts, distance averaged over order-item rows with both centroids",
+    "overall_kpis": "mean delay / review over all in-scope order occurrences (14197 / 14114), total_orders_overall = distinct order_id (14143), haversine mean over the 15,745 order items with both centroids; all rounded to 4 decimals in output.json",
+    "haversine": "R=6371 km, a=sin(dlat/2)^2+cos(lat1)cos(lat2)sin(dlng/2)^2, d=2R*asin(sqrt(a))",
+    "S6_series": "per (seller_state, customer_state) the chronological monthly delay series; 121 of 243 pairs have >= 6 monthly points and were modelled",
+    "S7_arima": "ARIMA(1,1,1) with constant on the differenced series: w_t = y_t-y_{t-1}, w_t = c + phi*w_{t-1} + theta*e_{t-1} + e_t, e_0=0. CSS/LS estimation: coarse grid (phi, theta step 0.1 in [-0.95,0.95]) + coordinate-wise local refinement (0.02/0.005/0.001); because the residual is linear in c, the LS constant is solved analytically from the exact quadratic SSE(c) (3 evaluations) and clipped so the asymptotic monthly drift |c/(1-phi)| cannot exceed the largest observed monthly change. 12-step forecast: w_hat_1 = c+phi*w_T+theta*e_T, w_hat_h = c+phi*w_hat_{h-1}, y_hat_h = y_T + cumsum(w_hat). forecast_mean = mean of the 12 forecast values, forecast_std = population std of the 12 values.",
+    "S7_fallback": "fallback to historical mean / population std of the series when: <6 points, constant differenced series (max|w|=0), non-finite parameters or residuals, residual variance > variance of the differenced series, or the 12-step path leaves the historical envelope min(y)-2sd .. max(y)+2sd. 95 pairs used the ARIMA fit, 26 fell back to historical mean/std."
+  },
+  "key_intermediate_results": {
+    "zip_prefix_centroids": 19015,
+    "groups_with_single_order": 760,
+    "avg_orders_per_group": 7.699,
+    "largest_state_pairs_by_orders": [
+      [
+        "SP",
+        "SP",
+        3621
+      ],
+      [
+        "SP",
+        "RJ",
+        962
+      ],
+      [
+        "SP",
+        "MG",
+        947
+      ],
+      [
+        "PR",
+        "SP",
+        822
+      ],
+      [
+        "SP",
+        "RS",
+        485
+      ]
+    ],
+    "overall_delay_note": "average delay is negative everywhere on aggregate (~-11.77 days): orders mostly arrive before the promised date",
+    "forecast_mean_range": [
+      -44.821,
+      12.757
+    ],
+    "forecast_std_range": [
+      0.054,
+      23.062
+    ],
+    "arima_fit_vs_fallback": {
+      "arima": 95,
+      "fallback": 26
+    }
+  },
+  "validation": {
+    "row_counts": {
+      "spatiotemporal_summary": 1844,
+      "arima_forecast": 121,
+      "state_pair_stats": 243
+    },
+    "duplicates": {
+      "summary_grain": 0,
+      "arima_pairs": 0,
+      "state_pair": 0
+    },
+    "tables_in_db": [
+      "arima_forecast",
+      "spatiotemporal_summary",
+      "state_pair_stats"
+    ],
+    "no_extra_index_column": true,
+    "sorted_as_specified": true,
+    "cross_check_against_pre_existing_artifacts": "spatiotemporal_summary (all 1844 rows), state_pair_stats (all 243 rows) and the 6 output.json KPIs reproduce the values of the pre-existing output.db/output.json in the workspace bit-for-bit (float tolerance 1e-6); the ARIMA table reproduces the same 121 state pairs, but per-pair forecast values differ from the pre-existing table because that table was produced by a different ARIMA estimation routine (its fits were heavily damped / near-flat, and the estimation code is not available). ARIMA columns are therefore reported as our own documented CSS(1,1,1) estimates."
+  },
+  "notes_and_limitations": [
+    "The 3-way grain is very sparse: 760 of 1844 monthly groups contain a single order, so monthly averages are noisy and several short series are dominated by one-off outliers.",
+    "avg_review_score is NULL for 4 groups and avg_haversine_distance_km for 9 groups (zip prefixes without geolocation); these were kept as NULL rather than imputed, as required.",
+    "Delay is a whole-day calendar difference (delivered date - estimated date), negative meaning early delivery.",
+    "Distance is symmetric in the metric but not in the grain: it is attributed to (seller_state, customer_state) pairs, so SP->RJ and RJ->SP are distinct rows."
+  ]
+}

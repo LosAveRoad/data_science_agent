@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "social_network_10",
+  "startedAt": "2026-11-11T19:22:10.538Z",
+  "finishedAt": "2026-11-11T19:23:48.386Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.csv",
+  "totalSteps": 55,
+  "tokenUsage": {
+    "inputTokens": 7421,
+    "outputTokens": 14775,
+    "totalTokens": 22196
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:22:10.570Z",
+      "finishedAt": "2026-11-11T19:23:48.385Z",
+      "elapsedMs": 97815,
+      "error": null,
+      "steps": 55,
+      "tokenUsage": {
+        "inputTokens": 7421,
+        "outputTokens": 14775,
+        "totalTokens": 22196
+      }
+    }
+  ]
+}

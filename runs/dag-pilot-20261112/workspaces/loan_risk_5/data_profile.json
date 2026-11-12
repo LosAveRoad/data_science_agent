@@ -1,0 +1,120 @@
+{
+  "node": "inspect",
+  "task_id": "loan_risk_5",
+  "generated_at": "2026-11-12T02:36:43",
+  "data_availability": {
+    "status": "no_data_found",
+    "data_files": [],
+    "upstream_artifacts": [],
+    "checked_locations": [
+      "workspace root (recursive walk)",
+      "subdirectories"
+    ],
+    "workspace_file_count": 0,
+    "note": "The workspace is completely empty: no CSV/JSON/JSONL/Excel/parquet data file and no upstream Artifact was found. Therefore no schema, dtypes, row counts or sample values could be inspected."
+  },
+  "dataset_spec_from_task_statement": {
+    "source": "derived from task description only (NOT verified against real data)",
+    "expected_columns": [
+      {
+        "name": "apply_date",
+        "expected_type": "date",
+        "format": "YYYYMMDD",
+        "used_for": "derive apply_month = apply_date[:6] (YYYYMM)",
+        "risks": [
+          "may be read as int64 or str depending on loader; force dtype=str then zero-pad / validate length == 8",
+          "may contain nulls, empty strings, or invalid dates -> such rows cannot be assigned to a month",
+          "possible alternative formats (YYYY-MM-DD, with timestamp) should be checked when data appears"
+        ]
+      },
+      {
+        "name": "score",
+        "expected_type": "numeric (behavioral score)",
+        "used_for": "all 7 statistical metrics",
+        "risks": [
+          "may be read as object/str due to dirty characters; must coerce with pd.to_numeric(errors='coerce')",
+          "nulls / NaN must be dropped before statistics",
+          "float vs int affects mode comparison and median representation"
+        ]
+      },
+      {
+        "name": "group_id",
+        "expected_type": "group identifier (str or int)",
+        "used_for": "grouping key for both overall and monthly aggregation",
+        "risks": [
+          "possible NaN group -> decide whether to keep as separate group (recommend keeping, or drop with documented rule)",
+          "int-like strings could be coerced to numbers by pandas -> force dtype=str to preserve identifier semantics"
+        ]
+      }
+    ],
+    "row_count": "unknown (no data)",
+    "expected_group_cardinality": "unknown",
+    "expected_month_range": "unknown"
+  },
+  "target_outputs": [
+    {
+      "path": "output_1.csv",
+      "columns": [
+        "group_id",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "granularity": "one row per group_id (overall); month marked internally as 'overall' but excluded from output",
+      "sorting": "not specified -> recommend group_id ascending (stable, deterministic)"
+    },
+    {
+      "path": "output_2.csv",
+      "columns": [
+        "group_id",
+        "apply_month",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "granularity": "one row per (group_id, apply_month)",
+      "sorting": "not specified -> recommend group_id, apply_month ascending"
+    }
+  ],
+  "metric_definitions_to_implement": {
+    "cnt": "number of non-null score records in the group/period; must be output as float dtype",
+    "max_score": "max of score",
+    "min_score": "min of score",
+    "mode_score": "most frequent score; if multiple modes tie, take the MINIMUM of the tied modes",
+    "mean_score": "arithmetic mean of score",
+    "median_score": "median of score",
+    "std_score": "SAMPLE standard deviation (ddof=1); if n < 2 -> fill 0 (never NaN)"
+  },
+  "schema_consistency_notes": [
+    "All 9 output columns must exist even when a group/period has 0 computable rows (then cnt=0.0 and numeric metrics NaN or 0 per rule; std must be 0 when undefined).",
+    "cnt is an integer count logically but must be cast to float in both output files.",
+    "apply_month must be a 6-char string 'YYYYMM' so that leading zeros (e.g. 202401) are preserved in CSV text.",
+    "group_id should be written as-is (string) to avoid pandas re-typing int-like identifiers."
+  ],
+  "blocking_gaps": [
+    {
+      "gap": "No input data file present in the workspace",
+      "impact": "Neither overall nor monthly statistics can be actually computed; output_1.csv / output_2.csv cannot be derived from data in this run.",
+      "handling_options": [
+        "A) Obtain/mount the source dataset (expected columns: apply_date, score, group_id) and re-run this DAG.",
+        "B) Deliver a parameterised script (path argument) that produces both CSVs once the data file is supplied."
+      ]
+    }
+  ],
+  "recommendation_for_downstream": {
+    "plan_node": "Do not invent statistics. Plan for a script that (1) discovers the data file by extension, (2) validates the 3 required columns, (3) computes metrics exactly as defined above; and explicitly record in the plan that the run is data-blocked if no file is found.",
+    "execute_node": "If a data file is still missing at execution time, either emit header-only CSV files with the exact required column order (documented as data-blocked) or fail with a clear error message — the choice must be stated openly, never filled with fabricated numbers.",
+    "verify_node": "Verify column names/order, dtype of cnt == float, std_score never NaN (0 when n<2), mode tie-breaking rule, and that output_2 contains no 'overall' row while output_1 omits the month column."
+  },
+  "data_supported_conclusions": [
+    "Only meta-level conclusion is supported: the workspace contains no data file, so no statistic about score distribution can be reported from actual data."
+  ]
+}

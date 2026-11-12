@@ -1,0 +1,377 @@
+{
+  "task": "Degree-2 polynomial regression (PolynomialFeatures + LinearRegression) of crop yield on avg_temp, rainfall, pesticide usage; R2 on fitted data; deliver output.csv + output.txt",
+  "node": "data_profile",
+  "workspace_files": {
+    "pesticides.csv": 447677,
+    "rainfall.csv": 136712,
+    "temp.csv": 1421414,
+    "yield.csv": 4042934
+  },
+  "datasets": {
+    "yield.csv": {
+      "role": "TARGET source (yield, hg/ha) + dimension keys country/crop_item/year",
+      "rows": 56717,
+      "cols": 12,
+      "columns": [
+        "Domain Code",
+        "Domain",
+        "Area Code",
+        "Area",
+        "Element Code",
+        "Element",
+        "Item Code",
+        "Item",
+        "Year Code",
+        "Year",
+        "Unit",
+        "Value"
+      ],
+      "dtypes": {
+        "Domain Code": "str",
+        "Domain": "str",
+        "Area Code": "int64",
+        "Area": "str",
+        "Element Code": "int64",
+        "Element": "str",
+        "Item Code": "int64",
+        "Item": "str",
+        "Year Code": "int64",
+        "Year": "int64",
+        "Unit": "str",
+        "Value": "int64"
+      },
+      "missing": {
+        "Domain Code": 0,
+        "Domain": 0,
+        "Area Code": 0,
+        "Area": 0,
+        "Element Code": 0,
+        "Element": 0,
+        "Item Code": 0,
+        "Item": 0,
+        "Year Code": 0,
+        "Year": 0,
+        "Unit": 0,
+        "Value": 0
+      },
+      "unique_countries": 212,
+      "unique_crop_items": 10,
+      "crop_items": [
+        "Cassava",
+        "Maize",
+        "Plantains and others",
+        "Potatoes",
+        "Rice, paddy",
+        "Sorghum",
+        "Soybeans",
+        "Sweet potatoes",
+        "Wheat",
+        "Yams"
+      ],
+      "year_range": [
+        1961,
+        2016
+      ],
+      "single_element": [
+        "Yield"
+      ],
+      "unit": [
+        "hg/ha"
+      ],
+      "duplicate_country_year_item_rows": 0,
+      "target_distribution_hg_per_ha": {
+        "count": 56717.0,
+        "mean": 62094.66008427808,
+        "std": 67835.93285591144,
+        "min": 0.0,
+        "25%": 15680.0,
+        "50%": 36744.0,
+        "75%": 86213.0,
+        "max": 1000000.0
+      },
+      "rows_per_crop_item": {
+        "Maize": 8631,
+        "Potatoes": 7876,
+        "Rice, paddy": 6469,
+        "Sweet potatoes": 6356,
+        "Wheat": 6160,
+        "Cassava": 5718,
+        "Sorghum": 5511,
+        "Soybeans": 4192,
+        "Yams": 3150,
+        "Plantains and others": 2654
+      },
+      "notes": "FAO long format; Value is int64 hg/ha (no decimals); grain-only item list (10 crops); includes aggregate/historical areas (e.g. 'China, mainland', 'Ethiopia PDR', 'Belgium-Luxembourg')."
+    },
+    "pesticides.csv": {
+      "role": "FEATURE (pesticide_value, tonnes of active ingredients)",
+      "rows": 4349,
+      "cols": 7,
+      "columns": [
+        "Domain",
+        "Area",
+        "Element",
+        "Item",
+        "Year",
+        "Unit",
+        "Value"
+      ],
+      "dtypes": {
+        "Domain": "str",
+        "Area": "str",
+        "Element": "str",
+        "Item": "str",
+        "Year": "int64",
+        "Unit": "str",
+        "Value": "float64"
+      },
+      "missing": {
+        "Domain": 0,
+        "Area": 0,
+        "Element": 0,
+        "Item": 0,
+        "Year": 0,
+        "Unit": 0,
+        "Value": 0
+      },
+      "unique_countries": 168,
+      "year_range": [
+        1990,
+        2016
+      ],
+      "single_element_item_unit": {
+        "element": [
+          "Use"
+        ],
+        "item": [
+          "Pesticides (total)"
+        ],
+        "unit": [
+          "tonnes of active ingredients"
+        ]
+      },
+      "duplicate_country_year_rows": 0,
+      "value_distribution": {
+        "count": 4349.0,
+        "mean": 20303.34146470453,
+        "std": 117736.19044755587,
+        "min": 0.0,
+        "25%": 93.0,
+        "50%": 1137.56,
+        "75%": 7869.0,
+        "max": 1807000.0
+      },
+      "zero_values": 2,
+      "notes": "National totals (no crop_item breakdown) -> feature must be broadcast across crop items at merge time. Extremely right-skewed (median 1137 t vs max 1.8M t); consider keeping raw value (task spec) and being aware it dominates scale."
+    },
+    "rainfall.csv": {
+      "role": "FEATURE (rainfall, mm/year)",
+      "rows": 6727,
+      "cols": 3,
+      "raw_header_repr": [
+        "' Area'",
+        "'Year'",
+        "'average_rain_fall_mm_per_year'"
+      ],
+      "dtypes": {
+        " Area": "str",
+        "Year": "int64",
+        "average_rain_fall_mm_per_year": "str"
+      },
+      "missing": {
+        " Area": 0,
+        "Year": 0,
+        "average_rain_fall_mm_per_year": 774
+      },
+      "unique_countries": 217,
+      "year_range": [
+        1985,
+        2017
+      ],
+      "duplicate_country_year_rows": 0,
+      "dirty_numeric_rows": {
+        "count": 6,
+        "token": [
+          ".."
+        ]
+      },
+      "value_distribution_after_coerce_mm": {
+        "count": 5947.0,
+        "mean": 1124.7432318816209,
+        "std": 786.2573647424141,
+        "min": 51.0,
+        "25%": 534.0,
+        "50%": 1010.0,
+        "75%": 1651.0,
+        "max": 3240.0
+      },
+      "cleaning_required": [
+        "strip BOM/leading space from first column name ('\\ufeff Area' -> 'country'/'Area')",
+        "pd.to_numeric(..., errors='coerce') because column is object dtype with '..' placeholders (6 rows) plus 774 empty cells",
+        "strip whitespace in country names"
+      ]
+    },
+    "temp.csv": {
+      "role": "FEATURE (avg_temp, degC)",
+      "rows": 71311,
+      "cols": 3,
+      "columns": [
+        "year",
+        "country",
+        "avg_temp"
+      ],
+      "dtypes": {
+        "year": "int64",
+        "country": "str",
+        "avg_temp": "float64"
+      },
+      "missing": {
+        "year": 0,
+        "country": 0,
+        "avg_temp": 2547
+      },
+      "unique_countries": 137,
+      "year_range": [
+        1743,
+        2013
+      ],
+      "duplicate_country_year_rows_flagged": 50791,
+      "duplicate_country_year_excess_rows": 42797,
+      "unique_country_year_after_dropna": 27479,
+      "country_year_groups_with_conflicting_values": 7534,
+      "value_distribution_degC": {
+        "count": 68764.0,
+        "mean": 16.183876010703273,
+        "std": 7.592959612466919,
+        "min": -14.35,
+        "25%": 9.75,
+        "50%": 16.14,
+        "75%": 23.762500000000003,
+        "max": 30.73
+      },
+      "cleaning_required": [
+        "avg_temp arrives as object with 2547 blanks -> coerce numeric and drop",
+        "country-year is NOT unique: ~2-3 records per country-year with slightly different values (two blended sources); must be aggregated (mean) or de-duplicated before a 1:1 merge"
+      ],
+      "risk": "Merging temp.csv as-is (without aggregation) turns the join into many-to-many and silently duplicates yield rows (13,130 clean country-year-item rows -> 28,242 rows). This is the single largest pipeline decision of the task."
+    }
+  },
+  "join_design": {
+    "join_keys": "country(Area/country) + year(Year/year) for all four files; yield keeps crop_item",
+    "year_column_names": {
+      "yield.csv": "Year",
+      "pesticides.csv": "Year",
+      "rainfall.csv": "Year",
+      "temp.csv": "year"
+    },
+    "country_name_mismatch": {
+      "notation": "FAO long names in yield/pesticides/rainfall vs short names in temp.csv",
+      "yield_countries": 212,
+      "pesticides_countries": 168,
+      "rainfall_countries": 217,
+      "temp_countries": 137,
+      "yield_countries_absent_from_pesticides": 45,
+      "yield_countries_absent_from_rainfall": 43,
+      "yield_countries_absent_from_temp": 94,
+      "examples_absent_from_temp": [
+        "American Samoa",
+        "Antigua and Barbuda",
+        "Barbados",
+        "Belgium-Luxembourg",
+        "Belize",
+        "Benin",
+        "Bermuda",
+        "Bhutan",
+        "Bolivia (Plurinational State of)",
+        "Bosnia and Herzegovina",
+        "Brunei Darussalam",
+        "Cabo Verde",
+        "Cambodia",
+        "Cayman Islands",
+        "Chad"
+      ],
+      "typical_aliases": {
+        "Bolivia (Plurinational State of)": "Bolivia",
+        "Iran (Islamic Republic of)": "Iran",
+        "Russian Federation": "Russia",
+        "Republic of Korea": "South Korea",
+        "Lao People's Democratic Republic": "Laos",
+        "Viet Nam": "Vietnam",
+        "Syrian Arab Republic": "Syria",
+        "Czechia": "Czech Republic",
+        "Republic of Moldova": "Moldova",
+        "United Republic of Tanzania": "Tanzania",
+        "Democratic Republic of the Congo": "Congo (Democratic Republic Of The)",
+        "China, mainland": "China",
+        "China, Taiwan Province of": "Taiwan",
+        "Côte d'Ivoire": "Côte D'Ivoire"
+      },
+      "impact_of_exact_name_join": "exact-name inner join keeps 13,130 complete rows / 101 countries; alias mapping adds ~2,035 rows / +13 countries but is an optional enrichment, not required by the task"
+    },
+    "overlap_window": "all four sources overlap only in 1990-2013 (yield 1961-2016, pesticides 1990-2016, rainfall 1985-2017, temp 1743-2013)",
+    "measured_join_waterfall_exact_names_with_temp_aggregated": {
+      "yield_rows": 56717,
+      "after_join_pesticides": 24153,
+      "after_join_rainfall": 18949,
+      "after_join_temp": 13130,
+      "final_complete_rows": 13130,
+      "final_countries": 101,
+      "final_year_range": [
+        1990,
+        2013
+      ]
+    },
+    "measured_join_waterfall_if_temp_not_aggregated": {
+      "final_rows": 28242,
+      "note": "duplicated yield targets, see temp.risk"
+    }
+  },
+  "data_quality_summary": [
+    "temp.csv: 42,797 surplus duplicate country-year rows with conflicting values (must aggregate) - highest-impact issue",
+    "rainfall.csv: object dtype + '..' placeholders + BOM/space in first header -> numeric coercion and header normalization required",
+    "Country nomenclature differs between FAO files and temp.csv (temp uses short names) -> exact-name join loses ~50% of potential coverage",
+    "pesticides.csv is national-level: value repeats across the 10 crop items after merge (feature is not crop-specific)",
+    "yield.csv Value is integer hg/ha (1e4 scale) with heavy right skew (median 36,744; max 1,000,000) -> expect low linear/polynomial explanatory power; target scaling optional but coefficients ill-conditioned due to raw pesticide scale",
+    "no missing values in yield.csv / pesticides.csv; missing only in rainfall (774+6) and temp (2547)"
+  ],
+  "modeling_plan_for_downstream": {
+    "merge": "inner join yield + pesticides + rainfall + temp on (country, year); aggregate temp by mean per (country, year); dropna before fit",
+    "features": [
+      "avg_temp",
+      "rainfall",
+      "pesticide_value"
+    ],
+    "target": "actual_yield",
+    "preprocessing": "sklearn PolynomialFeatures(degree=2, include_bias=False) -> 9 columns (3 linear, 3 squares, 3 interactions)",
+    "estimator": "sklearn.linear_model.LinearRegression(fit_intercept=True)",
+    "metric": "r2_score(y, model.predict(X_poly)) on the fitted data, rounded to 4 decimals",
+    "outputs": {
+      "output.csv": [
+        "country",
+        "year",
+        "crop_item",
+        "actual_yield",
+        "predicted_yield",
+        "pesticide_value",
+        "rainfall",
+        "avg_temp"
+      ],
+      "output.txt": "Polynomial Regression R2 Score: {value}"
+    },
+    "sanity_reference_values_measured_in_this_profile": {
+      "temp_aggregated_by_mean_rows_13130": {
+        "rows": 13130,
+        "r2": 0.0301
+      },
+      "temp_deduplicated_keep_first_rows_13130": {
+        "rows": 13130,
+        "r2": 0.0286
+      },
+      "temp_left_unaggregated_rows_28242": {
+        "rows": 28242,
+        "r2": 0.0042
+      },
+      "comment": "R2 is small in all variants: climate/pesticide levels explain only a few percent of cross-country yield variance. The duplicate-handling decision changes rows and R2; the recommended path is temp aggregated to one record per country-year (13,130 rows, R2 ~= 0.0301)."
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "healthcare_05",
+  "startedAt": "2026-11-11T19:04:42.678Z",
+  "finishedAt": "2026-11-11T19:05:49.364Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output.csv, output.png",
+  "totalSteps": 78,
+  "tokenUsage": {
+    "inputTokens": 9225,
+    "outputTokens": 8719,
+    "totalTokens": 17944
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:04:42.687Z",
+      "finishedAt": "2026-11-11T19:05:49.362Z",
+      "elapsedMs": 66675,
+      "error": null,
+      "steps": 78,
+      "tokenUsage": {
+        "inputTokens": 9225,
+        "outputTokens": 8719,
+        "totalTokens": 17944
+      }
+    }
+  ]
+}

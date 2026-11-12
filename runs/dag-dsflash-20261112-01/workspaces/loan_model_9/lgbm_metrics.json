@@ -1,0 +1,7 @@
+{
+  "test_ks": 0.201967,
+  "test_auc": 0.631071,
+  "train_ks_on_resampled": 0.954678,
+  "n_test": 19420,
+  "test_positive_ratio": 0.087333
+}

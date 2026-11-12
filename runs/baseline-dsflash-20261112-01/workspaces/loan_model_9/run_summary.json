@@ -1,0 +1,13 @@
+{
+  "auc": 0.6171519366560257,
+  "n_features": 98,
+  "n_dropped": 0,
+  "train_rows": 35051,
+  "test_rows": 14859,
+  "train_pos_before": 0.09509001169724117,
+  "test_pos": 0.08863315162527761,
+  "train_pos_after_smote": 0.5,
+  "test_ks": 0.1697639235261999,
+  "split": "sorted by time, train time<=20231024",
+  "seed": 42
+}

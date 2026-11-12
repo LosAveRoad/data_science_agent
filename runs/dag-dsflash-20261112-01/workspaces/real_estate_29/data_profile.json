@@ -1,0 +1,256 @@
+{
+  "profile_metadata": {
+    "node": "data_inspect",
+    "artifact": "data_profile.json",
+    "purpose": "Profile of the two input data files (schema, samples, coverage, data-quality issues) for the ZHVI vs. unemployment cross-correlation pipeline.",
+    "datasets_profiled": 2
+  },
+  "datasets": [
+    {
+      "dataset_key": "unemployment",
+      "path": "Unemployment in America Per US State.csv",
+      "size_bytes": 3203705,
+      "format": "csv",
+      "delimiter": ",",
+      "encoding": "utf-8-sig (file starts with a UTF-8 BOM: first column name is '\\ufeffFIPS Code')",
+      "rows": 31747,
+      "columns": 11,
+      "column_names": [
+        "FIPS Code",
+        "State/Area",
+        "Year",
+        "Month",
+        "Total Civilian Non-Institutional Population in State/Area",
+        "Total Civilian Labor Force in State/Area",
+        "Percent (%) of State/Area's Population",
+        "Total Employment in State/Area",
+        "Percent (%) of Labor Force Employed in State/Area",
+        "Total Unemployment in State/Area",
+        "Percent (%) of Labor Force Unemployed in State/Area"
+      ],
+      "structure": "long format, one row per State/Area x Year x Month",
+      "schema": [
+        {
+          "column": "FIPS Code",
+          "dtype": "object (string, zero-padded, e.g. '01', '037')",
+          "role": "state/area identifier",
+          "note": "mostly 2-digit state FIPS but '037' (Los Angeles County) is 3-digit -> do NOT rely on FIPS width; join on name instead. Not a USPS abbreviation."
+        },
+        {
+          "column": "State/Area",
+          "dtype": "object (string)",
+          "role": "state/area name -> must be mapped to 2-letter USPS code",
+          "note": "53 distinct values = 50 states + District of Columbia + 2 non-state rows ('Los Angeles County', 'New York city') that must be dropped."
+        },
+        {
+          "column": "Year",
+          "dtype": "object (string of 4 digits, e.g. '2010')",
+          "role": "timestamp part",
+          "note": "must be cast to int"
+        },
+        {
+          "column": "Month",
+          "dtype": "object (string, zero-padded '01'..'12')",
+          "role": "timestamp part",
+          "note": "already zero-padded; month convention is the calendar month (no day given) -> anchor timestamps to day 1"
+        },
+        {
+          "column": "Total Civilian Non-Institutional Population in State/Area",
+          "dtype": "object (thousands separators + trailing spaces, e.g. '2,605,000   ')",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Total Civilian Labor Force in State/Area",
+          "dtype": "object (thousands separators + trailing spaces)",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Percent (%) of State/Area's Population",
+          "dtype": "object (numeric with trailing spaces)",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Total Employment in State/Area",
+          "dtype": "object (thousands separators + trailing spaces)",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Percent (%) of Labor Force Employed in State/Area",
+          "dtype": "object (numeric with trailing spaces)",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Total Unemployment in State/Area",
+          "dtype": "object (thousands separators + trailing spaces)",
+          "role": "unused for this task"
+        },
+        {
+          "column": "Percent (%) of Labor Force Unemployed in State/Area",
+          "dtype": "object (numeric with trailing spaces, e.g. '6.7   ')",
+          "role": "PRIMARY TARGET: unemployment rate (percent) -> the 'unemployment rate' series",
+          "note": "requires strip() then pd.to_numeric; 53 rows hold the en-dash placeholder '–' (missing) and all of them are in Year 2025 (future months) - none inside 2010-01..2019-12."
+        }
+      ],
+      "sample_raw_rows": [
+        "01,Alabama,1976,01,\"2,605,000   \",\"1,486,509   \",57.1   ,\"1,387,606   \",53.3   ,\"98,903   \",6.7   ",
+        "06,California,1976,01,\"15,621,000   \",\"9,770,553   \",62.5   ,\"8,873,133   \",56.8   ,\"897,420   \",9.2   "
+      ],
+      "coverage": {
+        "date_min": "1976-01-01",
+        "date_max": "2025-11-01",
+        "n_distinct_months": 599,
+        "months_per_state": "599 for every State/Area (complete monthly series, no gaps)",
+        "rows_in_2010_01_to_2019_12": 6360,
+        "months_per_state_in_2010_01_to_2019_12": 120,
+        "target_variable_range_percent": [
+          1.7,
+          30.5
+        ]
+      },
+      "data_quality": {
+        "duplicate_state_year_month_rows": 0,
+        "duplicate_fips_year_month_rows": 0,
+        "missing_target_values": 53,
+        "missing_target_values_year_breakdown": {
+          "2025": 53
+        },
+        "non_state_rows_to_drop": [
+          "Los Angeles County",
+          "New York city"
+        ],
+        "encoding_issue": "UTF-8 BOM present; use encoding='utf-8-sig' or the first column name carries a stray \\ufeff prefix",
+        "numeric_parsing_issue": "all numeric columns are strings with thousands separators and trailing whitespace; the unemployment rate column only needs .str.strip() before to_numeric"
+      }
+    },
+    {
+      "dataset_key": "zillow_zhvi",
+      "path": "Zillow House Price Data/State_Zhvi_AllHomes.csv",
+      "size_bytes": 135172,
+      "format": "csv",
+      "delimiter": ",",
+      "encoding": "utf-8",
+      "rows": 51,
+      "columns": 297,
+      "structure": "wide format: one row per state, one column per month (month-END date labels), plus 6 identifier/meta columns",
+      "id_columns": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "date_columns": {
+        "count": 291,
+        "first": "1996-01-31",
+        "last": "2020-03-31",
+        "pattern": "YYYY-MM-DD, always the last calendar day of the month"
+      },
+      "schema": [
+        {
+          "column": "Unnamed: 0",
+          "dtype": "int64",
+          "role": "row index artifact of the CSV export",
+          "note": "0..50, redundant with SizeRank; should be dropped"
+        },
+        {
+          "column": "RegionID",
+          "dtype": "int64",
+          "role": "Zillow region id"
+        },
+        {
+          "column": "SizeRank",
+          "dtype": "int64",
+          "role": "rank by size (0 = largest)"
+        },
+        {
+          "column": "RegionName",
+          "dtype": "object",
+          "role": "state name (e.g. 'California', 'District of Columbia'); 51 distinct -> alternative join key against the unemployment 'State/Area' column"
+        },
+        {
+          "column": "RegionType",
+          "dtype": "object",
+          "role": "constant 'State' for all 51 rows (already state-level, no aggregation needed)"
+        },
+        {
+          "column": "StateName",
+          "dtype": "object",
+          "role": "ALREADY a 2-letter USPS abbreviation (51 distinct, includes 'DC')",
+          "note": "use this as the state identifier for the ZHVI side; identical code set to the unemployment states after name->USPS mapping"
+        },
+        {
+          "column": "1996-01-31 ... 2020-03-31",
+          "dtype": "float64",
+          "role": "ZHVI (Zillow Home Value Index, USD) monthly values -> the 'home price index' series",
+          "note": "column labels are month-END dates and must be normalized to the first day of the same month"
+        }
+      ],
+      "sample_row_0_first_13_cells": [
+        "0",
+        "9",
+        "0",
+        "California",
+        "State",
+        "CA",
+        "162238.0",
+        "162008.0",
+        "161859.0",
+        "161569.0",
+        "161373.0",
+        "161219.0",
+        "161124.0"
+      ],
+      "coverage": {
+        "date_min_month": "1996-01",
+        "date_max_month": "2020-03",
+        "n_month_columns": 291,
+        "all_labels_are_month_end": true,
+        "missing_values_total_all_months": 223,
+        "missing_values_in_2010_01_to_2019_12": 0,
+        "value_range_usd": [
+          61078.0,
+          643460.0
+        ]
+      },
+      "data_quality": {
+        "duplicate_region_rows": 0,
+        "states_present": 51,
+        "includes_non_state_geographies": false,
+        "note": "223 NaN cells exist across the full 1996-2020 history (early history of some smaller states) but none inside the 2010-01..2019-12 analysis window"
+      }
+    }
+  ],
+  "joinability": {
+    "state_identifier_normalization": "Unemployment 'State/Area' (full names, incl. DC as 'District of Columbia') -> 2-letter USPS; Zillow 'StateName' is already USPS. A 50-states + DC name->USPS mapping resolves all rows.",
+    "unmapped_unemployment_names": [
+      "Los Angeles County",
+      "New York city"
+    ],
+    "states_matched_both_sides": 51,
+    "in_unemployment_not_in_zillow": [],
+    "in_zillow_not_in_unemployment": [],
+    "timestamp_convention": "both series anchored to the first day of the month: unemployment (Year '2010' + Month '01' -> 2010-01-01); ZHVI month-end labels ('2010-01-31' -> 2010-01-01). Both then share pd.date_range('2010-01-01','2019-12-01', freq='MS') = 120 periods."
+  },
+  "readiness_checks_for_downstream": {
+    "states_expected_in_analysis": 51,
+    "min_months_with_data_2010_01_to_2019_12_per_series": 120,
+    "rolling_windows_fully_supported": "ZHVI history starts 1996-01, unemployment starts 1976-01, so a 12-month rolling window with min_periods=6 is fully populated for every month of 2010-01..2019-12 (verified: 120/120 non-null months for all 51 states on both rolling-mean series)",
+    "zero_variance_series": 0,
+    "nulls_after_reindex_plus_ffill_bfill": {
+      "zhvi_rolling_mean": 0,
+      "unemployment_rolling_mean": 0
+    },
+    "usable_for_lag_range_-24_to_+24": true,
+    "notes": "With lag range -24..+24 on a 120-month index, each lag correlation uses the overlapping subset (>= 96 months), so estimates are well determined."
+  },
+  "pitfalls_summary": [
+    "Unemployment CSV has a UTF-8 BOM -> read with encoding='utf-8-sig'.",
+    "Unemployment numeric columns are strings with trailing spaces / thousands separators; the rate column needs strip() before to_numeric, and the placeholder '–' (en dash) becomes NaN.",
+    "Unemployment file mixes 2 non-state rows ('Los Angeles County', 'New York city') into State/Area -> drop them so only the 51 USPS states remain.",
+    "Unemployment 'FIPS Code' is not uniformly 2 chars ('037' for LA County) -> join on state name, not FIPS.",
+    "Zillow date columns are month-END labels; floor them to month start before joining to the unemployment month-start dates, otherwise the join yields zero matches.",
+    "Zillow uses 'DC' as StateName for 'District of Columbia'; the name->USPS map must include DC.",
+    "Zillow also contains 2020-01..2020-03 and history back to 1996-01; restrict/reindex to the fixed 2010-01..2019-12 index after computing rolling statistics."
+  ]
+}

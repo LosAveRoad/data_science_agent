@@ -1,0 +1,190 @@
+{
+  "node": "verify_outputs",
+  "status": "PASS",
+  "summary": {
+    "files_verified": [
+      "output_1.csv",
+      "output_2.csv"
+    ],
+    "output_1_rows": 7,
+    "output_1_columns": [
+      "group_id",
+      "cnt",
+      "max_score",
+      "min_score",
+      "mode_score",
+      "mean_score",
+      "median_score",
+      "std_score"
+    ],
+    "output_2_rows": 32,
+    "output_2_columns": [
+      "group_id",
+      "apply_month",
+      "cnt",
+      "max_score",
+      "min_score",
+      "mode_score",
+      "mean_score",
+      "median_score",
+      "std_score"
+    ],
+    "groups": [
+      "G001",
+      "G002",
+      "G003",
+      "G004",
+      "G005",
+      "G006",
+      "G007"
+    ],
+    "months": [
+      "202401",
+      "202402",
+      "202403",
+      "202404",
+      "202405",
+      "202406"
+    ],
+    "sum_cnt_output_1": 1203.0,
+    "sum_cnt_output_2": 1203.0,
+    "source_rows": 1203,
+    "checks_total": 22,
+    "checks_passed": 22,
+    "checks_failed": 0
+  },
+  "checks": [
+    {
+      "check": "output_1.csv exists & non-empty",
+      "passed": true,
+      "detail": "rows=7"
+    },
+    {
+      "check": "output_2.csv exists & non-empty",
+      "passed": true,
+      "detail": "rows=32"
+    },
+    {
+      "check": "output_1 header exact (8 cols, no month field)",
+      "passed": true,
+      "detail": "['group_id', 'cnt', 'max_score', 'min_score', 'mode_score', 'mean_score', 'median_score', 'std_score']"
+    },
+    {
+      "check": "output_2 header exact (9 cols incl apply_month)",
+      "passed": true,
+      "detail": "['group_id', 'apply_month', 'cnt', 'max_score', 'min_score', 'mode_score', 'mean_score', 'median_score', 'std_score']"
+    },
+    {
+      "check": "output_1 row count == 7 groups",
+      "passed": true,
+      "detail": "7"
+    },
+    {
+      "check": "output_2 row count == 32 observed group-month cells",
+      "passed": true,
+      "detail": "32"
+    },
+    {
+      "check": "'overall' marker not present in final outputs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "cnt column float-typed in both files",
+      "passed": true,
+      "detail": "e.g. cnt=420.0"
+    },
+    {
+      "check": "no empty/NaN/null cells",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "no duplicate keys",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "output_1 sorted by group_id",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "output_2 sorted by (group_id, apply_month)",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "all 7 metrics of every row match independent recomputation from data.csv",
+      "passed": true,
+      "detail": "mismatches=0"
+    },
+    {
+      "check": "sum(cnt) of output_1 == 1203 source rows",
+      "passed": true,
+      "detail": "1203.0"
+    },
+    {
+      "check": "sum(cnt) of output_2 == 1203 source rows",
+      "passed": true,
+      "detail": "1203.0"
+    },
+    {
+      "check": "per-group monthly cnt sums == overall cnt (no rows lost/duplicated between views)",
+      "passed": true,
+      "detail": "G001:420.0/420.0; G002:330.0/330.0; G003:261.0/261.0; G004:150.0/150.0; G005:40.0/40.0; G006:1.0/1.0; G007:1.0/1.0"
+    },
+    {
+      "check": "group-level max/min equal extremes of its monthly max/min",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "sparse grid respected (only 32 observed cells, no cross-joined 0/NaN rows)",
+      "passed": true,
+      "detail": "42 possible grid cells, 32 observed"
+    },
+    {
+      "check": "mode_score == min value among tied modes in every row",
+      "passed": true,
+      "detail": "18 tie cells; examples=[{'key': 'G001', 'max_freq': 8, 'tied_modes': [722.0, 726.0], 'chosen': 722.0}, {'key': 'G004/202404', 'max_freq': 1, 'tied_modes': [558.0, 582.0, 588.0, 597.0, 610.0, 633.0, 637.0, 646.0, 647.0, 689.0, 703.0, 710.0, 712.0, 716.0, 736.0, 755.0, 787.0, 789.0], 'chosen': 558.0}, {'key': 'G003/202406', 'max_freq': 2, 'tied_modes': [724.0, 739.0, 741.0, 746.0, 758.0, 763.0, 775.0], 'chosen': 724.0}, {'key': 'G002/202404', 'max_freq': 2, 'tied_modes': [637.0, 655.0, 673.0, 688.0, 705.0, 719.0], 'chosen': 637.0}, {'key': 'G001/202401', 'max_freq': 3, 'tied_modes': [694.0, 721.0], 'chosen': 694.0}]"
+    },
+    {
+      "check": "std_score == 0.0 for all n<2 cells (sample std ddof=1 otherwise)",
+      "passed": true,
+      "detail": "n<2 cells: G006, G007, G005/202403, G006/202406, G007/202406"
+    },
+    {
+      "check": "internal row consistency (min <= mean/median/mode <= max)",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "consistent with upstream execute_summary.json (rows, cnt sums, rows_skipped=0)",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "value_recomputation": {
+    "method": "independent pure-stdlib recomputation from data.csv (csv.DictReader + collections.Counter + statistics.mean/median/stdev), compared cell-by-cell to file values",
+    "metric_definitions": {
+      "cnt": "float(n)",
+      "max_score": "max",
+      "min_score": "min",
+      "mode_score": "mode with MIN tie-break",
+      "mean_score": "arithmetic mean",
+      "median_score": "median (avg of 2 middle for even n)",
+      "std_score": "sample stdev (ddof=1); 0.0 if n<2"
+    },
+    "mismatch_count": 0,
+    "mismatches": []
+  },
+  "notes": [
+    "18 group/month cells have tied modes; all resolved to the minimum tied value (e.g. G001 overall ties 722/726 -> 722).",
+    "5 duplicate full source rows were intentionally kept (task spec has no dedup step); counts therefore sum to exactly 1203.",
+    "Monthly output is sparse: 32 observed (group_id, apply_month) cells of 42 possible; no zero/NaN cross-join rows.",
+    "Zero-std rows are exactly the n<2 cells: G006 and G007 overall; G005/202403, G006/202406, G007/202406 monthly.",
+    "Floats are written rounded to 10 decimals; mean/std comparisons used 1e-9 relative tolerance."
+  ],
+  "issues": []
+}

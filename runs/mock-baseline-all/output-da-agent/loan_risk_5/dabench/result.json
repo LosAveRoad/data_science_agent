@@ -1,0 +1,53 @@
+{
+  "finished": true,
+  "steps": 4,
+  "result": "任务完成，产出 2 个文件: output_1.csv, output_2.csv",
+  "result_files": {
+    "added_files": [
+      "output_1.csv",
+      "output_2.csv"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 output_1.csv",
+      "observation": "写出 output_1.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output_1.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output_2.csv",
+      "observation": "写出 output_2.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output_2.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

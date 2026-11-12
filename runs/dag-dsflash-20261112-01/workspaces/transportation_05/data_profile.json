@@ -1,0 +1,373 @@
+{
+  "source_files": {
+    "yellow_tripdata_2024-01.parquet": {
+      "rows": 2964624,
+      "columns": [
+        "tpep_pickup_datetime",
+        "tpep_dropoff_datetime",
+        "PULocationID",
+        "DOLocationID",
+        "trip_distance",
+        "fare_amount",
+        "total_amount",
+        "passenger_count"
+      ],
+      "dtypes": {
+        "tpep_pickup_datetime": "datetime64[us]",
+        "tpep_dropoff_datetime": "datetime64[us]",
+        "PULocationID": "int32",
+        "DOLocationID": "int32",
+        "trip_distance": "float64",
+        "fare_amount": "float64",
+        "total_amount": "float64",
+        "passenger_count": "float64"
+      },
+      "nulls": {
+        "tpep_pickup_datetime": 0,
+        "tpep_dropoff_datetime": 0,
+        "PULocationID": 0,
+        "DOLocationID": 0,
+        "trip_distance": 0,
+        "fare_amount": 0,
+        "total_amount": 0,
+        "passenger_count": 140162
+      },
+      "trip_distance": {
+        "count": 2964624.0,
+        "mean": 3.652169178958276,
+        "std": 225.4625723822,
+        "min": 0.0,
+        "1%": 0.0,
+        "25%": 1.0,
+        "50%": 1.68,
+        "75%": 3.11,
+        "99%": 20.0,
+        "max": 312722.3
+      },
+      "fare_amount": {
+        "count": 2964624.0,
+        "mean": 18.17506191678945,
+        "std": 18.94954770590529,
+        "min": -899.0,
+        "1%": -5.1,
+        "25%": 8.6,
+        "50%": 12.8,
+        "75%": 20.5,
+        "99%": 75.8,
+        "max": 5000.0
+      },
+      "total_amount": {
+        "count": 2964624.0,
+        "mean": 26.80150477092542,
+        "std": 23.385577429672523,
+        "min": -900.0,
+        "1%": -9.5,
+        "25%": 15.38,
+        "50%": 20.1,
+        "75%": 28.56,
+        "99%": 103.36,
+        "max": 5000.0
+      },
+      "pickup_range": [
+        "2002-12-31 22:59:39",
+        "2024-02-01 00:01:15"
+      ],
+      "dropoff_range": [
+        "2002-12-31 23:05:41",
+        "2024-02-02 13:56:52"
+      ],
+      "n_unique_pu_zones": 260,
+      "pu_zone_min_max": [
+        1,
+        265
+      ],
+      "out_of_range": {
+        "trip_distance_lt0": 0,
+        "trip_distance_gt100": 59,
+        "trip_distance_null": 0,
+        "fare_lt0": 37448,
+        "fare_gt1000": 7,
+        "fare_null": 0,
+        "total_amount_null": 0,
+        "pu_zone_unknown": 0
+      },
+      "after_filter_rows": 2927114,
+      "dropped_rows": 37510,
+      "dropped_pct": 1.265,
+      "trips_unmapped_borough": 1578,
+      "trips_unknown_boro_label": 10262,
+      "rows_used": 2915274,
+      "month": 1
+    },
+    "yellow_tripdata_2024-02.parquet": {
+      "rows": 3007526,
+      "columns": [
+        "tpep_pickup_datetime",
+        "tpep_dropoff_datetime",
+        "PULocationID",
+        "DOLocationID",
+        "trip_distance",
+        "fare_amount",
+        "total_amount",
+        "passenger_count"
+      ],
+      "dtypes": {
+        "tpep_pickup_datetime": "datetime64[us]",
+        "tpep_dropoff_datetime": "datetime64[us]",
+        "PULocationID": "int32",
+        "DOLocationID": "int32",
+        "trip_distance": "float64",
+        "fare_amount": "float64",
+        "total_amount": "float64",
+        "passenger_count": "float64"
+      },
+      "nulls": {
+        "tpep_pickup_datetime": 0,
+        "tpep_dropoff_datetime": 0,
+        "PULocationID": 0,
+        "DOLocationID": 0,
+        "trip_distance": 0,
+        "fare_amount": 0,
+        "total_amount": 0,
+        "passenger_count": 185610
+      },
+      "trip_distance": {
+        "count": 3007526.0,
+        "mean": 3.8608587789432245,
+        "std": 254.67345469491713,
+        "min": 0.0,
+        "1%": 0.0,
+        "25%": 1.0,
+        "50%": 1.69,
+        "75%": 3.1,
+        "99%": 19.67,
+        "max": 222478.29
+      },
+      "fare_amount": {
+        "count": 3007526.0,
+        "mean": 18.047294390804932,
+        "std": 18.63454238491323,
+        "min": -999.0,
+        "1%": -5.1,
+        "25%": 8.6,
+        "50%": 12.8,
+        "75%": 20.5,
+        "99%": 73.4,
+        "max": 9792.0
+      },
+      "total_amount": {
+        "count": 3007526.0,
+        "mean": 26.62441331513011,
+        "std": 22.972283346874335,
+        "min": -1000.0,
+        "1%": -9.8,
+        "25%": 15.48,
+        "50%": 20.16,
+        "75%": 28.64,
+        "99%": 103.13,
+        "max": 9792.0
+      },
+      "pickup_range": [
+        "2008-12-31 22:52:49",
+        "2024-03-01 00:01:37"
+      ],
+      "dropoff_range": [
+        "2008-12-31 23:04:09",
+        "2024-03-01 23:24:42"
+      ],
+      "n_unique_pu_zones": 254,
+      "pu_zone_min_max": [
+        1,
+        265
+      ],
+      "out_of_range": {
+        "trip_distance_lt0": 0,
+        "trip_distance_gt100": 71,
+        "trip_distance_null": 0,
+        "fare_lt0": 40655,
+        "fare_gt1000": 1,
+        "fare_null": 0,
+        "total_amount_null": 0,
+        "pu_zone_unknown": 0
+      },
+      "after_filter_rows": 2966801,
+      "dropped_rows": 40725,
+      "dropped_pct": 1.354,
+      "trips_unmapped_borough": 1368,
+      "trips_unknown_boro_label": 9575,
+      "rows_used": 2955858,
+      "month": 2
+    }
+  },
+  "zone_lookup": {
+    "file_used": "taxi_zones/taxi_zone_lookup.csv",
+    "origin": "Official NYC TLC taxi zone lookup, downloaded from TLC public bucket (d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv); required because the provided taxi_zones/taxi_zones.shp ships without a .dbf attribute table, so LocationID->Borough cannot be read from the shapefile.",
+    "rows": 265,
+    "borough_counts": {
+      "Queens": 69,
+      "Manhattan": 69,
+      "Brooklyn": 61,
+      "Bronx": 43,
+      "Staten Island": 20,
+      "EWR": 1,
+      "Unknown": 1
+    },
+    "shp_info": {
+      "file": "taxi_zones/taxi_zones.shp",
+      "geometry_records": 263,
+      "attribute_table": "missing (.dbf absent)",
+      "usable_for_borough_analysis": false
+    }
+  },
+  "filters": {
+    "trip_distance_miles": {
+      "min": 0,
+      "max": 100,
+      "inclusive": true
+    },
+    "fare_amount_usd": {
+      "min": 0,
+      "max": 1000,
+      "inclusive": true
+    },
+    "nulls_dropped_on": [
+      "trip_distance",
+      "fare_amount",
+      "total_amount",
+      "PULocationID"
+    ],
+    "borough_scope": [
+      "Manhattan",
+      "Queens",
+      "Brooklyn",
+      "Bronx",
+      "Staten Island",
+      "EWR"
+    ],
+    "excluded_borough_labels": [
+      "Unknown",
+      "N/A"
+    ],
+    "month_source": "one file per month (2024-01, 2024-02)"
+  },
+  "analysis_summary": {
+    "rows_used_total": 5871132,
+    "borough_month_stats": {
+      "Bronx|1": {
+        "avg_trip_distance": 6.5147,
+        "avg_total_fare": 35.6322,
+        "trip_count": 6845
+      },
+      "Bronx|2": {
+        "avg_trip_distance": 6.7729,
+        "avg_total_fare": 36.4347,
+        "trip_count": 6909
+      },
+      "Brooklyn|1": {
+        "avg_trip_distance": 5.4995,
+        "avg_total_fare": 33.604,
+        "trip_count": 24925
+      },
+      "Brooklyn|2": {
+        "avg_trip_distance": 5.3861,
+        "avg_total_fare": 32.7962,
+        "trip_count": 27623
+      },
+      "EWR|1": {
+        "avg_trip_distance": 1.0561,
+        "avg_total_fare": 111.0965,
+        "trip_count": 284
+      },
+      "EWR|2": {
+        "avg_trip_distance": 1.4321,
+        "avg_total_fare": 100.4456,
+        "trip_count": 279
+      },
+      "Manhattan|1": {
+        "avg_trip_distance": 2.2705,
+        "avg_total_fare": 22.8633,
+        "trip_count": 2616402
+      },
+      "Manhattan|2": {
+        "avg_trip_distance": 2.2896,
+        "avg_total_fare": 23.1495,
+        "trip_count": 2676800
+      },
+      "Queens|1": {
+        "avg_trip_distance": 12.3371,
+        "avg_total_fare": 70.9318,
+        "trip_count": 266750
+      },
+      "Queens|2": {
+        "avg_trip_distance": 12.2301,
+        "avg_total_fare": 71.1858,
+        "trip_count": 244193
+      },
+      "Staten Island|1": {
+        "avg_trip_distance": 6.7837,
+        "avg_total_fare": 59.2866,
+        "trip_count": 68
+      },
+      "Staten Island|2": {
+        "avg_trip_distance": 7.8481,
+        "avg_total_fare": 54.6148,
+        "trip_count": 54
+      }
+    },
+    "max_signed_increase_borough": "Bronx",
+    "max_signed_increase_value": 0.8024,
+    "max_absolute_change_borough": "EWR",
+    "max_absolute_change_value": 10.6509,
+    "signed_increase_by_borough": {
+      "Bronx": 0.8024,
+      "Brooklyn": -0.8078,
+      "EWR": -10.6509,
+      "Manhattan": 0.2862,
+      "Queens": 0.2541,
+      "Staten Island": -4.6718
+    }
+  },
+  "notes": [
+    "Borough is derived from the pickup zone (PULocationID) using the official TLC taxi zone lookup table (taxi_zones/taxi_zone_lookup.csv, downloaded from the TLC public data bucket; the provided taxi_zones/taxi_zones.shp has no accompanying .dbf attribute table, so LocationID->Borough mapping cannot be read from the shapefile alone).",
+    "Zones mapped to Unknown/N/A or not present in the lookup are excluded from borough-level aggregation.",
+    "Filters applied (inclusive): 0 <= trip_distance <= 100 miles and 0 <= fare_amount <= 1000 USD; rows with null trip_distance / fare_amount / total_amount / PULocationID dropped.",
+    "absolute_increase = avg_total_fare(Feb) - avg_total_fare(Jan) of that borough, reported on both monthly rows of the borough; is_max_increase flags the borough with the largest increase.",
+    "EWR (Newark Airport) is retained because it is a Borough value in the official lookup; it is not one of the five NYC boroughs and has a very small sample (284 Jan / 279 Feb trips), so its borough-level averages are volatile.",
+    "Interpretation: 'largest absolute increase' is taken as the largest positive change in average total fare (Feb - Jan), i.e. an absolute USD increase rather than a percentage change -> Bronx (+$0.80). Sensitivity: if one instead maximises the absolute magnitude of the change regardless of sign, the winner is unstable across filter variants (EWR -$10.65 with the specified inclusive filter, Staten Island -$10.41 when requiring strictly positive fare, Staten Island -$4.67 if EWR is excluded), and those 'winners' are all decreases rather than increases.",
+    "Data-quality note: 30 trips in the two files carry a pickup datetime outside their file month (e.g. 2002-12, 2009-01, 2023-12, 2024-03). They were kept (per the task, only distance/fare ranges are filtered) and have no material effect: re-running with an explicit month filter keeps Bronx as the largest increase (+$0.8024).",
+    "Trip month is taken from the source file; borough from pickup zone. Average metrics are per-trip means of trip_distance and total_amount."
+  ],
+  "interpretation": {
+    "absolute_increase_definition": "avg_total_fare(Feb) - avg_total_fare(Jan), reported on both monthly rows of the borough",
+    "is_max_increase_definition": "True on both monthly rows of the borough with the largest (most positive) absolute_increase",
+    "winning_borough": "Bronx",
+    "winning_value_usd": 0.8024
+  },
+  "robustness_check": {
+    "inclusive_0_100_0_1000": {
+      "signed_max": "Bronx",
+      "signed_max_value": 0.8024,
+      "abs_change_max": "EWR",
+      "abs_change_value": 10.6509
+    },
+    "strict_positive_bounds": {
+      "signed_max": "Bronx",
+      "signed_max_value": 1.158,
+      "abs_change_max": "Staten Island",
+      "abs_change_value": 10.407
+    },
+    "inclusive_plus_total_amount_le_1000": {
+      "signed_max": "Bronx",
+      "signed_max_value": 0.8024,
+      "abs_change_max": "EWR",
+      "abs_change_value": 10.6509
+    },
+    "exclude_EWR_5_NYC_boroughs": {
+      "signed_max": "Bronx",
+      "signed_max_value": 0.8024,
+      "abs_change_max": "Staten Island",
+      "abs_change_value": 4.6718
+    },
+    "conclusion": "Bronx has the largest absolute increase in average total fare under every filter variant tested."
+  }
+}

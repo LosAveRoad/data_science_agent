@@ -1,0 +1,273 @@
+{
+  "plan_version": "1.0",
+  "task": "按 group_id 输出 score 的整体分布与月度分布共 7 项统计指标的报表",
+  "inputs": [
+    {
+      "path": "input.csv",
+      "format": "csv",
+      "header": true,
+      "columns": [
+        "group_id",
+        "score",
+        "apply_date"
+      ],
+      "n_rows": 10000
+    }
+  ],
+  "grounded_data_facts": {
+    "n_rows": 10000,
+    "n_cols": 3,
+    "dtypes": {
+      "group_id": "int64",
+      "score": "float64",
+      "apply_date": "int64/8位字符串(建议按 str 读取)"
+    },
+    "missing_values": {
+      "group_id": 0,
+      "score": 0,
+      "apply_date": 0
+    },
+    "group_id": {
+      "unique": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "n_unique": 10,
+      "row_counts": {
+        "1": 1053,
+        "2": 985,
+        "3": 996,
+        "4": 971,
+        "5": 962,
+        "6": 1021,
+        "7": 1017,
+        "8": 967,
+        "9": 994,
+        "10": 1034
+      }
+    },
+    "score": {
+      "min": 0.01,
+      "max": 99.99,
+      "format": "两位小数数值",
+      "negative_values": 0,
+      "note": "无需清洗，无哨兵值/占位值"
+    },
+    "apply_date": {
+      "min": 20230101,
+      "max": 20231231,
+      "all_8_digits": true,
+      "months": [
+        "202301",
+        "202302",
+        "202303",
+        "202304",
+        "202305",
+        "202306",
+        "202307",
+        "202308",
+        "202309",
+        "202310",
+        "202311",
+        "202312"
+      ]
+    },
+    "group_month_cells": {
+      "observed": 120,
+      "expected": 120,
+      "complete": true,
+      "rows_per_cell_min": 53,
+      "rows_per_cell_max": 104,
+      "cells_with_n_lt_2": 0
+    },
+    "duplicate_full_rows": 1,
+    "implication": "数据结构完整、无缺失，两个输出的行数可直接确定为 10 与 120，无需补零/补组逻辑"
+  },
+  "derived_fields": {
+    "apply_month": {
+      "definition": "apply_date 的 YYYYMM 部分，取前 6 位字符（如 '20230604' -> '202306'）",
+      "python": "df['apply_date'].astype(str).str[:6]  # 或 (apply_date // 100) 后转字符串",
+      "output_type": "字符串 'YYYYMM'，保留前导零语义、按字典序即时间序",
+      "overall_label": "整体分布的 apply_month 内部统一标记为字符串 'overall'，用于拼接统一明细表"
+    }
+  },
+  "metric_definitions": {
+    "count": "组内行数（不去重，1 条完全重复行按行计入）",
+    "max": "score 最大值",
+    "min": "score 最小值",
+    "mode": "组内 score 出现频次最高的取值；若存在多个并列众数，取其中最小值（np.sort(modes)[0] 或 min(series.mode())）",
+    "mean": "算术平均",
+    "median": "中位数（50% 分位，线性插值默认即可）",
+    "std": "样本标准差，ddof=1；当组内样本量 n<2 或 std 为 NaN 时填 0",
+    "cnt_type_conversion": "cnt 必须为 float 类型（如 1017.0）"
+  },
+  "outputs": [
+    {
+      "path": "output_1.csv",
+      "description": "整体分布（按 group_id）",
+      "columns_order": [
+        "group_id",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "expected_rows": 10,
+      "sort": "group_id 升序",
+      "note": "内部数据框含 apply_month='overall' 列，导出前 drop 该列（列顺序严格按 columns_order）"
+    },
+    {
+      "path": "output_2.csv",
+      "description": "月度分布（按 group_id × apply_month）",
+      "columns_order": [
+        "group_id",
+        "apply_month",
+        "cnt",
+        "max_score",
+        "min_score",
+        "mode_score",
+        "mean_score",
+        "median_score",
+        "std_score"
+      ],
+      "expected_rows": 120,
+      "sort": "group_id 升序, apply_month 升序",
+      "note": "apply_month 为 YYYYMM 字符串"
+    }
+  ],
+  "execution_steps": [
+    {
+      "step": 1,
+      "action": "读取数据",
+      "detail": "pd.read_csv('input.csv', dtype={'apply_date': str})；显式以字符串读 apply_date 以避免整数解析丢失 8 位格式",
+      "check": "shape == (10000, 3)，列名与预期一致"
+    },
+    {
+      "step": 2,
+      "action": "生成 apply_month",
+      "detail": "df['apply_month'] = df['apply_date'].str[:6]",
+      "check": "唯一值恰为 202301..202312 共 12 个"
+    },
+    {
+      "step": 3,
+      "action": "定义聚合函数 agg_stats(g: DataFrame) -> dict",
+      "detail": "返回 cnt=float(len(g))、max_score=g.score.max()、min_score=g.score.min()、mode_score=min(g.score.mode())、mean_score=g.score.mean()、median_score=g.score.median()、std_score=(g.score.std(ddof=1) if len(g)>=2 and notna else 0.0)",
+      "check": "n<2 分支返回 0.0 而非 NaN"
+    },
+    {
+      "step": 4,
+      "action": "整体分布",
+      "detail": "overall = df.groupby('group_id', sort=True).apply(agg_stats)；新增列 apply_month 并全部赋 'overall'（内部标记）",
+      "check": "行数 == 10，每行 cnt 与该组行数一致（合计 10000）"
+    },
+    {
+      "step": 5,
+      "action": "月度分布",
+      "detail": "monthly = df.groupby(['group_id','apply_month'], sort=True).apply(agg_stats)",
+      "check": "行数 == 120，cnt 合计 == 10000，无 NaN"
+    },
+    {
+      "step": 6,
+      "action": "类型与格式规整",
+      "detail": "cnt -> astype(float)；七个数值列 -> float（round 建议保留原始精度或统一 round(6) 以防浮点尾差）；group_id -> int；apply_month 为 str",
+      "check": "dtypes 正确，无 inf/NaN"
+    },
+    {
+      "step": 7,
+      "action": "导出",
+      "detail": "output_1 = overall.drop(columns=['apply_month'])[columns_order] 写 index=False；output_2 = monthly[columns_order] 写 index=False",
+      "check": "文件行列数与列顺序符合 outputs 规范"
+    }
+  ],
+  "pseudocode": [
+    "import pandas as pd, numpy as np",
+    "df = pd.read_csv('input.csv', dtype={'apply_date': str})",
+    "df['apply_month'] = df['apply_date'].str[:6]",
+    "def agg_stats(g):",
+    "    s = g['score']; n = len(s)",
+    "    std = s.std(ddof=1) if n >= 2 else np.nan",
+    "    if pd.isna(std): std = 0.0",
+    "    modes = s.mode()",
+    "    mode_score = min(modes) if len(modes) else np.nan",
+    "    return pd.Series({'cnt': float(n), 'max_score': s.max(), 'min_score': s.min(),",
+    "                      'mode_score': mode_score, 'mean_score': s.mean(),",
+    "                      'median_score': s.median(), 'std_score': std})",
+    "overall = df.groupby('group_id', sort=True).apply(agg_stats).reset_index()",
+    "overall['apply_month'] = 'overall'",
+    "monthly = df.groupby(['group_id','apply_month'], sort=True).apply(agg_stats).reset_index()",
+    "C1 = ['group_id','cnt','max_score','min_score','mode_score','mean_score','median_score','std_score']",
+    "C2 = ['group_id','apply_month'] + C1[1:]",
+    "overall[C1].to_csv('output_1.csv', index=False)",
+    "monthly[C2].to_csv('output_2.csv', index=False)"
+  ],
+  "edge_cases_and_risks": [
+    {
+      "risk": "众数并列极其普遍",
+      "evidence": "分组整体层面 10 组中 9 组存在并列众数（组 6 有 62 个并列众数）；月度 120 个单元格中 96 个存在并列",
+      "handling": "必须显式实现「并列取最小值」，不可使用 mode() 默认返回数组后直接取首元素（虽通常已排序，仍建议 min(modes) 显式落地）",
+      "severity": "high"
+    },
+    {
+      "risk": "score 浮点精度导致伪并列",
+      "evidence": "score 均为两位小数，浮点表示可能存在微小误差",
+      "handling": "众数与极大极小比较使用原始 float 值即可；若结果与预期比对不一致，可先 round(2) 再取众数",
+      "severity": "low"
+    },
+    {
+      "risk": "std 计算样本量不足",
+      "evidence": "实际最小单元格 53 行，不会触发；但整体/月度均需保留兜底",
+      "handling": "n<2 或结果为 NaN 时填 0.0，保证输出无空值",
+      "severity": "low"
+    },
+    {
+      "risk": "cnt 输出类型",
+      "evidence": "任务明确要求 count 转 float",
+      "handling": "导出前 astype(float)；且不因整数化而使 CSV 出现 '1017' 而非 '1017.0'（pandas 写 float 列会保留 .0）",
+      "severity": "medium"
+    },
+    {
+      "risk": "存在 1 条完全重复行",
+      "evidence": "df.duplicated().sum() == 1",
+      "handling": "按行统计口径（不去重），与该重复行相关的分组计数保持一致；报告中注明未去重",
+      "severity": "low"
+    },
+    {
+      "risk": "groupby.apply 在 pandas 2.x 上对分组列的处理差异",
+      "evidence": "新版 pandas 中 groupby(...).apply(func) 可能把分组键包含/丢失（DeprecationWarning/行为变化）",
+      "handling": "使用 include_groups=False 或改用 .agg 列表/自定义避免歧义；如出现 KeyError 回退到逐组循环构建 records 的写法",
+      "severity": "medium"
+    },
+    {
+      "risk": "整体输出误带 apply_month 列",
+      "evidence": "任务要求内部标记 'overall' 但不输出",
+      "handling": "导出前显式按 columns_order 选列（等价于 drop）",
+      "severity": "high"
+    }
+  ],
+  "validation_checks": [
+    "output_1.csv 行数 == 10，列名与顺序完全匹配，无 apply_month 列",
+    "output_2.csv 行数 == 120，列名与顺序完全匹配，apply_month 覆盖 12 个月且每组各 12 行",
+    "两表 cnt 总和均 == 10000，且 output_2 中每组各月 cnt 之和 == output_1 中该组 cnt",
+    "每行 min_score <= median_score/mean_score <= max_score；min_score <= mode_score <= max_score",
+    "所有列无 NaN/空字符串；std_score >= 0",
+    "cnt 列 dtype 为 float（导出的字符串形如 '1017.0'）",
+    "抽查 1-2 个 (group_id, month) 单元格用纯 Python 独立复算 max/min/mean/median/mode/std 做交叉核对"
+  ],
+  "report_narrative_outline": [
+    "数据概况：10000 条、10 组、12 个月、120 个组×月单元格，无缺失无异常值",
+    "整体分布：各组 cnt 约 962-1053，均值集中在 ~50 附近，标准差 ~28-29，各组分布形态高度相似",
+    "月度分布：各组各月样本量 53-104，指标波动主要来自抽样波动而非趋势性差异",
+    "口径说明：众数并列取最小、std 为样本标准差 ddof=1、1 条完全重复行按行计入"
+  ]
+}

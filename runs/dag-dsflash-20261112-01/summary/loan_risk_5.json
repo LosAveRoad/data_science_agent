@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "loan_risk_5",
+  "startedAt": "2026-11-11T19:55:04.978Z",
+  "finishedAt": "2026-11-11T19:56:48.948Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output_1.csv, output_2.csv",
+  "totalSteps": 138,
+  "tokenUsage": {
+    "inputTokens": 22508,
+    "outputTokens": 19917,
+    "totalTokens": 42425
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:55:04.979Z",
+      "finishedAt": "2026-11-11T19:55:42.754Z",
+      "elapsedMs": 37775,
+      "error": null,
+      "steps": 57,
+      "tokenUsage": {
+        "inputTokens": 8510,
+        "outputTokens": 6459,
+        "totalTokens": 14969
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:55:42.755Z",
+      "finishedAt": "2026-11-11T19:56:04.297Z",
+      "elapsedMs": 21542,
+      "error": null,
+      "steps": 22,
+      "tokenUsage": {
+        "inputTokens": 3044,
+        "outputTokens": 4384,
+        "totalTokens": 7428
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:56:04.298Z",
+      "finishedAt": "2026-11-11T19:56:22.049Z",
+      "elapsedMs": 17751,
+      "error": null,
+      "steps": 31,
+      "tokenUsage": {
+        "inputTokens": 5053,
+        "outputTokens": 3527,
+        "totalTokens": 8580
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:56:22.050Z",
+      "finishedAt": "2026-11-11T19:56:48.945Z",
+      "elapsedMs": 26895,
+      "error": null,
+      "steps": 28,
+      "tokenUsage": {
+        "inputTokens": 5901,
+        "outputTokens": 5547,
+        "totalTokens": 11448
+      }
+    }
+  ]
+}

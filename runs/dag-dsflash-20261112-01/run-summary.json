@@ -1,0 +1,410 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "startedAt": "2026-11-11T18:45:15.282Z",
+  "finishedAt": "2026-11-11T20:32:51.186Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": false,
+    "model": "deepseek-flash",
+    "baseUrl": "https://api.deepseek.com",
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 30,
+    "succeeded": 28,
+    "failed": 2,
+    "skipped": 0,
+    "tokenUsage": {
+      "inputTokens": 1031683,
+      "outputTokens": 992485,
+      "totalTokens": 2024168
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "agriculture_18",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 42464,
+        "outputTokens": 32657,
+        "totalTokens": 75121
+      },
+      "outputs": [
+        "output.png",
+        "output1.csv",
+        "output2.csv"
+      ]
+    },
+    {
+      "taskId": "agriculture_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 29586,
+        "outputTokens": 34510,
+        "totalTokens": 64096
+      },
+      "outputs": [
+        "output.csv",
+        "output.txt"
+      ]
+    },
+    {
+      "taskId": "ecommerce_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 46796,
+        "outputTokens": 56224,
+        "totalTokens": 103020
+      },
+      "outputs": [
+        "output.json",
+        "output1.csv",
+        "output2.csv",
+        "output3.csv"
+      ]
+    },
+    {
+      "taskId": "ecommerce_35",
+      "status": "failed",
+      "tokenUsage": {
+        "inputTokens": 37164,
+        "outputTokens": 68936,
+        "totalTokens": 106100
+      },
+      "outputs": [
+        "output.db",
+        "output.json"
+      ],
+      "error": "节点 execute 失败: 已达最大 ReAct 步数上限（40 步），未收到 finish"
+    },
+    {
+      "taskId": "energy_03",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 63397,
+        "outputTokens": 57376,
+        "totalTokens": 120773
+      },
+      "outputs": [
+        "output.png"
+      ]
+    },
+    {
+      "taskId": "energy_09",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 36239,
+        "outputTokens": 26588,
+        "totalTokens": 62827
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "entertainment_03",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 37264,
+        "outputTokens": 33725,
+        "totalTokens": 70989
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "entertainment_04",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 33270,
+        "outputTokens": 26850,
+        "totalTokens": 60120
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "financial_234",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 34458,
+        "outputTokens": 16189,
+        "totalTokens": 50647
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "financial_310",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 41164,
+        "outputTokens": 24118,
+        "totalTokens": 65282
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 31756,
+        "outputTokens": 32126,
+        "totalTokens": 63882
+      },
+      "outputs": [
+        "output.csv",
+        "output.png"
+      ]
+    },
+    {
+      "taskId": "healthcare_20",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 48155,
+        "outputTokens": 57347,
+        "totalTokens": 105502
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_24",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 37043,
+        "outputTokens": 38249,
+        "totalTokens": 75292
+      },
+      "outputs": [
+        "meta_analysis_results.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_31",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 35483,
+        "outputTokens": 47672,
+        "totalTokens": 83155
+      },
+      "outputs": [
+        "feature_analysis.png",
+        "feature_coefficients.csv",
+        "selected_features.csv",
+        "top_coefficient.txt"
+      ]
+    },
+    {
+      "taskId": "loan_model_2",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 28700,
+        "outputTokens": 33414,
+        "totalTokens": 62114
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "loan_model_9",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 27363,
+        "outputTokens": 22740,
+        "totalTokens": 50103
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "loan_risk_5",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 22508,
+        "outputTokens": 19917,
+        "totalTokens": 42425
+      },
+      "outputs": [
+        "output_1.csv",
+        "output_2.csv"
+      ]
+    },
+    {
+      "taskId": "loan_risk_8",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 26447,
+        "outputTokens": 21686,
+        "totalTokens": 48133
+      },
+      "outputs": [
+        "summary_output.csv"
+      ]
+    },
+    {
+      "taskId": "real_estate_04",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 31508,
+        "outputTokens": 23046,
+        "totalTokens": 54554
+      },
+      "outputs": [
+        "top5_cagr_disparity.csv"
+      ]
+    },
+    {
+      "taskId": "real_estate_29",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 31687,
+        "outputTokens": 37215,
+        "totalTokens": 68902
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "social_network_10",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 20683,
+        "outputTokens": 24969,
+        "totalTokens": 45652
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "social_network_18",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 25641,
+        "outputTokens": 22023,
+        "totalTokens": 47664
+      },
+      "outputs": [
+        "negative_reasons.csv",
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "sports_14",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 36065,
+        "outputTokens": 34219,
+        "totalTokens": 70284
+      },
+      "outputs": [
+        "output.csv",
+        "physical_attributes_analysis.png"
+      ]
+    },
+    {
+      "taskId": "sports_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 33985,
+        "outputTokens": 29107,
+        "totalTokens": 63092
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "strategy_2",
+      "status": "failed",
+      "tokenUsage": {
+        "inputTokens": 3361,
+        "outputTokens": 4169,
+        "totalTokens": 7530
+      },
+      "outputs": [
+        "output.csv"
+      ],
+      "error": "节点 plan 的依赖产物缺失: 上游节点 inspect 未产出声明的产物 data_profile.json"
+    },
+    {
+      "taskId": "strategy_3",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 27715,
+        "outputTokens": 25290,
+        "totalTokens": 53005
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "tourism_01",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 38391,
+        "outputTokens": 48671,
+        "totalTokens": 87062
+      },
+      "outputs": [
+        "output1.csv",
+        "output2.csv"
+      ]
+    },
+    {
+      "taskId": "tourism_02",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 30750,
+        "outputTokens": 24191,
+        "totalTokens": 54941
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "transportation_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 39387,
+        "outputTokens": 32996,
+        "totalTokens": 72383
+      },
+      "outputs": [
+        "output1.json",
+        "output2.png"
+      ]
+    },
+    {
+      "taskId": "transportation_06",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 53253,
+        "outputTokens": 36265,
+        "totalTokens": 89518
+      },
+      "outputs": [
+        "output.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "transportation_05",
+  "startedAt": "2026-11-11T19:31:39.194Z",
+  "finishedAt": "2026-11-11T19:33:24.938Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output1.json, output2.png",
+  "totalSteps": 96,
+  "tokenUsage": {
+    "inputTokens": 13911,
+    "outputTokens": 15653,
+    "totalTokens": 29564
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:31:39.365Z",
+      "finishedAt": "2026-11-11T19:33:24.935Z",
+      "elapsedMs": 105570,
+      "error": null,
+      "steps": 96,
+      "tokenUsage": {
+        "inputTokens": 13911,
+        "outputTokens": 15653,
+        "totalTokens": 29564
+      }
+    }
+  ]
+}

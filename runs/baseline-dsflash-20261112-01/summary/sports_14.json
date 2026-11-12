@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "sports_14",
+  "startedAt": "2026-11-11T19:24:07.358Z",
+  "finishedAt": "2026-11-11T19:26:15.279Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output.csv, physical_attributes_analysis.png",
+  "totalSteps": 83,
+  "tokenUsage": {
+    "inputTokens": 14080,
+    "outputTokens": 22137,
+    "totalTokens": 36217
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:24:07.372Z",
+      "finishedAt": "2026-11-11T19:26:15.277Z",
+      "elapsedMs": 127905,
+      "error": null,
+      "steps": 83,
+      "tokenUsage": {
+        "inputTokens": 14080,
+        "outputTokens": 22137,
+        "totalTokens": 36217
+      }
+    }
+  ]
+}

@@ -9,13 +9,20 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "test": "vitest run",
+    "run:baseline": "npm run build && node dist/experiments/baseline-pi.js",
+    "run:dag": "npm run build && node dist/experiments/dag-prototype.js",
+    "evaluate": "bash scripts/evaluate.sh",
     "check:pr": "node scripts/check-pr-structure.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0",
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "@mariozechner/pi-agent-core": "^0.73.1",
+    "@mariozechner/pi-ai": "^0.73.1"
   }
 }

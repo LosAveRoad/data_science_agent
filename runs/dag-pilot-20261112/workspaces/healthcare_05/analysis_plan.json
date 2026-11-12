@@ -1,0 +1,206 @@
+{
+  "plan_version": "1.0",
+  "task": "Compare blood glucose level distributions across three patient groups (Diabetes / Stroke / CKD) after age filtering (30-70) and removal of zero/missing glucose, using Kruskal-Wallis H test with Dunn post-hoc (Bonferroni) and a density histogram figure.",
+  "objective": "Determine whether unified blood glucose (mg/dL) differs across the three disease cohorts and, if so, which pairs differ; deliver output.csv (test results table) and output.png (overlaid density histogram with KW p-value).",
+  "inputs": {
+    "Healthcare-Diabetes.csv": {
+      "role": "Diabetes group",
+      "format": "CSV with header, 2768 data rows, 10 columns",
+      "key_columns": {
+        "age": "Age (int years)",
+        "glucose": "Glucose (mg/dL, 0 = missing code)"
+      },
+      "notes": "Pima-style data; 0 in Glucose encodes missing -> must be dropped, not averaged in."
+    },
+    "healthcare-dataset-stroke-data.csv": {
+      "role": "Stroke group",
+      "format": "CSV with header, 5110 data rows, 12 columns",
+      "key_columns": {
+        "age": "age (years, numeric)",
+        "glucose": "avg_glucose_level (mg/dL, float, no missing in this file)"
+      },
+      "notes": "bmi has 'N/A' strings but is irrelevant; only age + avg_glucose_level are needed."
+    },
+    "Chronic_Kidney_Disease/chronic_kidney_disease_full.arff": {
+      "role": "CKD group",
+      "format": "ARFF; 24 comment/attribute header lines then '@data' at line 145 (1-based); 400 data instances, 25 attributes",
+      "key_columns": {
+        "age": "age (numeric years)",
+        "glucose": "bgr = random blood glucose (mg/dL)"
+      },
+      "notes": "'?' is the missing token (applies to bgr and age). Profile flagged 3 malformed data lines with 26 fields; parsing must be positional-safe (skip or repair rows whose field count != 25) so numeric fields cannot shift."
+    },
+    "data_profile.json": {
+      "role": "Upstream schema/profile artifact; used to confirm column names, dtypes, missing token conventions and expected row counts. Not to be modified."
+    }
+  },
+  "column_unification": {
+    "unified_glucose": "glucose",
+    "unified_age": "age",
+    "source_column": "source with values 'Diabetes' | 'Stroke' | 'CKD'",
+    "mapping": {
+      "Diabetes": {
+        "glucose": "Glucose",
+        "age": "Age"
+      },
+      "Stroke": {
+        "glucose": "avg_glucose_level",
+        "age": "age"
+      },
+      "CKD": {
+        "glucose": "bgr",
+        "age": "age"
+      }
+    },
+    "unit_check": "All three sources are already mg/dL (Diabetes 44-197, Stroke 55-272 typical, CKD 70-490 per profile): no unit rescaling; only dtype coercion to float.",
+    "output_long_table": "Concatenate three DataFrames with columns [source, glucose, age]; reset index."
+  },
+  "filtering_rules": {
+    "order_of_operations": [
+      "1. Load each dataset, coerce glucose/age to numeric with errors='coerce' ('?' and '' -> NaN).",
+      "2. Drop rows with missing age.",
+      "3. Keep 30 <= age <= 70 (inclusive).",
+      "4. Drop rows with missing glucose or glucose == 0 (also guard negatives -> treat as invalid).",
+      "5. Concatenate, attach source label, recheck final per-group n."
+    ],
+    "inclusive_bounds": true,
+    "zero_is_missing": true,
+    "expected_counts_from_profile": {
+      "Diabetes": {
+        "raw": 2768,
+        "after_age": 1314,
+        "final": 1306
+      },
+      "Stroke": {
+        "raw": 5110,
+        "after_age": 2885,
+        "final": 2885
+      },
+      "CKD": {
+        "raw": 400,
+        "after_age": 301,
+        "final": 273
+      },
+      "total_final": 4464
+    },
+    "tolerance": "Final n per group must be within a small tolerance of the profile counts; larger deviation means a parsing/filter bug -> investigate before testing."
+  },
+  "qa_checks": [
+    "No NaN/0 left in glucose after filtering; min glucose > 0.",
+    "Per-group n and median/q1/q3 reported (Diabetes ~125, Stroke ~92, CKD ~123 mg/dL) as a sanity cross-check against the profile.",
+    "CKD row count equals 400 instances parsed; malformed 26-field lines logged and excluded (or last-field repaired) so 'bgr'/'age' never shift.",
+    "Confirm no duplicates introduced by concatenation and that source labels are exactly the three expected strings."
+  ],
+  "statistical_plan": {
+    "test_choice_rationale": "Glucose is continuous but strongly right-skewed with unequal variances/group sizes (CKD max 490, Stroke min 55) -> non-parametric one-way Kruskal-Wallis H test instead of ANOVA; robustness to non-normality and heterogeneous scale.",
+    "overall_test": {
+      "name": "Kruskal-Wallis",
+      "function": "scipy.stats.kruskal(g_diabetes, g_stroke, g_ckd)",
+      "tie_correction": "default (tie-corrected)",
+      "alpha": 0.05,
+      "output_row": {
+        "test": "Kruskal-Wallis",
+        "comparison": "all",
+        "statistic": "H",
+        "p_value": "raw p",
+        "significant": "p < 0.05"
+      },
+      "reported_extra": "df = k - 1 = 2"
+    },
+    "post_hoc": {
+      "trigger": "only if overall p < 0.05",
+      "method": "Dunn's test: rank all N=4464 observations, compute mean rank per group, tie-corrected rank variance, z = (mean_rank_i - mean_rank_j) / sqrt(var * (1/n_i + 1/n_j)), two-sided normal p-value.",
+      "adjustment": "Bonferroni over the 3 pairwise comparisons (p_adj = 3 * p_raw, capped at 1.0)",
+      "comparisons": [
+        "Diabetes vs Stroke",
+        "Diabetes vs CKD",
+        "Stroke vs CKD"
+      ],
+      "output_rows": {
+        "test": "Dunn post-hoc",
+        "comparison": "{Group1} vs {Group2}",
+        "statistic": "z",
+        "p_value": "Bonferroni-adjusted p (capped at 1.0)",
+        "significant": "adjusted p < 0.05"
+      },
+      "note": "CKD is the group with the highest mean rank in the profile (mean 151 vs 108 vs 130), so its z-scores come out negative relative to the other two; sign is kept as computed."
+    },
+    "software": "scipy (kruskal), numpy/scipy.stats.norm for Dunn; no scikit-posthocs dependency required -> implement Dunn manually for reproducibility and to control adjustment/capping.",
+    "expected_results_reference": {
+      "kruskal_H": 628.13,
+      "kruskal_p": 4.01e-137,
+      "dunn_order": [
+        "Diabetes vs Stroke (significant)",
+        "Diabetes vs CKD (not significant, p_adj = 1.0)",
+        "Stroke vs CKD (significant)"
+      ],
+      "use_of_reference": "Cross-check only; final numbers must be recomputed from data, not copied from the profile."
+    }
+  },
+  "outputs": {
+    "output.csv": {
+      "columns_in_order": [
+        "test",
+        "comparison",
+        "statistic",
+        "p_value",
+        "significant"
+      ],
+      "row_order": [
+        "Kruskal-Wallis/all",
+        "Dunn post-hoc/Diabetes vs Stroke",
+        "Dunn post-hoc/Diabetes vs CKD",
+        "Dunn post-hoc/Stroke vs CKD"
+      ],
+      "formatting": "no index; statistic and p_value as full-precision floats (scientific notation preserved); significant written as Python bool literals 'True'/'False'.",
+      "rows": 4
+    },
+    "output.png": {
+      "type": "overlaid density histogram (histogram with density normalization, not a KDE curve)",
+      "bins": 50,
+      "alpha": 0.6,
+      "groups": [
+        {
+          "label": "Diabetes",
+          "color": "red"
+        },
+        {
+          "label": "Stroke",
+          "color": "blue"
+        },
+        {
+          "label": "CKD",
+          "color": "green"
+        }
+      ],
+      "annotation": "Kruskal-Wallis H and p-value text placed on the axes (upper-right), e.g. 'Kruskal-Wallis H = 628.13, p = 4.01e-137' with scientific formatting to avoid a long decimal string.",
+      "labels": {
+        "x": "Blood glucose (mg/dL)",
+        "y": "Density",
+        "title": "Blood glucose distribution by patient group (age 30-70)"
+      },
+      "extras": "legend with group n, edgecolor on bars for readability, tight_layout, dpi=150"
+    },
+    "analysis_plan.json": "this file"
+  },
+  "acceptance_criteria": [
+    "output.csv has exactly 5 lines (header + 4 rows), exact column names/order and exact test/comparison strings.",
+    "significant column contains only True/False literals.",
+    "Dunn p-values are Bonferroni-adjusted and <= 1.0.",
+    "output.png exists, is a valid PNG, contains three overlaid histograms in red/blue/green and the KW p-value text.",
+    "All reported numbers traceable to a rerun of the analysis script on the workspace data."
+  ],
+  "risks_and_fallbacks": [
+    "ARFF malformed rows (26 fields): parse manually (split on ','), skip rows with wrong field count and log the count; do not let pandas misalign columns.",
+    "CKD '?' tokens: must be mapped to NaN before numeric coercion, otherwise floats fail or become strings.",
+    "Extremely small p-values (1e-137) may be printed as 0.0 if formatted with %.4f -> always use full float/repr or scientific notation.",
+    "If the overall KW test were non-significant, skip Dunn and output only the KW row (not expected here).",
+    "Group imbalance (2885 Stroke vs 273 CKD): note in reporting that rank-based tests weight groups by n; conclusions stay about distributional location."
+  ],
+  "execution_steps": [
+    "Step 1: load_and_unify.py - parse 3 files, unify [source, age, glucose], apply filters, save glucose_long.csv + cleaning counts.",
+    "Step 2: stats.py - KW test, conditional Dunn + Bonferroni, write output.csv.",
+    "Step 3: plot.py - overlaid density histogram, annotate KW p, write output.png.",
+    "Step 4: verify_artifacts.py - re-read output.csv/output.png, assert schema/strings/bool dtype and PNG integrity."
+  ]
+}

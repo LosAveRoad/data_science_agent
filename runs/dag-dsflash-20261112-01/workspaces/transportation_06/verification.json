@@ -1,0 +1,179 @@
+{
+ "node": "verification",
+ "target": "output.json",
+ "verdict": "PASS",
+ "n_checks": 21,
+ "n_passed": 21,
+ "n_failed": 0,
+ "output_values": {
+  "RMSE": 6.207019,
+  "R2": 0.873413
+ },
+ "independent_recompute": {
+  "RMSE": 6.20701808,
+  "R2": 0.873413465,
+  "n_train": 8366574,
+  "n_test": 2091644,
+  "intercept": 15.542051,
+  "trip_distance_coef": 3.597431,
+  "method": "streamed 12 row groups of the 3 Q2-2024 parquet files, re-applied strict filter, rebuilt 16 features (hour, day_of_week, trip_distance, passenger_count imputed=1, 6 borough_pu_* + 6 borough_do_*), re-ran train_test_split(idx, test_size=0.2, random_state=42) and sklearn LinearRegression on float64"
+ },
+ "abs_diff_vs_recompute": {
+  "RMSE": 9.19414085309711e-07,
+  "R2": 4.650041409703931e-07
+ },
+ "checks": [
+  {
+   "check": "output.json exists",
+   "passed": true,
+   "detail": "file present in workspace root, 38 bytes"
+  },
+  {
+   "check": "output.json is valid JSON",
+   "passed": true,
+   "detail": "parsed OK"
+  },
+  {
+   "check": "output.json is a flat object",
+   "passed": true,
+   "detail": "type=dict, keys=['RMSE', 'R2']"
+  },
+  {
+   "check": "required keys exactly {RMSE, R2}",
+   "passed": true,
+   "detail": "keys=['RMSE', 'R2']"
+  },
+  {
+   "check": "RMSE and R2 are numeric (float)",
+   "passed": true,
+   "detail": {
+    "RMSE": [
+     "float",
+     6.207019
+    ],
+    "R2": [
+     "float",
+     0.873413
+    ]
+   }
+  },
+  {
+   "check": "values finite (no NaN/Inf)",
+   "passed": true,
+   "detail": {
+    "RMSE": 6.207019,
+    "R2": 0.873413
+   }
+  },
+  {
+   "check": "RMSE positive / R2 in (0,1)",
+   "passed": true,
+   "detail": "RMSE=6.207019, R2=0.873413"
+  },
+  {
+   "check": "RMSE within plan sanity band [5.0,7.5]",
+   "passed": true,
+   "detail": "6.207019 in [5.0,7.5]"
+  },
+  {
+   "check": "R2 within plan sanity band [0.85,0.91]",
+   "passed": true,
+   "detail": "0.873413 in [0.85,0.91]"
+  },
+  {
+   "check": "RMSE consistent across all reporting artifacts (<=1e-5)",
+   "passed": true,
+   "detail": {
+    "fit_main.json RMSE": 1.3461763259670079e-08,
+    "model_report.json RMSE": 0.0,
+    "execute_summary.json RMSE": 0.0,
+    "variants.json main_impute1 RMSE": 1.3461763259670079e-08
+   }
+  },
+  {
+   "check": "R2 consistent across all reporting artifacts (<=1e-5)",
+   "passed": true,
+   "detail": {
+    "fit_main.json R2": 4.2700979863141697e-07,
+    "model_report.json R2": 0.0,
+    "execute_summary.json R2": 0.0,
+    "variants.json main_impute1 R2": 4.2700979863141697e-07
+   }
+  },
+  {
+   "check": "n_features == 16 and names match spec",
+   "passed": true,
+   "detail": [
+    "hour",
+    "day_of_week",
+    "trip_distance",
+    "passenger_count",
+    "borough_pu_Bronx",
+    "borough_pu_Brooklyn",
+    "borough_pu_EWR",
+    "borough_pu_Manhattan",
+    "borough_pu_Queens",
+    "borough_pu_Staten Island",
+    "borough_do_Bronx",
+    "borough_do_Brooklyn",
+    "borough_do_EWR",
+    "borough_do_Manhattan",
+    "borough_do_Queens",
+    "borough_do_Staten Island"
+   ]
+  },
+  {
+   "check": "split matches test_size=0.2 / random_state=42 (20% within +-1 row rounding)",
+   "passed": true,
+   "detail": "test_size=0.2, random_state=42, n_test=2091644 vs 0.2*n=2091643.6 (off by 0.4 row, sklearn ceil rounding), matches independent split n_test=2091644"
+  },
+  {
+   "check": "filter spec recorded as strict ranges",
+   "passed": true,
+   "detail": "(0 < trip_distance < 100) & (0 < fare_amount < 500)"
+  },
+  {
+   "check": "row count after filter in plan range [10.40M,10.55M]",
+   "passed": true,
+   "detail": "rows_after_filter=10458218, raw=10777315, survival=0.970392"
+  },
+  {
+   "check": "independent rebuild: same filtered row count",
+   "passed": true,
+   "detail": "rebuilt=10458218 vs reported=10458218"
+  },
+  {
+   "check": "independent rebuild: same train/test sizes",
+   "passed": true,
+   "detail": "8366574/2091644"
+  },
+  {
+   "check": "independent OLS recompute reproduces RMSE (<=1e-5)",
+   "passed": true,
+   "detail": "recomputed=6.20701808 vs output=6.20701900 (diff=9.19e-07)"
+  },
+  {
+   "check": "independent OLS recompute reproduces R2 (<=1e-6)",
+   "passed": true,
+   "detail": "recomputed=0.873413465 vs output=0.873413000 (diff=4.65e-07)"
+  },
+  {
+   "check": "metrics reported on TEST set, not train",
+   "passed": true,
+   "detail": "recompute evaluates on the 2,091,644-row held-out test split"
+  },
+  {
+   "check": "no leakage/overfitting signal (train vs test gap small)",
+   "passed": true,
+   "detail": "execute_summary train R2 0.8747 vs test 0.8734 -> gap 0.0013"
+  }
+ ],
+ "notes": [
+  "output.json schema matches the spec exactly: flat object with float RMSE and R2, nothing else.",
+  "Reproduced filtered population exactly: 10,777,315 raw -> 10,458,218 rows (survival 0.970392), 1,161,287 null passenger_count rows, matching cache_meta.json and model_report.json.",
+  "Recomputed RMSE/R2 agree with output.json to ~1e-8 (float32-vs-float64 accumulation order only), so the reported headline numbers are verified, not just internally consistent.",
+  "Both metrics fall inside the plan sanity band (RMSE 5.0-7.5, R2 0.85-0.91); no leakage or mis-specified-filter signal.",
+  "Robustness variants (drop NaN passenger_count / impute 0) also stay inside the band; headline uses the filter-defined row set as the plan specified."
+ ],
+ "failures": []
+}

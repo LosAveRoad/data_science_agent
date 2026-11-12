@@ -1,0 +1,24 @@
+{
+ "raw_rows": 10777315,
+ "rows_after_filter": 10458218,
+ "survival": 0.9703917905340987,
+ "features": [
+  "hour",
+  "day_of_week",
+  "trip_distance",
+  "passenger_count",
+  "borough_pu_Bronx",
+  "borough_pu_Brooklyn",
+  "borough_pu_EWR",
+  "borough_pu_Manhattan",
+  "borough_pu_Queens",
+  "borough_pu_Staten Island",
+  "borough_do_Bronx",
+  "borough_do_Brooklyn",
+  "borough_do_EWR",
+  "borough_do_Manhattan",
+  "borough_do_Queens",
+  "borough_do_Staten Island"
+ ],
+ "nan_pc_rows": 1161287
+}

@@ -1,0 +1,608 @@
+{
+  "dataset_name": "Zillow State-level ZHVI (8 house-type files)",
+  "source_dir": "Zillow House Price Data",
+  "n_files": 8,
+  "region_level": "State (RegionType == \"State\"); 50 states + District of Columbia = 51 regions per file",
+  "house_types": {
+    "State_Zhvi_1bedroom.csv": "1 bedroom",
+    "State_Zhvi_2bedroom.csv": "2 bedroom",
+    "State_Zhvi_3bedroom.csv": "3 bedroom",
+    "State_Zhvi_4bedroom.csv": "4 bedroom",
+    "State_Zhvi_5BedroomOrMore.csv": "5 bedroom or more",
+    "State_Zhvi_AllHomes.csv": "All homes",
+    "State_Zhvi_Condominum.csv": "Condominium",
+    "State_Zhvi_SingleFamilyResidence.csv": "Single family residence"
+  },
+  "schema": {
+    "columns": [
+      "Unnamed: 0 (row index, irrelevant)",
+      "RegionID",
+      "SizeRank",
+      "RegionName",
+      "RegionType",
+      "StateName",
+      "1996-01-31 ... 2020-03-31 (291 monthly ZHVI columns, strings in header, float64 values)"
+    ],
+    "key_columns": {
+      "region_name": "RegionName",
+      "property_type": "derived from file name (no property-type column inside the files)",
+      "start_date": "2010-12-31",
+      "end_date": "2019-12-31"
+    },
+    "id_columns": {
+      "RegionID": "int64 Zillow region id",
+      "SizeRank": "int64 size rank (0 = largest)",
+      "StateName": "2-letter state abbreviation"
+    }
+  },
+  "files": [
+    {
+      "file": "Zillow House Price Data/State_Zhvi_1bedroom.csv",
+      "basename": "State_Zhvi_1bedroom.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 40966.0,
+          "max": 335108.0,
+          "mean": 122965.22,
+          "median": 108722.0
+        },
+        "2019-12-31": {
+          "min": 55214.0,
+          "max": 417679.0,
+          "mean": 168250.86,
+          "median": 146311.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_2bedroom.csv",
+      "basename": "State_Zhvi_2bedroom.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 48939.0,
+          "max": 415398.0,
+          "mean": 139723.65,
+          "median": 122641.0
+        },
+        "2019-12-31": {
+          "min": 62756.0,
+          "max": 597853.0,
+          "mean": 193017.71,
+          "median": 181666.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_3bedroom.csv",
+      "basename": "State_Zhvi_3bedroom.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 95404.0,
+          "max": 481791.0,
+          "mean": 179806.82,
+          "median": 154467.0
+        },
+        "2019-12-31": {
+          "min": 115577.0,
+          "max": 682763.0,
+          "mean": 251596.55,
+          "median": 212349.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_4bedroom.csv",
+      "basename": "State_Zhvi_4bedroom.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 139388.0,
+          "max": 626855.0,
+          "mean": 255791.98,
+          "median": 223427.0
+        },
+        "2019-12-31": {
+          "min": 166415.0,
+          "max": 914587.0,
+          "mean": 345900.88,
+          "median": 307800.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_5BedroomOrMore.csv",
+      "basename": "State_Zhvi_5BedroomOrMore.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 175356.0,
+          "max": 1041115.0,
+          "mean": 346265.82,
+          "median": 300280.0
+        },
+        "2019-12-31": {
+          "min": 207171.0,
+          "max": 1462045.0,
+          "mean": 456263.2,
+          "median": 399619.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_AllHomes.csv",
+      "basename": "State_Zhvi_AllHomes.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 89137.0,
+          "max": 476291.0,
+          "mean": 188654.98,
+          "median": 165326.0
+        },
+        "2019-12-31": {
+          "min": 106967.0,
+          "max": 643270.0,
+          "mean": 259723.25,
+          "median": 243282.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_Condominum.csv",
+      "basename": "State_Zhvi_Condominum.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 73733.0,
+          "max": 431276.0,
+          "mean": 169858.24,
+          "median": 153294.0
+        },
+        "2019-12-31": {
+          "min": 82864.0,
+          "max": 600542.0,
+          "mean": 228302.71,
+          "median": 191369.0
+        }
+      }
+    },
+    {
+      "file": "Zillow House Price Data/State_Zhvi_SingleFamilyResidence.csv",
+      "basename": "State_Zhvi_SingleFamilyResidence.csv",
+      "n_rows": 51,
+      "n_cols": 297,
+      "unnamed_index_cols": [
+        "Unnamed: 0"
+      ],
+      "meta_cols": [
+        "Unnamed: 0",
+        "RegionID",
+        "SizeRank",
+        "RegionName",
+        "RegionType",
+        "StateName"
+      ],
+      "n_date_cols": 291,
+      "date_range": [
+        "1996-01-31",
+        "2020-03-31"
+      ],
+      "has_2010_12_31": true,
+      "has_2019_12_31": true,
+      "date_value_dtype": "float64",
+      "null_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "zero_or_negative_counts_target": {
+        "2010-12-31": 0,
+        "2019-12-31": 0
+      },
+      "n_unique_regions": 51,
+      "duplicated_region_names": 0,
+      "region_type_values": [
+        "State"
+      ],
+      "state_name_null": 0,
+      "value_stats": {
+        "2010-12-31": {
+          "min": 88831.0,
+          "max": 529151.0,
+          "mean": 191742.04,
+          "median": 165632.0
+        },
+        "2019-12-31": {
+          "min": 106761.0,
+          "max": 740966.0,
+          "mean": 265381.45,
+          "median": 242341.0
+        }
+      }
+    }
+  ],
+  "checks": {
+    "target_date_columns_present_in_all_files": true,
+    "no_missing_values_in_target_columns": true,
+    "no_zero_or_negative_prices_in_target_columns": true,
+    "row_counts_consistent": [
+      51
+    ],
+    "regions_identical_and_same_order_across_files": true,
+    "region_name_duplicates": 0,
+    "state_name_missing": 0
+  },
+  "region_alignment": {
+    "State_Zhvi_1bedroom.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_2bedroom.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_3bedroom.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_4bedroom.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_5BedroomOrMore.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_AllHomes.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_Condominum.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    },
+    "State_Zhvi_SingleFamilyResidence.csv": {
+      "same_region_order_as_reference": true,
+      "missing_vs_reference": [],
+      "extra_vs_reference": []
+    }
+  },
+  "region_names": [
+    "California",
+    "Texas",
+    "New York",
+    "Florida",
+    "Illinois",
+    "Pennsylvania",
+    "Ohio",
+    "Michigan",
+    "Georgia",
+    "North Carolina",
+    "New Jersey",
+    "Virginia",
+    "Washington",
+    "Massachusetts",
+    "Indiana",
+    "Arizona",
+    "Tennessee",
+    "Missouri",
+    "Maryland",
+    "Wisconsin",
+    "Minnesota",
+    "Colorado",
+    "Alabama",
+    "South Carolina",
+    "Louisiana",
+    "Kentucky",
+    "Oregon",
+    "Oklahoma",
+    "Connecticut",
+    "Iowa",
+    "Mississippi",
+    "Arkansas",
+    "Kansas",
+    "Utah",
+    "Nevada",
+    "New Mexico",
+    "West Virginia",
+    "Nebraska",
+    "Idaho",
+    "Hawaii",
+    "Maine",
+    "New Hampshire",
+    "Rhode Island",
+    "Montana",
+    "Delaware",
+    "South Dakota",
+    "Alaska",
+    "North Dakota",
+    "Vermont",
+    "District of Columbia",
+    "Wyoming"
+  ],
+  "computation_notes": {
+    "horizon_years": 9,
+    "cagr_formula": "(value_2019_12_31 / value_2010_12_31) ** (1/9) - 1",
+    "growth_rate_disparity": "per state: max(CAGR over 8 house types) - min(CAGR over 8 house types)",
+    "expected_size_of_merged_long_frame": "51 states x 8 house types = 408 rows (3 columns: region name, property type, CAGR)",
+    "sorting_for_report": "disparity descending, keep top 5 rows; output columns: region name, growth rate difference -> top5_cagr_disparity.csv"
+  },
+  "spot_check_rows": [
+    {
+      "house_type": "AllHomes",
+      "region_name": "California",
+      "value_2010_12_31": 326613.0,
+      "value_2019_12_31": 566433.0,
+      "cagr_9y": 0.063086
+    },
+    {
+      "house_type": "AllHomes",
+      "region_name": "Texas",
+      "value_2010_12_31": 134821.0,
+      "value_2019_12_31": 209723.0,
+      "cagr_9y": 0.050318
+    },
+    {
+      "house_type": "AllHomes",
+      "region_name": "New York",
+      "value_2010_12_31": 262806.0,
+      "value_2019_12_31": 326646.0,
+      "cagr_9y": 0.024457
+    }
+  ],
+  "data_quality_notes": [
+    "Data is complete and rectangular: 51 rows x 291 monthly dates in every file; no NaN, no zero prices in 2010-12-31 / 2019-12-31.",
+    "All 8 files share the exact same region list in the same order, so merging can key on RegionName safely.",
+    "Property/house type is NOT a column; it must be derived from the file name (e.g. State_Zhvi_Condominum -> Condominium).",
+    "Values are ZHVI home-value indices in nominal USD, not seasonally adjusted; the 9-year CAGR is therefore a nominal annualized growth rate.",
+    "Price scales differ a lot across house types (e.g. 2019 mean 168k for 1-bedroom vs 456k for 5+ bedrooms), but since CAGR is a ratio, levels do not bias the disparity metric.",
+    "RegionName includes \"District of Columbia\", which is treated as a state-level region as provided."
+  ]
+}

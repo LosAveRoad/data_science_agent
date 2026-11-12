@@ -1,0 +1,520 @@
+{
+ "node": "execute / analysis",
+ "deliverable": "output.csv",
+ "output_csv": {
+  "path": "output.csv",
+  "columns": [
+   "risk_factor",
+   "posterior_mean",
+   "ci_lower_2.5%",
+   "ci_upper_97.5%"
+  ],
+  "rows": [
+   {
+    "risk_factor": "age",
+    "posterior_mean": 0.957,
+    "ci_lower_2.5%": 0.8886,
+    "ci_upper_97.5%": 1.0259
+   },
+   {
+    "risk_factor": "bmi",
+    "posterior_mean": 0.2258,
+    "ci_lower_2.5%": 0.1587,
+    "ci_upper_97.5%": 0.2919
+   },
+   {
+    "risk_factor": "bp",
+    "posterior_mean": 0.19,
+    "ci_lower_2.5%": 0.0956,
+    "ci_upper_97.5%": 0.284
+   },
+   {
+    "risk_factor": "glucose",
+    "posterior_mean": 0.3567,
+    "ci_lower_2.5%": 0.3097,
+    "ci_upper_97.5%": 0.4036
+   }
+  ],
+  "interpretation": "posterior mean change in log-odds of the binary disease outcome per +1 within-cohort SD of the risk factor, pooled across the 8 dataset|endpoint groups (global coefficients), 95% credible intervals from pooled MCMC draws"
+ },
+ "step1_model_frame": {
+  "source": "long_preview.pkl (18228 x 7) reused; group_id = dataset|endpoint",
+  "n_rows": 18228,
+  "n_groups": 8,
+  "groups": [
+   "CKD|cad",
+   "CKD|ckd",
+   "CKD|hypertension",
+   "Diabetes|diabetes",
+   "HeartUCI|heart_disease",
+   "Stroke|heart_disease",
+   "Stroke|hypertension",
+   "Stroke|stroke"
+  ],
+  "harmonisation": "within-dataset z-standardisation using mean/SD of observed values per source dataset; structural missing values set to cohort mean 0 with missing-indicator columns m_age/m_bmi/m_bp/m_glucose (kept out of the mean model); no NaN in z_* after imputation",
+  "missing_rates": {
+   "age": 0.0015,
+   "bmi": 0.15,
+   "bp": 0.8483,
+   "glucose": 0.058
+  },
+  "checks": [
+   "18228 rows",
+   "8 groups",
+   "0 NaN in z_*",
+   "y in {0,1}",
+   "Diabetes de-duplicated to 778 unique patients (already in long_preview)"
+  ]
+ },
+ "step2_bayesian_model": {
+  "model": "y_i ~ Bernoulli(logistic(alpha_{g(i)} + b_age*z_age + b_bmi*z_bmi + b_bp*z_bp + b_glucose*z_glucose)); alpha_g ~ N(mu_alpha, sigma_alpha^2) with 8 group-specific intercepts",
+  "priors_weakly_informative": {
+   "mu_alpha": "Normal(0, 2.5)",
+   "sigma_alpha": "HalfNormal(1)",
+   "b_k": "Normal(0, 2.5)"
+  },
+  "sampler": "hand-written random-walk Metropolis (centred alpha parameterisation), 6 chains x 40000 iterations, 10000 burn-in, thin 10 -> 3000 draws/chain; Gaussian proposal from Laplace covariance at the MAP, Robbins-Monro scale adaptation during burn-in",
+  "acceptance_rates": [
+   0.273,
+   0.232,
+   0.249,
+   0.264,
+   0.235,
+   0.244
+  ],
+  "convergence": {
+   "rhat_range": [
+    1.0004,
+    1.0011
+   ],
+   "ess_range": [
+    4131,
+    4439
+   ],
+   "gate_rhat_lt_1.05": true,
+   "gate_ess_gt_400": true
+  },
+  "cross_check": "Laplace (MAP + Hessian) approximation agrees with MCMC means within 0.5 posterior SD for all 4 coefficients",
+  "hyperparameters": {
+   "mu_alpha": {
+    "mean": -1.5523,
+    "ci": [
+     -2.6392,
+     -0.4131
+    ],
+    "rhat": 1.0017,
+    "ess": 3418
+   },
+   "sigma_alpha": {
+    "mean": 1.6039,
+    "ci": [
+     1.0599,
+     2.4174
+    ],
+    "rhat": 1.0005,
+    "ess": 4159
+   }
+  },
+  "group_intercepts": [
+   {
+    "group_id": "CKD|cad",
+    "mean": -2.803,
+    "ci": [
+     -3.178,
+     -2.449
+    ],
+    "rhat": 1.0015,
+    "ess": 4284
+   },
+   {
+    "group_id": "CKD|ckd",
+    "mean": 0.601,
+    "ci": [
+     0.373,
+     0.834
+    ],
+    "rhat": 1.0005,
+    "ess": 4035
+   },
+   {
+    "group_id": "CKD|hypertension",
+    "mean": -0.718,
+    "ci": [
+     -0.945,
+     -0.495
+    ],
+    "rhat": 1.0014,
+    "ess": 4167
+   },
+   {
+    "group_id": "Diabetes|diabetes",
+    "mean": -0.763,
+    "ci": [
+     -0.935,
+     -0.592
+    ],
+    "rhat": 1.0021,
+    "ess": 4207
+   },
+   {
+    "group_id": "HeartUCI|heart_disease",
+    "mean": 0.245,
+    "ci": [
+     0.102,
+     0.388
+    ],
+    "rhat": 1.0011,
+    "ess": 4404
+   },
+   {
+    "group_id": "Stroke|heart_disease",
+    "mean": -3.435,
+    "ci": [
+     -3.575,
+     -3.297
+    ],
+    "rhat": 1.0005,
+    "ess": 4312
+   },
+   {
+    "group_id": "Stroke|hypertension",
+    "mean": -2.735,
+    "ci": [
+     -2.847,
+     -2.623
+    ],
+    "rhat": 1.001,
+    "ess": 4231
+   },
+   {
+    "group_id": "Stroke|stroke",
+    "mean": -3.551,
+    "ci": [
+     -3.699,
+     -3.405
+    ],
+    "rhat": 1.0006,
+    "ess": 4218
+   }
+  ],
+  "posterior_predictive": "fitted positive rate inside the 95% predictive interval for all 8 groups"
+ },
+ "key_results": {
+  "age": {
+   "posterior_mean": 0.957,
+   "ci95": [
+    0.8886,
+    1.0259
+   ],
+   "odds_ratio": 2.6038,
+   "prob_positive": 1.0
+  },
+  "bmi": {
+   "posterior_mean": 0.2258,
+   "ci95": [
+    0.1587,
+    0.2919
+   ],
+   "odds_ratio": 1.2533,
+   "prob_positive": 1.0
+  },
+  "bp": {
+   "posterior_mean": 0.19,
+   "ci95": [
+    0.0956,
+    0.284
+   ],
+   "odds_ratio": 1.2092,
+   "prob_positive": 0.9999
+  },
+  "glucose": {
+   "posterior_mean": 0.3567,
+   "ci95": [
+    0.3097,
+    0.4036
+   ],
+   "odds_ratio": 1.4286,
+   "prob_positive": 1.0
+  }
+ },
+ "sensitivity": {
+  "variants": {
+   "S1_primary_MAPLaplace": {
+    "age": {
+     "mean": 0.9555,
+     "lo": 0.8886,
+     "hi": 1.0248
+    },
+    "bmi": {
+     "mean": 0.2261,
+     "lo": 0.1607,
+     "hi": 0.2922
+    },
+    "bp": {
+     "mean": 0.1888,
+     "lo": 0.0949,
+     "hi": 0.2804
+    },
+    "glucose": {
+     "mean": 0.3562,
+     "lo": 0.3098,
+     "hi": 0.4033
+    }
+   },
+   "S2_completecase_bp": {
+    "age": {
+     "mean": 0.533,
+     "lo": 0.437,
+     "hi": 0.6257
+    },
+    "bmi": {
+     "mean": 0.5006,
+     "lo": 0.2956,
+     "hi": 0.6966
+    },
+    "bp": {
+     "mean": 0.206,
+     "lo": 0.1124,
+     "hi": 0.3012
+    },
+    "glucose": {
+     "mean": 0.9203,
+     "lo": 0.7802,
+     "hi": 1.0668
+    }
+   },
+   "S4_equal_group_weight": {
+    "age": {
+     "mean": 0.6176,
+     "lo": 0.5722,
+     "hi": 0.6646
+    },
+    "bmi": {
+     "mean": 0.3005,
+     "lo": 0.2289,
+     "hi": 0.3736
+    },
+    "bp": {
+     "mean": 0.2919,
+     "lo": 0.2434,
+     "hi": 0.3395
+    },
+    "glucose": {
+     "mean": 0.6563,
+     "lo": 0.6102,
+     "hi": 0.7034
+    }
+   },
+   "S5_drop_Stroke": {
+    "age": {
+     "mean": 0.5105,
+     "lo": 0.4188,
+     "hi": 0.5989
+    },
+    "bmi": {
+     "mean": 0.5039,
+     "lo": 0.3052,
+     "hi": 0.694
+    },
+    "bp": {
+     "mean": 0.2096,
+     "lo": 0.1162,
+     "hi": 0.3048
+    },
+    "glucose": {
+     "mean": 0.9249,
+     "lo": 0.7875,
+     "hi": 1.068
+    }
+   },
+   "S5_drop_CKD": {
+    "age": {
+     "mean": 1.0302,
+     "lo": 0.956,
+     "hi": 1.1018
+    },
+    "bmi": {
+     "mean": 0.247,
+     "lo": 0.1785,
+     "hi": 0.3127
+    },
+    "bp": {
+     "mean": -0.0053,
+     "lo": -0.1205,
+     "hi": 0.1119
+    },
+    "glucose": {
+     "mean": 0.309,
+     "lo": 0.2598,
+     "hi": 0.3597
+    }
+   },
+   "S5_drop_Diabetes": {
+    "age": {
+     "mean": 1.0751,
+     "lo": 0.9996,
+     "hi": 1.1525
+    },
+    "bmi": {
+     "mean": 0.1812,
+     "lo": 0.1052,
+     "hi": 0.2548
+    },
+    "bp": {
+     "mean": 0.2598,
+     "lo": 0.1508,
+     "hi": 0.3686
+    },
+    "glucose": {
+     "mean": 0.3016,
+     "lo": 0.2537,
+     "hi": 0.3511
+    }
+   },
+   "S5_drop_HeartUCI": {
+    "age": {
+     "mean": 1.0484,
+     "lo": 0.9711,
+     "hi": 1.1276
+    },
+    "bmi": {
+     "mean": 0.2318,
+     "lo": 0.1633,
+     "hi": 0.2993
+    },
+    "bp": {
+     "mean": 0.2772,
+     "lo": 0.159,
+     "hi": 0.3945
+    },
+    "glucose": {
+     "mean": 0.3442,
+     "lo": 0.298,
+     "hi": 0.3918
+    }
+   }
+  },
+  "notes": "All four coefficients stay positive in S1 (primary), S2 (complete-case BP), S4 (equal group weighting) and in the leave-one-cohort-out fits, except BP when CKD is dropped (mean -0.005, CI [-0.12, 0.11]) -> BP effect is CI-crossing-zero in that variant; BP is the least stable/widest coefficient (84.8% missing, 100% missing in the Stroke cohort). Age/glucose shrink and BMI grows once Stroke's 84.1% row dominance is removed (S4/S5), confirming the global means are stroke-weighted by construction."
+ },
+ "step3_stroke_calibration_validation": {
+  "preprocessing": "drop id; bmi median-imputed inside pipeline + bmi_missing indicator; one-hot (gender, ever_married, work_type, Residence_type, smoking_status); StandardScaler on age/avg_glucose_level/bmi; stratified 80/20 split random_state=42",
+  "config": {
+   "n_train": 4088,
+   "n_test": 1022,
+   "train_pos_rate": 0.04867906066536203,
+   "test_pos_rate": 0.04892367906066536,
+   "test_pos": 50,
+   "random_state": 42,
+   "rf": {
+    "n_estimators": 50,
+    "max_depth": 5,
+    "min_samples_split": 10,
+    "min_samples_leaf": 5,
+    "class_weight": "balanced",
+    "random_state": 42
+   },
+   "lr": {
+    "C": 0.1,
+    "penalty": "l2",
+    "max_iter": 1000,
+    "class_weight": "balanced",
+    "n_iter": 27
+   },
+   "features": [
+    "age",
+    "avg_glucose_level",
+    "bmi",
+    "gender",
+    "ever_married",
+    "work_type",
+    "Residence_type",
+    "smoking_status",
+    "hypertension",
+    "heart_disease",
+    "bmi_missing"
+   ],
+   "bmi_missing_train": 170,
+   "bmi_missing_test": 31
+  },
+  "metrics": {
+   "RandomForest": {
+    "auc": 0.821604938271605,
+    "pr_auc": 0.22945145858339414,
+    "brier": 0.1593075260894629,
+    "log_loss": 0.4682583633744426,
+    "ece_10bin": 0.2890249070597935,
+    "calib_intercept": -2.7076506074587674,
+    "calib_slope": 1.2633392883644254,
+    "hosmer_lemeshow_chi2": 536.6821090532806,
+    "hl_pvalue": 0.0,
+    "prior_corrected": {
+     "brier": 0.04346717846067291,
+     "ece_10bin": 0.012348941107571537,
+     "calib_slope": 1.2622879411139019,
+     "calib_intercept": 1.0390642895590572,
+     "hl_pvalue": 0.0011367066295859818,
+     "mean_predicted": 0.03657473795309382
+    },
+    "pred_summary": {
+     "min": 0.01849528502571301,
+     "p25": 0.1211471408828535,
+     "median": 0.2593793356819323,
+     "p75": 0.54453927859548,
+     "max": 0.8599243781829593,
+     "mean": 0.33794858612045886,
+     "share_gt_0_5": 0.34442270058708413,
+     "share_gt_base_rate": 0.898238747553816
+    }
+   },
+   "LogisticRegression": {
+    "auc": 0.8425102880658436,
+    "pr_auc": 0.2652460326169795,
+    "brier": 0.1602136772753699,
+    "log_loss": 0.47259294692500176,
+    "ece_10bin": 0.2629581754015619,
+    "calib_intercept": -2.863730048395382,
+    "calib_slope": 0.882465521068178,
+    "hosmer_lemeshow_chi2": 689.4591049259991,
+    "hl_pvalue": 0.0,
+    "prior_corrected": {
+     "brier": 0.04099886964569654,
+     "ece_10bin": 0.009475386011500098,
+     "calib_slope": 0.8815047494187754,
+     "calib_intercept": -0.2463625166280302,
+     "hl_pvalue": 0.05817590512747994,
+     "mean_predicted": 0.048622566874423824
+    },
+    "pred_summary": {
+     "min": 0.008125976651699382,
+     "p25": 0.05833161020680915,
+     "median": 0.20885801054745026,
+     "p75": 0.5397240541891615,
+     "max": 0.9597297364699238,
+     "mean": 0.31188185446222727,
+     "share_gt_0_5": 0.2720156555772994,
+     "share_gt_base_rate": 0.7729941291585127
+    }
+   }
+  },
+  "verdict": "Discrimination is good (RF AUC 0.822 / LR AUC 0.843; PR-AUC 0.229 / 0.265 vs 4.9% base rate) but raw probabilities are grossly miscalibrated by construction: class_weight='balanced' inflates mean predicted risk to 0.338 (RF) / 0.312 (LR) vs a 4.87% observed rate, ECE 0.289 / 0.263 and Hosmer-Lemeshow p<0.001. After the base-rate prior correction (p/(p+(1-p)w)) ECE drops to 0.012 (RF) / 0.010 (LR), Brier 0.0435 / 0.0410 and calibration slopes 1.26 / 0.88 with intercepts 1.04 / -0.25 -> LR is essentially calibrated post-correction (slope~1, HL p=0.058), RF remains slightly under-dispersed (slope 1.26). Both models are therefore usable for ranking, not for absolute risk without recalibration."
+ },
+ "artifacts": [
+  "output.csv",
+  "risk_coefficients.json",
+  "sensitivity_coefficients.csv",
+  "stroke_model_validation.json",
+  "model_frame.pkl",
+  "mcmc_draws_centered.npy",
+  "mode_centered.npy",
+  "laplace_cov_centered.npy",
+  "stroke_predictions.npz",
+  "posterior_detail.json",
+  "sensitivity_map.json"
+ ],
+ "caveats": [
+  "BP semantics differ across cohorts (diastolic in Diabetes/CKD vs systolic trestbps in HeartUCI) - coefficients are per 1 within-cohort SD, not per mmHg.",
+  "84.8% of BP cells are structurally/imputationally missing (absent for all Stroke rows), so the BP coefficient is attenuated toward 0 relative to its complete-case value (0.190 primary vs 0.206 complete-case) and has the widest credible interval.",
+  "Stroke contributes 84.1% of rows; the global coefficients are therefore predominantly stroke-driven (see S4/S5).",
+  "No PyMC/Stan available: posterior estimated with a hand-written adaptive random-walk Metropolis sampler, cross-validated against a Laplace approximation; results are reproducible from saved draws/seeds (11,22,33,44,55,66)."
+ ]
+}

@@ -1,0 +1,563 @@
+{
+ "artifact": "verification.json",
+ "node": "verification",
+ "status": "passed",
+ "verdict": "All 4 required artifacts exist, are well-formed, internally consistent and exactly reproducible; issues found are interpretation/coverage caveats, not format or completeness defects.",
+ "artifacts_checked": {
+  "feature_coefficients.csv": {
+   "exists": true,
+   "bytes": 300,
+   "rows": 8,
+   "schema": [
+    "rank",
+    "feature",
+    "coefficient",
+    "abs_coefficient"
+   ],
+   "valid": true
+  },
+  "selected_features.csv": {
+   "exists": true,
+   "bytes": 314,
+   "rows": 8,
+   "schema": [
+    "feature",
+    "feature_type",
+    "abs_coefficient"
+   ],
+   "valid": true
+  },
+  "feature_analysis.png": {
+   "exists": true,
+   "bytes": 113482,
+   "dimensions": "2250x900",
+   "layout": "1x2 (coefficient bars | PCA explained variance)",
+   "valid": true
+  },
+  "top_coefficient.txt": {
+   "exists": true,
+   "bytes": 9,
+   "content": "3.702301",
+   "valid": true
+  }
+ },
+ "summary": {
+  "total_checks": 50,
+  "passed": 50,
+  "failed": 0,
+  "format_and_completeness_checks": 34,
+  "independent_reproduction_checks": 16,
+  "warnings": 8,
+  "warnings_by_severity": {
+   "medium": 5,
+   "low": 3
+  }
+ },
+ "checks_by_artifact": {
+  "feature_coefficients.csv": [
+   {
+    "check": "file exists and is non-empty",
+    "passed": true,
+    "detail": "300 bytes"
+   },
+   {
+    "check": "schema == [rank, feature, coefficient, abs_coefficient]",
+    "passed": true,
+    "detail": "['rank', 'feature', 'coefficient', 'abs_coefficient']"
+   },
+   {
+    "check": "row count == 8 (5 RFE + 3 PCA)",
+    "passed": true,
+    "detail": "8 rows"
+   },
+   {
+    "check": "no missing values",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "check": "feature names unique",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "check": "coefficients numeric",
+    "passed": true,
+    "detail": "float64"
+   },
+   {
+    "check": "abs_coefficient == |coefficient|",
+    "passed": true,
+    "detail": "0.0"
+   },
+   {
+    "check": "ranked descending by |coefficient|",
+    "passed": true,
+    "detail": "[3.7023, 2.9938, 2.9834, 2.9535, 2.8148, 2.1675, 1.0662, 0.5799]"
+   },
+   {
+    "check": "rank is 1..8 without gaps",
+    "passed": true,
+    "detail": "[1, 2, 3, 4, 5, 6, 7, 8]"
+   },
+   {
+    "check": "contains exactly pca_component_1..3",
+    "passed": true,
+    "detail": "['pca_component_1', 'pca_component_2', 'pca_component_3']"
+   }
+  ],
+  "selected_features.csv": [
+   {
+    "check": "file exists and is non-empty",
+    "passed": true,
+    "detail": "314 bytes"
+   },
+   {
+    "check": "schema == [feature, feature_type, abs_coefficient]",
+    "passed": true,
+    "detail": "['feature', 'feature_type', 'abs_coefficient']"
+   },
+   {
+    "check": "row count == 8",
+    "passed": true,
+    "detail": "8 rows"
+   },
+   {
+    "check": "no missing values",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "check": "5 rfe_selected + 3 pca_component rows",
+    "passed": true,
+    "detail": "rfe=5, pca=3"
+   },
+   {
+    "check": "RFE selection == [glucose, bmi, bp, age_glucose_interaction, bp_bmi_ratio]",
+    "passed": true,
+    "detail": "['glucose', 'bmi', 'bp', 'age_glucose_interaction', 'bp_bmi_ratio']"
+   },
+   {
+    "check": "feature set identical to feature_coefficients.csv",
+    "passed": true,
+    "detail": "[]"
+   }
+  ],
+  "feature_analysis.png": [
+   {
+    "check": "file exists and is non-empty",
+    "passed": true,
+    "detail": "113482 bytes"
+   },
+   {
+    "check": "valid PNG signature",
+    "passed": true,
+    "detail": "b'\\x89PNG\\r\\n\\x1a\\n'"
+   },
+   {
+    "check": "chunk stream complete (IHDR ... IEND)",
+    "passed": true,
+    "detail": "6 chunks"
+   },
+   {
+    "check": "resolution >= 1000x500 px",
+    "passed": true,
+    "detail": "2250x900, bit_depth=8, color_type=6"
+   },
+   {
+    "check": "matplotlib provenance tag",
+    "passed": true,
+    "detail": "Software\u0000Matplotlib version3.11.2, https://matplotlib.org/"
+   },
+   {
+    "check": "1x2 layout: two inked panels split by central whitespace",
+    "passed": true,
+    "detail": "left ink=145981, right ink=298311, central empty cols=46"
+   },
+   {
+    "check": "left panel: 8 horizontal coefficient bars",
+    "passed": true,
+    "detail": "8 bands"
+   },
+   {
+    "check": "bar lengths proportional to |coefficient| in table order",
+    "passed": true,
+    "detail": "widths=[348, 282, 281, 277, 264, 204, 99, 53]; width/|coef| CV=0.0097"
+   },
+   {
+    "check": "bar colors encode coefficient sign correctly",
+    "passed": true,
+    "detail": "pca_component_3+->red; bmi-->blue; age_glucose_interaction-->blue; pca_component_2+->red; pca_component_1+->red; bp_bmi_ratio-->blue; glucose+->red; bp+->red"
+   },
+   {
+    "check": "right panel: 3 PCA explained-variance bars",
+    "passed": true,
+    "detail": "heights=[527, 421, 247]"
+   },
+   {
+    "check": "bar heights proportional to explained_variance_ratio",
+    "passed": true,
+    "detail": "normalized heights=[1.    0.799 0.469] vs ratios=[1.    0.822 0.479]"
+   },
+   {
+    "check": "cumulative explained-variance line present",
+    "passed": true,
+    "detail": "2153 px, x span 296-889"
+   }
+  ],
+  "top_coefficient.txt": [
+   {
+    "check": "file exists and is non-empty",
+    "passed": true,
+    "detail": "9 bytes"
+   },
+   {
+    "check": "contains a single parseable float",
+    "passed": true,
+    "detail": "'3.702301'"
+   },
+   {
+    "check": "value == max |coefficient| in table",
+    "passed": true,
+    "detail": "file=3.702301, table max=3.702301"
+   },
+   {
+    "check": "rank-1 predictor is pca_component_3",
+    "passed": true,
+    "detail": "pca_component_3, coef=3.702301"
+   },
+   {
+    "check": "rank-1 feature indeed has the largest |coefficient|",
+    "passed": true,
+    "detail": "3.702301"
+   }
+  ]
+ },
+ "independent_reproduction": [
+  {
+   "check": "harmonized_dataset.csv reproducible from raw sources (zeros->NaN, dropna, stroke sample n=1000 rs=42)",
+   "passed": true,
+   "detail": "recomputed rows=3612, stored rows=3612; identical=True"
+  },
+  {
+   "check": "zero->missing rule materially applied (156 raw rows would otherwise be retained)",
+   "passed": true,
+   "detail": "156 diabetes rows contain at least one zero in Glucose/BMI/BloodPressure"
+  },
+  {
+   "check": "stroke sampling respects 'at most 1000' cap",
+   "passed": true,
+   "detail": "1000 rows sampled from 4909"
+  },
+  {
+   "check": "harmonized columns == [source, age, glucose, bmi, bp, target]",
+   "passed": true,
+   "detail": [
+    "source",
+    "age",
+    "glucose",
+    "bmi",
+    "bp",
+    "target"
+   ]
+  },
+  {
+   "check": "no missing values in base biomarkers after harmonization",
+   "passed": true,
+   "detail": 0
+  },
+  {
+   "check": "target is binary 0/1",
+   "passed": true,
+   "detail": [
+    0,
+    1
+   ]
+  },
+  {
+   "check": "stroke rows use 'hypertension' as bp proxy (values in {0,1})",
+   "passed": true,
+   "detail": [
+    0.0,
+    1.0
+   ]
+  },
+  {
+   "check": "candidate_features.csv reproducible (3 ratios + label-encoded source, median-filled)",
+   "passed": true,
+   "detail": "max|diff|=0.0e+00"
+  },
+  {
+   "check": "source_encoded mapping diabetes=0, stroke=1",
+   "passed": true,
+   "detail": {
+    "diabetes": 0,
+    "stroke": 1
+   }
+  },
+  {
+   "check": "no missing values after median imputation",
+   "passed": true,
+   "detail": "0 remaining (no NaN existed post-harmonization)"
+  },
+  {
+   "check": "hybrid_features.csv reproducible (5 RFE + 3 PCA, same column order)",
+   "passed": true,
+   "detail": "max|diff|=0.0e+00"
+  },
+  {
+   "check": "feature_coefficients.csv coefficients reproduced by independent refit",
+   "passed": true,
+   "detail": "max|diff|=0.00e+00"
+  },
+  {
+   "check": "pca_model_details.json explained variance reproduced",
+   "passed": true,
+   "detail": "cumulative=0.877127"
+  },
+  {
+   "check": "execute_summary.json in-sample metrics reproduced",
+   "passed": true,
+   "detail": "recomputed acc=0.8120, auc=0.8624"
+  },
+  {
+   "check": "selected_features RFE list matches independent RFE",
+   "passed": true,
+   "detail": [
+    "glucose",
+    "bmi",
+    "bp",
+    "age_glucose_interaction",
+    "bp_bmi_ratio"
+   ]
+  },
+  {
+   "check": "top_coefficient.txt equals refit coefficient of top predictor",
+   "passed": true,
+   "detail": "file=3.702301, refit=3.702301 for pca_component_3"
+  }
+ ],
+ "reproduced_values": {
+  "diabetes_zero_as_missing_counts": {
+   "Glucose": 18,
+   "BMI": 39,
+   "BloodPressure": 125
+  },
+  "diabetes_rows_raw": 2768,
+  "diabetes_rows_after_drop": 2612,
+  "stroke_rows_raw": 5110,
+  "stroke_rows_after_drop": 4909,
+  "stroke_rows_sampled": 1000,
+  "rfe_selected": [
+   "glucose",
+   "bmi",
+   "bp",
+   "age_glucose_interaction",
+   "bp_bmi_ratio"
+  ],
+  "rfe_ranking": {
+   "age": 3,
+   "glucose": 1,
+   "bmi": 1,
+   "bp": 1,
+   "glucose_bmi_ratio": 2,
+   "age_glucose_interaction": 1,
+   "bp_bmi_ratio": 1,
+   "source_encoded": 4
+  },
+  "explained_variance_ratio": [
+   0.381163,
+   0.313251,
+   0.182714
+  ],
+  "cumulative_explained_variance": 0.877127,
+  "in_sample_accuracy": 0.812,
+  "in_sample_auc": 0.8624,
+  "intercept": -1.660267,
+  "top_predictor": {
+   "feature": "pca_component_3",
+   "coefficient": 3.7023011721929353,
+   "abs_coefficient": 3.702301
+  },
+  "coefficient_table": {
+   "glucose": 1.066195,
+   "bmi": -2.993799,
+   "bp": 0.579909,
+   "age_glucose_interaction": -2.983382,
+   "bp_bmi_ratio": -2.167536,
+   "pca_component_1": 2.8148,
+   "pca_component_2": 2.953507,
+   "pca_component_3": 3.702301
+  }
+ },
+ "cross_artifact_consistency": [
+  {
+   "relation": "feature_coefficients.feature set == selected_features.feature set == hybrid_features columns",
+   "holds": true,
+   "detail": "8 features: glucose, bmi, bp, age_glucose_interaction, bp_bmi_ratio, pca_component_1..3"
+  },
+  {
+   "relation": "feature_coefficients.abs_coefficient == selected_features.abs_coefficient (per feature)",
+   "holds": true,
+   "detail": "max|diff| = 0.0"
+  },
+  {
+   "relation": "top_coefficient.txt == max(feature_coefficients.abs_coefficient) == rank-1 row",
+   "holds": true,
+   "detail": "3.702301 for pca_component_3 (coefficient +3.702301)"
+  },
+  {
+   "relation": "feature_analysis.png left bars == feature_coefficients order/magnitude/sign",
+   "holds": true,
+   "detail": "8 bars, widths proportional to |coef| (CV 0.01), red=positive / blue=negative"
+  },
+  {
+   "relation": "feature_analysis.png right bars == pca_model_details.explained_variance_ratio",
+   "holds": true,
+   "detail": "heights 527/421/247 vs ratios 0.3812/0.3133/0.1827, cumulative line drawn"
+  },
+  {
+   "relation": "execute_summary.json metrics == independent refit",
+   "holds": true,
+   "detail": "accuracy 0.8120, ROC-AUC 0.8624, intercept -1.660267, n=3612"
+  },
+  {
+   "relation": "selected_features RFE list == independent RFE run",
+   "holds": true,
+   "detail": "glucose, bmi, bp, age_glucose_interaction, bp_bmi_ratio (n_features_to_select=5, step=1)"
+  }
+ ],
+ "pipeline_fidelity": [
+  {
+   "step": "1. load+harmonize (zeros->NaN in Glucose/BMI/BloodPressure before any drop)",
+   "status": "verified",
+   "evidence": "156 diabetes rows contain a zero; reproducing the rule yields exactly the stored harmonized data (2768 -> 2612 rows)"
+  },
+  {
+   "step": "2. unified dataset, dropna on age/glucose/bmi/bp, stroke sampled to 1000 (rs=42)",
+   "status": "verified",
+   "evidence": "stroke 4909 -> 1000; combined 3612 rows identical to harmonized_dataset.csv"
+  },
+  {
+   "step": "3. engineered ratios + source_encoded + median fill",
+   "status": "verified",
+   "evidence": "candidate_features.csv matches recomputation exactly (max|diff| 0.0); no NaN remained"
+  },
+  {
+   "step": "4. RFE with RF(100, rs=42, max_depth=10), top 5",
+   "status": "verified",
+   "evidence": "same selected set and ranking (glucose_bmi_ratio=2, age=3, source_encoded=4)"
+  },
+  {
+   "step": "5. PCA(3, rs=42)",
+   "status": "verified",
+   "evidence": "explained variance 0.381163/0.313251/0.182714, cumulative 0.877127 reproduced to 1e-6"
+  },
+  {
+   "step": "6. hybrid = 5 RFE + 3 PCA",
+   "status": "verified",
+   "evidence": "hybrid_features.csv reproduced exactly, column order preserved"
+  },
+  {
+   "step": "7. LogisticRegression(max_iter=1000, rs=42, C=1.0) on StandardScaler features",
+   "status": "verified",
+   "evidence": "all 8 coefficients and intercept reproduce to 1e-6"
+  },
+  {
+   "step": "8. rank by |coefficient| and save outputs",
+   "status": "verified",
+   "evidence": "table sorted desc, rank 1..8, top value 3.702301"
+  }
+ ],
+ "warnings": [
+  {
+   "id": "W1",
+   "severity": "medium",
+   "topic": "source coverage",
+   "message": "Only 2 of the 4 loaded datasets survive the mandated complete-case drop: heart_disease_uci has no BMI column and sleep_health has no glucose column, so both contribute 0 rows. The modeled population is 3612 rows (diabetes 2612, stroke 1000).",
+   "impact": "The stated scope 'across multiple patient populations' is effectively 2 cohorts, and the lifestyle half of the question (sleep, physical activity, stress, smoking, steps) has no representation in the feature matrix."
+  },
+  {
+   "id": "W2",
+   "severity": "medium",
+   "topic": "bp variable heterogeneity",
+   "message": "'bp' is diastolic mm Hg for diabetes (range 24-122, mean 72.42) but a binary hypertension flag for stroke (0/1, mean 0.09), as required by the task spec.",
+   "impact": "bp, bp_bmi_ratio and the PCA components partly encode cohort membership rather than a common blood-pressure scale; bp-related coefficients are not clinically comparable across sources."
+  },
+  {
+   "id": "W3",
+   "severity": "medium",
+   "topic": "duplicate records / leakage",
+   "message": "1879 of 2612 diabetes rows are exact duplicates on the modeled columns (duplication is present in the raw Healthcare-Diabetes.csv, 1990 duplicate rows overall); only 1733 unique feature vectors exist among 3612 patients.",
+   "impact": "In-sample metrics (accuracy 0.8120, ROC-AUC 0.8624) are optimistic because duplicate rows sit in both fit and evaluation passes; no train/test split or de-duplication was part of the specified workflow."
+  },
+  {
+   "id": "W4",
+   "severity": "medium",
+   "topic": "class imbalance",
+   "message": "Combined prevalence 26.08% (942 positives / 3612). Per source: diabetes 34.0%, stroke 5.4% (raw stroke 4.87%, random subsample shifted it to 5.4%). No class weighting or resampling was specified.",
+   "impact": "Coefficients and odds ratios are dominated by the diabetes cohort; stroke-specific signal (5.4% prevalence) is under-weighted, so 'predictors of chronic disease burden' should be read as diabetes-driven."
+  },
+  {
+   "id": "W5",
+   "severity": "medium",
+   "topic": "top predictor interpretability",
+   "message": "The largest |coefficient| belongs to a latent PCA component (pca_component_3, coefficient +3.702301), not to a directly measurable clinical or lifestyle variable.",
+   "impact": "The headline answer (3.702301) is a linear-combination score (dominant loadings bmi +0.722, glucose_bmi_ratio -0.539); the strongest interpretable predictors are bmi (-2.993799), age_glucose_interaction (-2.983382) and bp_bmi_ratio (-2.167536)."
+  },
+  {
+   "id": "W6",
+   "severity": "low",
+   "topic": "feature selection outcome",
+   "message": "RFE(n_features_to_select=5) retained glucose, bmi, bp, age_glucose_interaction, bp_bmi_ratio and dropped age, glucose_bmi_ratio and source_encoded (ranks 3, 2, 4).",
+   "impact": "Raw age enters the model only through age*glucose/1000; the strong negative age_glucose_interaction coefficient is a collinearity/scale artifact, not evidence that older+hyperglycemic patients are protected."
+  },
+  {
+   "id": "W7",
+   "severity": "low",
+   "topic": "implausible ages in stroke source",
+   "message": "8 stroke rows have age < 1 year (min 0.16) and 53 have age < 5; these are retained in the harmonized data.",
+   "impact": "Likely unit-entry errors (months recorded as years); negligible effect on 3612 rows but they anchor the low end of the age range."
+  },
+  {
+   "id": "W8",
+   "severity": "low",
+   "topic": "evaluation protocol",
+   "message": "All reported performance numbers are in-sample (no hold-out or cross-validation), as the specified workflow contains no split step.",
+   "impact": "Accuracy/AUC should not be cited as generalization estimates."
+  }
+ ],
+ "final_answer": {
+  "top_predictor": "pca_component_3",
+  "top_coefficient": 3.702301,
+  "note": "Most important predictor in the hybrid feature set is PCA component 3 (positive sign); file top_coefficient.txt contains 3.702301",
+  "interpretable_runner_up": [
+   {
+    "feature": "bmi",
+    "coefficient": -2.993799
+   },
+   {
+    "feature": "age_glucose_interaction",
+    "coefficient": -2.983382
+   },
+   {
+    "feature": "bp_bmi_ratio",
+    "coefficient": -2.167536
+   },
+   {
+    "feature": "glucose",
+    "coefficient": 1.066195
+   },
+   {
+    "feature": "bp",
+    "coefficient": 0.579909
+   }
+  ]
+ },
+ "recommendations": [
+  "Report the answer as 3.702301 while explicitly stating it is a latent component; cite bmi (-2.993799) as the strongest directly interpretable clinical predictor.",
+  "Do not describe results as lifestyle predictors: no lifestyle variables entered the model (sleep/stroke-heart sources contributed 0 rows).",
+  "For a leakage-safe estimate, de-duplicate the diabetes source (1733 unique feature vectors) and use a train/test split or cross-validation.",
+  "Consider reporting per-cohort models instead of pooling, given the bp scale mismatch and 34% vs 5.4% prevalence divergence."
+ ]
+}

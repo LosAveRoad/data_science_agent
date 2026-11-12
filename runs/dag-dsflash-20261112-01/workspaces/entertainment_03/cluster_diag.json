@@ -1,0 +1,144 @@
+[
+ {
+  "cluster_id": 0,
+  "size": 59777,
+  "dom": 2,
+  "dom_mean": 0.1404,
+  "runner_up": 3,
+  "gap": 0.006,
+  "coh": 0.089,
+  "sources": {
+   "spotify": 55625,
+   "books": 2048,
+   "movies": 1039,
+   "netflix": 418
+  }
+ },
+ {
+  "cluster_id": 1,
+  "size": 2268,
+  "dom": 2,
+  "dom_mean": 0.6628,
+  "runner_up": 1,
+  "gap": 0.5961,
+  "coh": 0.6222,
+  "sources": {
+   "spotify": 2268
+  }
+ },
+ {
+  "cluster_id": 2,
+  "size": 2914,
+  "dom": 3,
+  "dom_mean": 0.6208,
+  "runner_up": 1,
+  "gap": 0.566,
+  "coh": 0.6575,
+  "sources": {
+   "spotify": 2901,
+   "movies": 10,
+   "vgsales": 3
+  }
+ },
+ {
+  "cluster_id": 3,
+  "size": 3610,
+  "dom": 4,
+  "dom_mean": 0.2416,
+  "runner_up": 6,
+  "gap": 0.0837,
+  "coh": 0.5298,
+  "sources": {
+   "spotify": 3553,
+   "movies": 38,
+   "vgsales": 10,
+   "books": 6
+  }
+ },
+ {
+  "cluster_id": 4,
+  "size": 4010,
+  "dom": 0,
+  "dom_mean": 0.6084,
+  "runner_up": 2,
+  "gap": 0.5506,
+  "coh": 0.5556,
+  "sources": {
+   "spotify": 4001,
+   "top50_2020": 4,
+   "vgsales": 3,
+   "movies": 2
+  }
+ },
+ {
+  "cluster_id": 5,
+  "size": 8389,
+  "dom": 8,
+  "dom_mean": 0.4297,
+  "runner_up": 9,
+  "gap": 0.0955,
+  "coh": 0.235,
+  "sources": {
+   "netflix": 7172,
+   "spotify": 857,
+   "movies": 354,
+   "vgsales": 4
+  }
+ },
+ {
+  "cluster_id": 6,
+  "size": 43848,
+  "dom": 8,
+  "dom_mean": 0.5579,
+  "runner_up": 9,
+  "gap": 0.2977,
+  "coh": 0.1398,
+  "sources": {
+   "movies": 40731,
+   "spotify": 1815,
+   "netflix": 1207,
+   "vgsales": 68
+  }
+ },
+ {
+  "cluster_id": 7,
+  "size": 1372,
+  "dom": 1,
+  "dom_mean": 0.4173,
+  "runner_up": 3,
+  "gap": 0.1682,
+  "coh": 0.5206,
+  "sources": {
+   "spotify": 1369,
+   "movies": 2,
+   "netflix": 1
+  }
+ },
+ {
+  "cluster_id": 8,
+  "size": 8242,
+  "dom": 0,
+  "dom_mean": 0.4298,
+  "runner_up": 6,
+  "gap": 0.2684,
+  "coh": 0.2782,
+  "sources": {
+   "books": 8238,
+   "spotify": 4
+  }
+ },
+ {
+  "cluster_id": 9,
+  "size": 11005,
+  "dom": 7,
+  "dom_mean": 0.5252,
+  "runner_up": 5,
+  "gap": 0.365,
+  "coh": 0.2232,
+  "sources": {
+   "vgsales": 10993,
+   "movies": 9,
+   "spotify": 3
+  }
+ }
+]

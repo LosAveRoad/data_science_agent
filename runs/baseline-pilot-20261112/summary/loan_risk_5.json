@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-pilot-20261112",
+  "system": "baseline-pi",
+  "taskId": "loan_risk_5",
+  "startedAt": "2026-11-11T18:33:37.188Z",
+  "finishedAt": "2026-11-11T18:34:37.789Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output_1.csv, output_2.csv",
+  "totalSteps": 59,
+  "tokenUsage": {
+    "inputTokens": 8262,
+    "outputTokens": 10011,
+    "totalTokens": 18273
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:33:37.191Z",
+      "finishedAt": "2026-11-11T18:34:37.787Z",
+      "elapsedMs": 60596,
+      "error": null,
+      "steps": 59,
+      "tokenUsage": {
+        "inputTokens": 8262,
+        "outputTokens": 10011,
+        "totalTokens": 18273
+      }
+    }
+  ]
+}

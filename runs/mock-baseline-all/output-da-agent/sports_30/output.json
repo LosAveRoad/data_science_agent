@@ -1,0 +1,6 @@
+{
+  "mock": true,
+  "task_id": "sports_30",
+  "output_file": "output.json",
+  "note": "MockAgentRunner 占位输出（--mock 管线联调，非真实分析结果）"
+}

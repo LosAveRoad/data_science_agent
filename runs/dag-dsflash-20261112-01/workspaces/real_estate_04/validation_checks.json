@@ -1,0 +1,98 @@
+[
+  {
+    "file": "State_Zhvi_1bedroom.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_2bedroom.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_3bedroom.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_4bedroom.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_5BedroomOrMore.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_AllHomes.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_Condominum.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  },
+  {
+    "file": "State_Zhvi_SingleFamilyResidence.csv",
+    "rows": 51,
+    "regiontype": [
+      "State"
+    ],
+    "dup_regions": 0,
+    "nan_start": 0,
+    "nan_end": 0,
+    "nonpos_start": 0,
+    "nonpos_end": 0
+  }
+]

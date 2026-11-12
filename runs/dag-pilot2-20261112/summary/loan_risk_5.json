@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-pilot2-20261112",
+  "system": "dag-prototype",
+  "taskId": "loan_risk_5",
+  "startedAt": "2026-11-11T18:42:48.338Z",
+  "finishedAt": "2026-11-11T18:44:56.040Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output_1.csv, output_2.csv",
+  "totalSteps": 133,
+  "tokenUsage": {
+    "inputTokens": 26860,
+    "outputTokens": 25387,
+    "totalTokens": 52247
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:42:48.340Z",
+      "finishedAt": "2026-11-11T18:43:19.528Z",
+      "elapsedMs": 31188,
+      "error": null,
+      "steps": 38,
+      "tokenUsage": {
+        "inputTokens": 3895,
+        "outputTokens": 5339,
+        "totalTokens": 9234
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:43:19.530Z",
+      "finishedAt": "2026-11-11T18:43:43.268Z",
+      "elapsedMs": 23738,
+      "error": null,
+      "steps": 25,
+      "tokenUsage": {
+        "inputTokens": 3701,
+        "outputTokens": 4107,
+        "totalTokens": 7808
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:43:43.271Z",
+      "finishedAt": "2026-11-11T18:44:06.876Z",
+      "elapsedMs": 23605,
+      "error": null,
+      "steps": 31,
+      "tokenUsage": {
+        "inputTokens": 7987,
+        "outputTokens": 4546,
+        "totalTokens": 12533
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:44:06.877Z",
+      "finishedAt": "2026-11-11T18:44:56.035Z",
+      "elapsedMs": 49158,
+      "error": null,
+      "steps": 39,
+      "tokenUsage": {
+        "inputTokens": 11277,
+        "outputTokens": 11395,
+        "totalTokens": 22672
+      }
+    }
+  ]
+}

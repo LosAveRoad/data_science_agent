@@ -1,0 +1,74 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "healthcare_24",
+  "startedAt": "2026-11-11T19:41:52.999Z",
+  "finishedAt": "2026-11-11T19:45:22.370Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: meta_analysis_results.csv",
+  "totalSteps": 161,
+  "tokenUsage": {
+    "inputTokens": 37043,
+    "outputTokens": 38249,
+    "totalTokens": 75292
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:41:53.007Z",
+      "finishedAt": "2026-11-11T19:42:54.954Z",
+      "elapsedMs": 61947,
+      "error": null,
+      "steps": 34,
+      "tokenUsage": {
+        "inputTokens": 5192,
+        "outputTokens": 10967,
+        "totalTokens": 16159
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:42:54.955Z",
+      "finishedAt": "2026-11-11T19:43:30.104Z",
+      "elapsedMs": 35149,
+      "error": null,
+      "steps": 29,
+      "tokenUsage": {
+        "inputTokens": 7122,
+        "outputTokens": 5854,
+        "totalTokens": 12976
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:43:30.106Z",
+      "finishedAt": "2026-11-11T19:44:14.340Z",
+      "elapsedMs": 44234,
+      "error": null,
+      "steps": 47,
+      "tokenUsage": {
+        "inputTokens": 12537,
+        "outputTokens": 8117,
+        "totalTokens": 20654
+      }
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:44:14.342Z",
+      "finishedAt": "2026-11-11T19:45:22.367Z",
+      "elapsedMs": 68025,
+      "error": null,
+      "steps": 51,
+      "tokenUsage": {
+        "inputTokens": 12192,
+        "outputTokens": 13311,
+        "totalTokens": 25503
+      }
+    }
+  ]
+}

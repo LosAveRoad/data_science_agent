@@ -1,0 +1,60 @@
+{
+  "experimentId": "dag-dsflash-20261112-01",
+  "system": "dag-prototype",
+  "taskId": "ecommerce_35",
+  "startedAt": "2026-11-11T18:59:13.175Z",
+  "finishedAt": "2026-11-11T19:05:44.584Z",
+  "status": "failed",
+  "error": "节点 execute 失败: 已达最大 ReAct 步数上限（40 步），未收到 finish",
+  "result": "节点 execute 失败: 已达最大 ReAct 步数上限（40 步），未收到 finish",
+  "totalSteps": 215,
+  "tokenUsage": {
+    "inputTokens": 37164,
+    "outputTokens": 68936,
+    "totalTokens": 106100
+  },
+  "nodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:59:13.436Z",
+      "finishedAt": "2026-11-11T19:00:21.891Z",
+      "elapsedMs": 68455,
+      "error": null,
+      "steps": 56,
+      "tokenUsage": {
+        "inputTokens": 8669,
+        "outputTokens": 11288,
+        "totalTokens": 19957
+      }
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:00:21.892Z",
+      "finishedAt": "2026-11-11T19:01:05.751Z",
+      "elapsedMs": 43859,
+      "error": null,
+      "steps": 35,
+      "tokenUsage": {
+        "inputTokens": 6887,
+        "outputTokens": 7753,
+        "totalTokens": 14640
+      }
+    },
+    {
+      "nodeId": "execute",
+      "status": "failed",
+      "startedAt": "2026-11-11T19:01:05.752Z",
+      "finishedAt": "2026-11-11T19:05:44.583Z",
+      "elapsedMs": 278831,
+      "error": "已达最大 ReAct 步数上限（40 步），未收到 finish",
+      "steps": 124,
+      "tokenUsage": {
+        "inputTokens": 21608,
+        "outputTokens": 49895,
+        "totalTokens": 71503
+      }
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "node": "execute",
+  "task": "Compare user satisfaction across 4 tourism domains (accommodation, indoor attractions, outdoor attractions, destination) via harmonized 1-5 scale + robust Z, per-source stats, and one-way ANOVA.",
+  "methods": {
+    "harmonization": "All four raw variables were already on a 1-5 integer/float scale, so only range verification (min>=1, max<=5) and NaN removal were needed - no linear rescaling. Sources: Airbnb_Open_Data.csv['review rate number'] (accommodation), indoors.csv['rating'] (indoor_attraction), outdoors.csv['rate'] (outdoor_attraction), tx_clean.csv['Rating'] coerced with pd.to_numeric(errors='coerce') (destination, derived from TripAdvisor Transaction.xlsx).",
+    "robust_z": "Within each source independently: z=(x-median)/(1.4826*MAD), MAD=median(|x-median|). No source hit the MAD==0 fallback.",
+    "source_statistics": "Per source on robust-Z scores: n, mean, sample std (ddof=1), se=std/sqrt(n), 95% CI = mean +/- t_{0.975,n-1}*se (scipy.stats.t.ppf).",
+    "anova": "scipy.stats.f_oneway on the four robust-Z vectors; eta^2 = SS_between/SS_total with SS_between=sum(n_g*(mean_g-grand_mean)^2); companion omega^2 = (SS_b - df_b*MS_w)/(SS_t + MS_w).",
+    "diagnostics": "Pairwise Welch t-tests with Cohen's d (pooled by df) on all 6 pairs; Brown-Forsythe/Levene (median-centred) on raw 1-5 values; venue-level sensitivity ANOVA aggregating FISETIO months to one value per mus_ID (n=27) / park_id (n=83); raw 1-5 ANOVA for reference; log10(p) computed via chi2(3) tail asymptotics because p underflows in float64."
+  },
+  "harmonized_inputs": {
+    "accommodation": {
+      "n_valid": 102273,
+      "raw_mean": 3.2791,
+      "raw_std": 1.2847,
+      "raw_min": 1.0,
+      "raw_max": 5.0
+    },
+    "indoor_attraction": {
+      "n_valid": 2676,
+      "raw_mean": 4.3765,
+      "raw_std": 0.5606,
+      "raw_min": 1.0,
+      "raw_max": 5.0
+    },
+    "outdoor_attraction": {
+      "n_valid": 2923,
+      "raw_mean": 4.6705,
+      "raw_std": 0.2614,
+      "raw_min": 3.0,
+      "raw_max": 5.0
+    },
+    "destination": {
+      "n_valid": 52930,
+      "raw_mean": 4.1577,
+      "raw_std": 0.9705,
+      "raw_min": 1.0,
+      "raw_max": 5.0
+    }
+  },
+  "robust_scaling": {
+    "accommodation": {
+      "median": 3.0,
+      "mad": 1.0,
+      "robust_scale": 1.4826,
+      "scale_method": "MAD*1.4826"
+    },
+    "indoor_attraction": {
+      "median": 4.55,
+      "mad": 0.18,
+      "robust_scale": 0.266868,
+      "scale_method": "MAD*1.4826"
+    },
+    "outdoor_attraction": {
+      "median": 4.714286,
+      "mad": 0.156682,
+      "robust_scale": 0.232297,
+      "scale_method": "MAD*1.4826"
+    },
+    "destination": {
+      "median": 4.0,
+      "mad": 1.0,
+      "robust_scale": 1.4826,
+      "scale_method": "MAD*1.4826"
+    }
+  },
+  "source_statistics_robust_z": [
+    {
+      "source": "accommodation",
+      "n": 102273,
+      "mean": 0.188254,
+      "std": 0.866489,
+      "ci_lower": 0.182944,
+      "ci_upper": 0.193565
+    },
+    {
+      "source": "indoor_attraction",
+      "n": 2676,
+      "mean": -0.650175,
+      "std": 2.100832,
+      "ci_lower": -0.729808,
+      "ci_upper": -0.570542
+    },
+    {
+      "source": "outdoor_attraction",
+      "n": 2923,
+      "mean": -0.188517,
+      "std": 1.125382,
+      "ci_lower": -0.229331,
+      "ci_upper": -0.147702
+    },
+    {
+      "source": "destination",
+      "n": 52930,
+      "mean": 0.106366,
+      "std": 0.654622,
+      "ci_lower": 0.100789,
+      "ci_upper": 0.111943
+    }
+  ],
+  "anova": {
+    "statistic_F": 1064.888298,
+    "p_value": 0.0,
+    "p_display": "~1e-693",
+    "log10_p": -692.06,
+    "effect_size_eta_squared": 0.019481,
+    "omega_squared": 0.019462,
+    "df_between": 3,
+    "df_within": 160798,
+    "N_total": 160802,
+    "alpha": 0.05,
+    "decision": "reject H0 (p << 1e-300): domain means differ"
+  },
+  "post_hoc": {
+    "accommodation vs indoor_attraction": {
+      "t": 20.5994,
+      "p": 1.0960557501086453e-87,
+      "cohens_d": 0.9125
+    },
+    "accommodation vs outdoor_attraction": {
+      "t": 17.9491,
+      "p": 1.5619868321437836e-68,
+      "cohens_d": 0.4307
+    },
+    "accommodation vs destination": {
+      "t": 20.8417,
+      "p": 2.5718908211966358e-96,
+      "cohens_d": 0.1023
+    },
+    "indoor_attraction vs outdoor_attraction": {
+      "t": -10.1163,
+      "p": 9.001100067076514e-24,
+      "cohens_d": -0.2774
+    },
+    "indoor_attraction vs destination": {
+      "t": -18.5832,
+      "p": 1.2279363048409013e-72,
+      "cohens_d": -0.9606
+    },
+    "outdoor_attraction vs destination": {
+      "t": -14.036,
+      "p": 2.0815074525005625e-43,
+      "cohens_d": -0.4291
+    }
+  },
+  "diagnostics": {
+    "levene_raw_1to5": {
+      "statistic": 4764.6373,
+      "p": 0.0,
+      "note": "variance heterogeneity is severe; equal-variance F-test is only approximate"
+    },
+    "skew_kurtosis": {
+      "accommodation": {
+        "skew": -0.139,
+        "kurtosis": -1.127
+      },
+      "indoor_attraction": {
+        "skew": -2.501,
+        "kurtosis": 8.388
+      },
+      "outdoor_attraction": {
+        "skew": -1.44,
+        "kurtosis": 4.291
+      },
+      "destination": {
+        "skew": -1.198,
+        "kurtosis": 1.166
+      }
+    },
+    "sensitivity": {
+      "log10_p_chi2approx": -692.0585146605672,
+      "raw_scale_anova": {
+        "F": 7791.612162063219,
+        "p": 0.0,
+        "eta_sq": 0.12691793715161867
+      },
+      "venue_level_sensitivity": {
+        "F": 127.96653768900633,
+        "p": 8.605188137323357e-83,
+        "eta_sq": 0.002465749009884841,
+        "n_indoor_venues": 27,
+        "n_outdoor_venues": 83
+      }
+    }
+  },
+  "key_findings": [
+    "Ordering on robust-Z (deviation from own median in robust SD units): accommodation +0.188 > destination +0.106 > outdoor_attraction -0.189 > indoor_attraction -0.650.",
+    "One-way ANOVA: F=1064.888, df=(3, 160798), p<1e-300 (log10 p ~ -692), eta^2=0.0195 -> statistically decisive but SMALL effect (Cohen: 0.01 small, 0.06 medium).",
+    "All 6 pairwise Welch contrasts are significant at alpha=0.05; p-values are driven by the large N (~1.6e5) rather than by large gaps.",
+    "Robust-Z comparison measures how far each domain's central tendency sits from ITS OWN median, not absolute satisfaction; on the raw 1-5 scale the ranking is different (outdoor 4.67 > indoor 4.38 > destination 4.16 > accommodation 3.28) and eta^2 rises to 0.127.",
+    "Caveat: FISETIO rows are venue-month aggregates (pseudo-replication). Aggregating to venue level (27 museums, 83 parks) keeps significance (F=128.0, p=8.6e-83) but eta^2 drops to 0.0025, so the between-domain differences, while real, are of modest magnitude and dominated by the accommodation (Airbnb) distribution.",
+    "Levene on raw values is highly significant (statistic 4764.6, p~0), confirming unequal variances; robust scaling and Welch post-hoc were used accordingly."
+  ],
+  "outputs": [
+    "output1.csv",
+    "output2.csv",
+    "anova_detail.json",
+    "posthoc.json",
+    "anova_sensitivity.json",
+    "execute_summary.json"
+  ],
+  "output_schema": {
+    "output1.csv": "source, n, mean, std, ci_lower, ci_upper (on robust-Z scores)",
+    "output2.csv": "statistic, p_value, effect_size (one row: one-way ANOVA)"
+  }
+}

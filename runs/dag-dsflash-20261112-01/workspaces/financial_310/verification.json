@@ -1,0 +1,170 @@
+{
+  "node": "verify_output",
+  "version": "1.0",
+  "question": "Which industry has the largest YoY decline in net profit margin (consolidated statements) from H1 2024 to H1 2025?",
+  "artifacts_checked": [
+    "output.csv",
+    "industry_margin_weighted.csv",
+    "execute_summary.json"
+  ],
+  "overall_status": "PASS",
+  "verdict": "输出正确且完整：output.csv 唯一一行 '农副食品加工业' 与基于数据库的独立复算结果一致。",
+  "file_checks": {
+    "output.csv": {
+      "exists": true,
+      "bytes": 36,
+      "sha256_short": "7fe5045b404a604b",
+      "encoding": "UTF-8 (no BOM)",
+      "header": [
+        "industry_name"
+      ],
+      "header_matches_required": true,
+      "data_rows": 1,
+      "rows_expected": 1,
+      "column_count_ok": true,
+      "has_empty_or_nan_value": false,
+      "chinese_text_intact": true,
+      "value": "农副食品加工业",
+      "status": "PASS"
+    },
+    "industry_margin_weighted.csv": {
+      "exists": true,
+      "rows": 39,
+      "columns": [
+        "industry_name",
+        "m2024",
+        "m2025",
+        "delta_pp"
+      ],
+      "industries_match_recompute": true,
+      "max_abs_diff_vs_recompute": {
+        "m2024": 0.0,
+        "m2025": 0.0,
+        "delta_pp": 0.01
+      },
+      "note": "delta_pp 0.01pp 级差异源于'先四舍五入margin再作差'与'先作差再四舍五入'的取整顺序，不影响排序与结论",
+      "status": "PASS"
+    },
+    "execute_summary.json": {
+      "exists": true,
+      "answer_consistent": true,
+      "status": "PASS"
+    }
+  },
+  "recomputation": {
+    "source": "pub_fin_data.sqlite: fact_income_statement JOIN dim_company ON company_id",
+    "filters": {
+      "report_type": "合并报表 (consolidated only)",
+      "period_type": "H1",
+      "period_date": [
+        "2024-06-30",
+        "2025-06-30"
+      ]
+    },
+    "metric": "margin_pct = SUM(net_profit)/SUM(revenue)*100 per industry-period (revenue-weighted, industry as one entity)",
+    "yoy": "delta_pp = margin_2025H1 - margin_2024H1; most negative = largest decline",
+    "panel": {
+      "companies_per_period": {
+        "2024-06-30": 172,
+        "2025-06-30": 172
+      },
+      "industries_per_period": {
+        "2024-06-30": 39,
+        "2025-06-30": 39
+      },
+      "companies_in_both_periods": 172,
+      "balanced": true
+    },
+    "data_quality": {
+      "duplicate_keys_in_fact_table": 0,
+      "revenue_nulls_consolidated_H1": 0,
+      "net_profit_nulls_consolidated_H1": 0,
+      "revenue_nonpositive_consolidated_H1": 0,
+      "industries_with_nonpositive_revenue": 0,
+      "nan_in_pivot": 0
+    },
+    "cross_check_totals": {
+      "2024H1": {
+        "sum_net_profit": 1690327067022.5,
+        "sum_revenue": 14205024709116.5,
+        "margin_pct": 11.9
+      },
+      "2025H1": {
+        "sum_net_profit": 1699743929086.1,
+        "sum_revenue": 13858678509538.8,
+        "margin_pct": 12.27
+      },
+      "matches_profile_plan": true
+    },
+    "answer": {
+      "industry_name": "农副食品加工业",
+      "margin_2024H1_pct": -6.03,
+      "margin_2025H1_pct": -12.69,
+      "delta_pp": -6.66,
+      "companies": 3,
+      "same_as_output_csv": true
+    },
+    "runner_ups": [
+      {
+        "industry_name": "房地产业",
+        "delta_pp": -3.86
+      },
+      {
+        "industry_name": "铁路运输业",
+        "delta_pp": -3.76
+      },
+      {
+        "industry_name": "橡胶和塑料制品业",
+        "delta_pp": -2.33
+      },
+      {
+        "industry_name": "煤炭开采和洗选业",
+        "delta_pp": -1.93
+      }
+    ],
+    "margin_vs_runner_up_gap_pp": 2.8,
+    "largest_gain": {
+      "industry_name": "研究和试验发展",
+      "delta_pp": 16.81
+    },
+    "sign_direction_check": "max(delta_pp) > 0（有行业净利率上升），排序方向未反转"
+  },
+  "completeness_checks": {
+    "all_39_industries_compared": true,
+    "both_periods_present_for_every_industry": true,
+    "no_dropped_industry_due_to_missing_data": true,
+    "only_consolidated_statements_used": true,
+    "parent_company_statements_excluded_reason": "母公司报表存在 9 条 revenue<=0 记录，会污染净利率口径，已按口径要求排除",
+    "answer_industry_has_3_companies_and_all_3_margins_declined": true
+  },
+  "robustness_and_caveats": {
+    "revenue_weighted_primary": {
+      "top1": "农副食品加工业",
+      "delta_pp": -6.66,
+      "note": "数据集行业级口径的既定主方法（行业视为单一主体），output.csv 采用此结果"
+    },
+    "balanced_panel_only": {
+      "top1": "农副食品加工业",
+      "delta_pp": -6.657,
+      "note": "172 家公司两期均存在，限制样本后结论不变"
+    },
+    "equal_weight_sensitivity": {
+      "top1": "软件和信息技术服务业",
+      "delta_pp": -33.65,
+      "top2": "房地产业",
+      "note": "简单平均公司净利率会被单个软件公司净利率坍塌至 -265% 的极端值主导，不适合行业级比较；仅作敏感性参考，不改变结论"
+    },
+    "median_sensitivity": {
+      "top1": "专用设备制造业",
+      "delta_pp": -7.52,
+      "note": "中位数口径下 农副食品加工业 仍居第 2（-5.27pp），方向一致"
+    },
+    "driver": "农副食品加工业净利率下滑由大收入体量公司 CN000048 主导（营收 437.97 亿→405.09 亿，净利润 -36.40 亿→-61.02 亿，净利率 -8.31%→-15.06%）；同时行业内另 2 家（CN000028、CN000004）净利率亦下滑，属行业内普遍恶化而非单一离群值",
+    "scope_limit": "only 172 companies / 39 industries in dataset; H1 为 2024-06-30 与 2025-06-30 两个半年报口径，Q3 2025 仅 13 行，未使用"
+  },
+  "issues_found": [],
+  "warnings": [
+    "industry_margin_weighted.csv 中 2 个行业的 delta_pp 与复算值存在 0.01pp 的取整顺序差异（不影响排序）"
+  ],
+  "recommendation": "接受 output.csv 作为最终结果"
+}

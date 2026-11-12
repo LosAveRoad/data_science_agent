@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-pilot-20261112",
+  "system": "baseline-pi",
+  "taskId": "healthcare_05",
+  "startedAt": "2026-11-11T18:32:30.191Z",
+  "finishedAt": "2026-11-11T18:33:37.185Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output.csv, output.png",
+  "totalSteps": 62,
+  "tokenUsage": {
+    "inputTokens": 9595,
+    "outputTokens": 7923,
+    "totalTokens": 17518
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:32:30.198Z",
+      "finishedAt": "2026-11-11T18:33:37.181Z",
+      "elapsedMs": 66983,
+      "error": null,
+      "steps": 62,
+      "tokenUsage": {
+        "inputTokens": 9595,
+        "outputTokens": 7923,
+        "totalTokens": 17518
+      }
+    }
+  ]
+}

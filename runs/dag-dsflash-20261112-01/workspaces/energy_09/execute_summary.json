@@ -1,0 +1,98 @@
+{
+  "task": "Fossil fuel dependency index per US state (50 states + DC), 2017",
+  "formula": "fossil_dependency_index = fossil_generation_MWh_2017 / solar_potential_MWh_2017 * industrial_price_cents_per_kWh_2017",
+  "method": [
+    "Solar: Google Project Sunroof state file read with csv.DictReader (utf-8-sig); dropped the single non-geographic row with state_name=='NULL'; solar_potential_MWh_2017 = yearly_sunlight_kwh_total / 1000 (kWh -> MWh). 51/51 states present.",
+    "Generation: streamed US_Energy_Generation_2001-2022.csv (496,774 rows); kept YEAR=='2017' and TYPE OF PRODUCER=='Total Electric Power Industry' (aggregate; sub-producer categories excluded to avoid double counting) and ENERGY SOURCE in {Coal, Natural Gas, Petroleum}; summed GENERATION (Megawatthours) over 12 months per state; mapped 2-letter STATE to full name (dropped 'US-TOTAL').",
+    "Price: streamed U.S._Electricity_Prices.csv; kept year=='2017', sectorName=='industrial'; excluded the 11 aggregate entities (U.S. Total + 9 census divisions + 2 Pacific aggregates); annual price = simple mean of the 12 monthly 'price' values (already cents/kWh).",
+    "Inner-joined the three sources on full state name (51/51 entities, no missing, no duplicates), computed the index without rounding inputs, sorted alphabetically by state_name, wrote output.csv with the 5 required columns."
+  ],
+  "key_intermediate_results": {
+    "entities": 51,
+    "solar_potential_MWh_range": [
+      420338.38681933575,
+      198016349.09015596
+    ],
+    "fossil_generation_MWh_range": [
+      8940.0,
+      339324066.0
+    ],
+    "fossil_generation_min_state": "Vermont",
+    "fossil_generation_max_state": "Texas",
+    "industrial_price_cents_per_kWh_range": [
+      4.600833333333333,
+      22.944166666666664
+    ],
+    "industrial_price_min_state": "Washington",
+    "industrial_price_max_state": "Hawaii",
+    "fossil_dependency_index_range": [
+      0.171328961895518,
+      255.18350274574388
+    ],
+    "index_min_state": "District of Columbia",
+    "index_max_state": "Wyoming",
+    "index_top5": [
+      {
+        "state": "Wyoming",
+        "index": 255.18350274574388
+      },
+      {
+        "state": "West Virginia",
+        "index": 250.5024155340976
+      },
+      {
+        "state": "Alaska",
+        "index": 163.5717378353427
+      },
+      {
+        "state": "North Dakota",
+        "index": 101.31690558449505
+      },
+      {
+        "state": "Delaware",
+        "index": 91.2239841665582
+      }
+    ],
+    "index_bottom3": [
+      {
+        "state": "District of Columbia",
+        "index": 0.171328961895518
+      },
+      {
+        "state": "Vermont",
+        "index": 0.2172230823144983
+      },
+      {
+        "state": "Idaho",
+        "index": 3.329780344786807
+      }
+    ]
+  },
+  "validation": {
+    "cross_check_total_vs_components_2017_max_abs_diff_MWh": 7.0,
+    "fossil_never_exceeds_total": true,
+    "all_states_have_12_months_generation": true,
+    "all_states_have_12_months_price": true,
+    "no_missing_or_nonpositive_values": true,
+    "independent_recomputation_spot_checks": {
+      "Texas": 15.502792088041348,
+      "District of Columbia": 0.171328961895518,
+      "Wyoming": 255.18350274574388
+    },
+    "output_rows": 51,
+    "notes": "DC has only 24 fossil source-month rows (no coal generation); Vermont has the smallest fossil generation (8,940 MWh). Values match an independent line-based recomputation for the spot-checked states."
+  },
+  "outputs": [
+    {
+      "path": "output.csv",
+      "columns": [
+        "state_name",
+        "fossil_generation_MWh_2017",
+        "solar_potential_MWh_2017",
+        "industrial_price_cents_per_kWh_2017",
+        "fossil_dependency_index"
+      ],
+      "rows": 51
+    }
+  ]
+}

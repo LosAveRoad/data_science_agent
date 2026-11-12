@@ -1,0 +1,156 @@
+{
+ "artifact": "execute_summary.json",
+ "node": "execution",
+ "status": "completed",
+ "analysis_method": {
+  "step1_load_and_harmonize": "pandas.read_csv on all 4 datasets; diabetes Glucose/BMI/BloodPressure zeros -> NaN BEFORE any drop; harmonized to columns [source, age, glucose, bmi, bp, target] (stroke bp = 'hypertension' binary proxy; heart glucose = fbs proxy True->140/False->90 and bmi unavailable; sleep bmi = BMI Category ordinal map and bp = systolic from 'sys/dia', glucose unavailable).",
+  "step2_unified_dataset": "Per-source dropna(subset=['age','glucose','bmi','bp']), then stroke sampled to 1000 (random_state=42), then concat + reset_index. Heart (no BMI) and Sleep (no glucose) contribute 0 rows by the mandated rule.",
+  "step3_feature_engineering": "glucose_bmi_ratio = glucose/(bmi+1); age_glucose_interaction = age*glucose/1000; bp_bmi_ratio = bp/(bmi+1); source_encoded = LabelEncoder(diabetes=0, stroke=1); 8-column candidate matrix; median fill applied (0 missing values remained).",
+  "step4_rfe": "RFE(estimator=RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10), n_features_to_select=5, step=1)",
+  "step5_pca": "PCA(n_components=3, random_state=42) fit on StandardScaler-transformed 8-feature candidate matrix",
+  "step6_hybrid": "5 RFE-selected features + pca_component_1..3 = 8-column hybrid matrix",
+  "step7_model": "LogisticRegression(max_iter=1000, random_state=42, C=1.0) on StandardScaler-transformed hybrid features, target = binary chronic condition indicator",
+  "step8_ranking": "Coefficients ranked by absolute magnitude; saved coefficient table, selected feature list, 1x2 figure, and top coefficient"
+ },
+ "key_intermediate_results": {
+  "harmonization_log": {
+   "diabetes": {
+    "raw_rows": 2768,
+    "rows_after_dropna": 2612,
+    "prevalence": 0.34
+   },
+   "stroke": {
+    "raw_rows": 5110,
+    "rows_after_dropna": 4909,
+    "rows_after_sample_1000": 1000,
+    "prevalence": 0.054
+   },
+   "heart_disease_uci": {
+    "raw_rows": 920,
+    "rows_after_dropna": 0,
+    "reason": "no BMI column -> fails base-biomarker drop rule"
+   },
+   "sleep_health": {
+    "raw_rows": 374,
+    "rows_after_dropna": 0,
+    "reason": "no glucose column -> fails base-biomarker drop rule"
+   }
+  },
+  "combined_dataset": {
+   "rows": 3612,
+   "features": 8,
+   "sources": {
+    "diabetes": 2612,
+    "stroke": 1000
+   },
+   "target_prevalence": 0.2608
+  },
+  "source_encoded_mapping": {
+   "diabetes": 0,
+   "stroke": 1
+  },
+  "rfe_selected_features": [
+   "glucose",
+   "bmi",
+   "bp",
+   "age_glucose_interaction",
+   "bp_bmi_ratio"
+  ],
+  "rfe_ranking": {
+   "glucose": 1,
+   "bmi": 1,
+   "bp": 1,
+   "age_glucose_interaction": 1,
+   "bp_bmi_ratio": 1,
+   "glucose_bmi_ratio": 2,
+   "age": 3,
+   "source_encoded": 4
+  },
+  "pca_explained_variance_ratio": {
+   "pca_component_1": 0.381163,
+   "pca_component_2": 0.313251,
+   "pca_component_3": 0.182714
+  },
+  "pca_cumulative_explained_variance": 0.877127,
+  "model_performance_in_sample": {
+   "accuracy_in_sample": 0.812,
+   "roc_auc_in_sample": 0.8624,
+   "n_rows": 3612,
+   "n_positives": 942,
+   "prevalence": 0.2608,
+   "intercept": -1.660267
+  },
+  "coefficient_ranking": [
+   {
+    "rank": 1,
+    "feature": "pca_component_3",
+    "coefficient": 3.702301,
+    "abs_coefficient": 3.702301
+   },
+   {
+    "rank": 2,
+    "feature": "bmi",
+    "coefficient": -2.993799,
+    "abs_coefficient": 2.993799
+   },
+   {
+    "rank": 3,
+    "feature": "age_glucose_interaction",
+    "coefficient": -2.983382,
+    "abs_coefficient": 2.983382
+   },
+   {
+    "rank": 4,
+    "feature": "pca_component_2",
+    "coefficient": 2.953507,
+    "abs_coefficient": 2.953507
+   },
+   {
+    "rank": 5,
+    "feature": "pca_component_1",
+    "coefficient": 2.8148,
+    "abs_coefficient": 2.8148
+   },
+   {
+    "rank": 6,
+    "feature": "bp_bmi_ratio",
+    "coefficient": -2.167536,
+    "abs_coefficient": 2.167536
+   },
+   {
+    "rank": 7,
+    "feature": "glucose",
+    "coefficient": 1.066195,
+    "abs_coefficient": 1.066195
+   },
+   {
+    "rank": 8,
+    "feature": "bp",
+    "coefficient": 0.579909,
+    "abs_coefficient": 0.579909
+   }
+  ],
+  "top_predictor": {
+   "feature": "pca_component_3",
+   "coefficient": 3.702301,
+   "abs_coefficient": 3.702301
+  }
+ },
+ "interpretation": [
+  "pca_component_3 has the largest |coefficient| (3.702301); its loadings are bmi +0.72 and glucose_bmi_ratio -0.54, i.e. a body-composition axis consistent with the strong negative bmi (-2.99) and age_glucose_interaction (-2.98) effects.",
+  "Among interpretable raw features, higher BMI, higher age*glucose interaction and higher bp/bmi ratio all lower the odds of the composite chronic-condition indicator (negative signs), while raw glucose and raw bp are positive but weaker.",
+  "Caveat: because 'bp' is semantically inconsistent across sources (diastolic mm Hg for diabetes vs binary 0/1 hypertension for stroke) and prevalence differs sharply (34% vs 5.4%), the PCA components and bp-related terms absorb cohort (source) structure; coefficients are associative, not causal, and in-sample metrics (acc 0.812, AUC 0.862) are not out-of-sample validated."
+ ],
+ "outputs": {
+  "feature_coefficients.csv": "rank, feature, coefficient, abs_coefficient (8 hybrid features, ranked by |coefficient|)",
+  "selected_features.csv": "feature, feature_type (rfe_selected / pca_component), abs_coefficient (8 features in hybrid order)",
+  "feature_analysis.png": "1x2 figure: left = hybrid feature coefficients (sorted by |coef|), right = PCA explained variance (individual bars + cumulative line)",
+  "top_coefficient.txt": "coefficient of the most important predictor (pca_component_3) = 3.702301",
+  "supporting": [
+   "harmonized_dataset.csv",
+   "candidate_features.csv",
+   "hybrid_features.csv",
+   "pca_model_details.json"
+  ]
+ }
+}

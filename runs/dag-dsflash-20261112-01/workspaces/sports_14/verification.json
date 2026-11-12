@@ -1,0 +1,178 @@
+{
+ "node": "verify",
+ "task": "NBA Physical Attributes Impact on Career Performance",
+ "status": "pass",
+ "verified_at_files": [
+  "output.csv",
+  "physical_attributes_analysis.png"
+ ],
+ "summary": "Both deliverables exist, are well-formed and complete; all reported statistics were independently recomputed from the three NBA CSVs with a clean re-implementation of the pipeline and match output.csv within 4-decimal rounding (max abs diff 5e-05).",
+ "checks": {
+  "output_csv": {
+   "exists": true,
+   "size_bytes": 409,
+   "columns_exact_match_required_order": true,
+   "columns": [
+    "attribute",
+    "correlation_with_draft",
+    "p_value_draft",
+    "correlation_with_career",
+    "p_value_career",
+    "composite_score",
+    "normalized_weight"
+   ],
+   "row_count": 4,
+   "row_count_expected": 4,
+   "rows_expected_attributes": [
+    "Height (in, no shoes)",
+    "Wingspan (in)",
+    "Max Vertical Leap (in)",
+    "3/4 Court Sprint (s, lower=faster)"
+   ],
+   "attribute_names_match_expected": true,
+   "all_columns_numeric_float64": true,
+   "missing_values": 0,
+   "duplicate_attributes": false,
+   "correlations_within_-1_1": true,
+   "p_values_within_0_1": true,
+   "normalized_weight_sum": 1.0,
+   "normalized_weight_sum_ok": true,
+   "all_weights_non_negative": true,
+   "composite_formula_recheck_max_abs_diff": 0.0001,
+   "weight_formula_recheck_max_abs_diff": 0.00012,
+   "formulas": {
+    "composite_score": "-correlation_with_draft + correlation_with_career",
+    "normalized_weight": "|composite_score| / sum(|composite_score|)"
+   }
+  },
+  "independent_recomputation": {
+   "method": "Re-implemented the pipeline from source CSVs (filter player_id>0 -> dedup keep latest season -> inner join on person_id -> career_span=to_year-from_year+1 -> valid career 0..25 -> draft_round numeric in [1,10] -> height backfill from 'H-ft' -> scipy pearsonr pairwise-complete) and compared to output.csv.",
+   "max_abs_diff": {
+    "correlation_with_draft": 4.6e-05,
+    "p_value_draft": 0.0,
+    "correlation_with_career": 2.4e-05,
+    "p_value_career": 0.0,
+    "composite_score": 5e-05,
+    "normalized_weight": 5e-05
+   },
+   "tolerance_used": 0.001,
+   "result": "match"
+  },
+  "pipeline_intermediates_reproduced": {
+   "combine_unique_players": 1175,
+   "joined_matched_players": 691,
+   "career_span_range_years": [
+    1.0,
+    21.0
+   ],
+   "career_span_mean_years": 6.1056,
+   "valid_career_filter_0_25_dropped": 0,
+   "players_with_valid_draft_round": 571,
+   "draft_round_counts": {
+    "1": 337,
+    "2": 234
+   },
+   "height_backfilled_from_player_info": 20,
+   "pairwise_n": {
+    "Height (in, no shoes)": {
+     "draft": 571,
+     "career": 691
+    },
+    "Wingspan (in)": {
+     "draft": 554,
+     "career": 672
+    },
+    "Max Vertical Leap (in)": {
+     "draft": 479,
+     "career": 585
+    },
+    "3/4 Court Sprint (s, lower=faster)": {
+     "draft": 477,
+     "career": 583
+    }
+   }
+  },
+  "png": {
+   "exists": true,
+   "size_bytes": 304717,
+   "valid_png_signature": true,
+   "pixel_size": [
+    2100,
+    1650
+   ],
+   "expected_size_for_figsize_14x11_dpi150": [
+    2100,
+    1650
+   ],
+   "layout": "2x2 (4 populated quadrants, each with non-trivial ink; titles band + per-panel axis labels detected)",
+   "panel_evidence": {
+    "panel1_topleft_heatmap": "heatmap + colorbar signature: RdBu colormap extremes/midtones present in the quadrant (colorbar gradient), dense ink area consistent with 4x2 annotated cell grid, x tick labels 'Draft Round'/'Career Span (yrs)'",
+    "panel2_topright_bar": "all four custom bar colors detected with pixel areas proportional to the weights (blue ~36%, green ~24%, orange ~1.7%, red ~38%)",
+    "panel3_bottomleft_scatter_height_vs_draft": "blue scatter points + dark-red least-squares line present; data n=571, height 67.75-86.0 in, draft round {1,2}, r=-0.1014 matches output",
+    "panel4_bottomright_scatter_vertical_vs_career": "green scatter points + dark-red least-squares line present; data n=585, vertical leap 25.0-44.0 in, career span 1-21 yrs, r=-0.0245 matches output"
+   }
+  },
+  "upstream_artifact_consistency": {
+   "execute_summary.json": "status=success; its key_intermediate_results.results_table and artifact list (output.csv, physical_attributes_analysis.png, analyze.py, execute_summary.json) agree with the files present and with the recomputed numbers.",
+   "analyze.py": "Present (221 lines); implements exactly the documented pipeline, writes output.csv then physical_attributes_analysis.png from the same in-memory numbers.",
+   "untouched_by_verify": true
+  }
+ },
+ "numbers_as_delivered": [
+  {
+   "attribute": "Height (in, no shoes)",
+   "correlation_with_draft": -0.1014,
+   "p_value_draft": 0.015385,
+   "correlation_with_career": 0.0477,
+   "p_value_career": 0.210288,
+   "composite_score": 0.1491,
+   "normalized_weight": 0.3614
+  },
+  {
+   "attribute": "Wingspan (in)",
+   "correlation_with_draft": -0.0701,
+   "p_value_draft": 0.099103,
+   "correlation_with_career": 0.0309,
+   "p_value_career": 0.42366,
+   "composite_score": 0.1011,
+   "normalized_weight": 0.2449
+  },
+  {
+   "attribute": "Max Vertical Leap (in)",
+   "correlation_with_draft": -0.0177,
+   "p_value_draft": 0.699943,
+   "correlation_with_career": -0.0245,
+   "p_value_career": 0.553868,
+   "composite_score": -0.0069,
+   "normalized_weight": 0.0167
+  },
+  {
+   "attribute": "3/4 Court Sprint (s, lower=faster)",
+   "correlation_with_draft": 0.1236,
+   "p_value_draft": 0.006863,
+   "correlation_with_career": -0.0319,
+   "p_value_career": 0.44174,
+   "composite_score": -0.1556,
+   "normalized_weight": 0.377
+  }
+ ],
+ "observations_not_errors": [
+  "Only height (r=-0.1014, p=0.0154) and 3/4 court sprint (r=+0.1236, p=0.0069) are significantly correlated with draft round; wingspan (p=0.099) and max vertical leap (p=0.700) are not.",
+  "No attribute has a significant correlation with career span (all p > 0.21), so the career half of the composite is weak evidence - the weights are dominated by the draft-round signal.",
+  "3/4 court sprint is inverted (lower = faster); its raw positive r vs draft round yields a negative composite (-0.1556), yet it receives the largest normalized weight (0.3770) because weights use |composite|. Max vertical leap is the only attribute with a negative composite and gets the minimum weight (0.0167).",
+  "Draft round is effectively binary (Round 1 = 337, Round 2 = 234) in the combine era, so the draft correlations are point-biserial on a restricted range.",
+  "Per-attribute pairwise n differs (477-691), so the normalized weights are not computed from an identical sample.",
+  "Round-to-round rounding: output.csv stores 4/6 decimals, so formula re-checks differ by <=1.2e-04 (pure representation artifact, not a computation error).",
+  "execute_summary.json notes matplotlib was unavailable in the system python and a throw-away venv at /tmp/venv was used; the PNG itself is valid regardless."
+ ],
+ "limitations": [
+  "Survivorship/selection bias: athletic measurements exist only for combine invitees, and only 691 of 1175 unique invitees matched an NBA record.",
+  "Career span is right-censored for still-active players, attenuating the career correlations.",
+  "Univariate Pearson correlations do not control for position, entry age or era.",
+  "Independent verification repeats the same column choices as analyze.py, so it validates computation, not analytical judgement."
+ ],
+ "issues_found": [],
+ "artifacts": [
+  "verification.json"
+ ]
+}

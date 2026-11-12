@@ -1,0 +1,153 @@
+{
+ "explained_var_pct": [
+  40.84,
+  23.01,
+  17.11,
+  15.81,
+  3.23
+ ],
+ "loadings_PC1": {
+  "log_kw_total": -0.3869,
+  "yearly_sunlight_kwh_median": -0.3699,
+  "renew_share": 0.6004,
+  "res_price": 0.1207,
+  "fossil_share": -0.5818
+ },
+ "loadings_PC2": {
+  "log_kw_total": 0.46,
+  "yearly_sunlight_kwh_median": 0.3249,
+  "renew_share": 0.3202,
+  "res_price": -0.689,
+  "fossil_share": -0.325
+ },
+ "pearson": {
+  "log_kw_total": {
+   "log_kw_total": 1.0,
+   "yearly_sunlight_kwh_median": 0.2818,
+   "renew_share": -0.3627,
+   "res_price": -0.1839,
+   "fossil_share": 0.1011,
+   "deploy_per_1k": 0.0965,
+   "percent_qualified": 0.4101
+  },
+  "yearly_sunlight_kwh_median": {
+   "log_kw_total": 0.2818,
+   "yearly_sunlight_kwh_median": 1.0,
+   "renew_share": -0.1492,
+   "res_price": -0.0943,
+   "fossil_share": 0.3014,
+   "deploy_per_1k": 0.4929,
+   "percent_qualified": 0.7978
+  },
+  "renew_share": {
+   "log_kw_total": -0.3627,
+   "yearly_sunlight_kwh_median": -0.1492,
+   "renew_share": 1.0,
+   "res_price": -0.0308,
+   "fossil_share": -0.7455,
+   "deploy_per_1k": -0.0222,
+   "percent_qualified": -0.1424
+  },
+  "res_price": {
+   "log_kw_total": -0.1839,
+   "yearly_sunlight_kwh_median": -0.0943,
+   "renew_share": -0.0308,
+   "res_price": 1.0,
+   "fossil_share": -0.0658,
+   "deploy_per_1k": 0.6309,
+   "percent_qualified": -0.2562
+  },
+  "fossil_share": {
+   "log_kw_total": 0.1011,
+   "yearly_sunlight_kwh_median": 0.3014,
+   "renew_share": -0.7455,
+   "res_price": -0.0658,
+   "fossil_share": 1.0,
+   "deploy_per_1k": 0.1013,
+   "percent_qualified": 0.2744
+  },
+  "deploy_per_1k": {
+   "log_kw_total": 0.0965,
+   "yearly_sunlight_kwh_median": 0.4929,
+   "renew_share": -0.0222,
+   "res_price": 0.6309,
+   "fossil_share": 0.1013,
+   "deploy_per_1k": 1.0,
+   "percent_qualified": 0.3605
+  },
+  "percent_qualified": {
+   "log_kw_total": 0.4101,
+   "yearly_sunlight_kwh_median": 0.7978,
+   "renew_share": -0.1424,
+   "res_price": -0.2562,
+   "fossil_share": 0.2744,
+   "deploy_per_1k": 0.3605,
+   "percent_qualified": 1.0
+  }
+ },
+ "spearman": {
+  "log_kw_total": {
+   "log_kw_total": 1.0,
+   "yearly_sunlight_kwh_median": 0.2108,
+   "renew_share": -0.3118,
+   "res_price": -0.1006,
+   "fossil_share": 0.0184,
+   "deploy_per_1k": 0.1929,
+   "percent_qualified": 0.2262
+  },
+  "yearly_sunlight_kwh_median": {
+   "log_kw_total": 0.2108,
+   "yearly_sunlight_kwh_median": 1.0,
+   "renew_share": -0.026,
+   "res_price": -0.5005,
+   "fossil_share": 0.3004,
+   "deploy_per_1k": -0.0085,
+   "percent_qualified": 0.8652
+  },
+  "renew_share": {
+   "log_kw_total": -0.3118,
+   "yearly_sunlight_kwh_median": -0.026,
+   "renew_share": 1.0,
+   "res_price": -0.0704,
+   "fossil_share": -0.6062,
+   "deploy_per_1k": 0.0475,
+   "percent_qualified": 0.0375
+  },
+  "res_price": {
+   "log_kw_total": -0.1006,
+   "yearly_sunlight_kwh_median": -0.5005,
+   "renew_share": -0.0704,
+   "res_price": 1.0,
+   "fossil_share": -0.1329,
+   "deploy_per_1k": 0.3535,
+   "percent_qualified": -0.5207
+  },
+  "fossil_share": {
+   "log_kw_total": 0.0184,
+   "yearly_sunlight_kwh_median": 0.3004,
+   "renew_share": -0.6062,
+   "res_price": -0.1329,
+   "fossil_share": 1.0,
+   "deploy_per_1k": -0.096,
+   "percent_qualified": 0.3367
+  },
+  "deploy_per_1k": {
+   "log_kw_total": 0.1929,
+   "yearly_sunlight_kwh_median": -0.0085,
+   "renew_share": 0.0475,
+   "res_price": 0.3535,
+   "fossil_share": -0.096,
+   "deploy_per_1k": 1.0,
+   "percent_qualified": 0.1175
+  },
+  "percent_qualified": {
+   "log_kw_total": 0.2262,
+   "yearly_sunlight_kwh_median": 0.8652,
+   "renew_share": 0.0375,
+   "res_price": -0.5207,
+   "fossil_share": 0.3367,
+   "deploy_per_1k": 0.1175,
+   "percent_qualified": 1.0
+  }
+ }
+}

@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "loan_risk_5",
+  "startedAt": "2026-11-11T19:17:11.636Z",
+  "finishedAt": "2026-11-11T19:17:55.946Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 2 个文件: output_1.csv, output_2.csv",
+  "totalSteps": 39,
+  "tokenUsage": {
+    "inputTokens": 5200,
+    "outputTokens": 6133,
+    "totalTokens": 11333
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:17:11.637Z",
+      "finishedAt": "2026-11-11T19:17:55.939Z",
+      "elapsedMs": 44302,
+      "error": null,
+      "steps": 39,
+      "tokenUsage": {
+        "inputTokens": 5200,
+        "outputTokens": 6133,
+        "totalTokens": 11333
+      }
+    }
+  ]
+}

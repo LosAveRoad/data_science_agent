@@ -1,0 +1,137 @@
+{
+  "node": "verify",
+  "task": "校验 output.csv：农业银行 2024 财年营收及其行业（货币金融服务）营收占比",
+  "verdict": "PASS",
+  "artifact_under_review": {
+    "path": "output.csv",
+    "bytes": 42,
+    "md5": "e3958331120aa97a0cdd9854a6e5e063",
+    "encoding": "utf-8-sig",
+    "header": [
+      "营收",
+      "营收占比"
+    ],
+    "data_rows": [
+      [
+        "710555000000",
+        "17.51"
+      ]
+    ]
+  },
+  "independent_recomputation": {
+    "target": {
+      "stock_name": "农业银行",
+      "stock_code": "601288",
+      "company_id": "CN000141",
+      "company_name": "中国农业银行股份有限公司",
+      "industry_name": "货币金融服务"
+    },
+    "scope": "fact_income_statement.period_date='2024-12-31' AND period_type='FY' AND report_type='合并报表'",
+    "revenue_cny": 710555000000,
+    "industry_total_revenue_cny": 4058749070000,
+    "industry_peer_count": 15,
+    "share_pct_raw": 17.506749,
+    "share_pct_rounded": 17.51,
+    "matches_output_csv": true
+  },
+  "checks": [
+    {
+      "check": "file_exists",
+      "passed": true,
+      "detail": "存在且非空，42 字节，md5=e3958331120aa97a0cdd9854a6e5e063"
+    },
+    {
+      "check": "encoding_utf8_bom",
+      "passed": true,
+      "detail": "UTF-8 with BOM (utf-8-sig)，中文列名可被 Excel/UTF-8 正确解析"
+    },
+    {
+      "check": "header_exact",
+      "passed": true,
+      "detail": "表头=['营收', '营收占比']，与验收标准 ['营收','营收占比'] 完全一致"
+    },
+    {
+      "check": "row_count",
+      "passed": true,
+      "detail": "数据行数=1（期望 1 行）"
+    },
+    {
+      "check": "no_missing_values",
+      "passed": true,
+      "detail": "唯一数据行=['710555000000', '17.51']，无空值/占位符"
+    },
+    {
+      "check": "revenue_matches_rederived",
+      "passed": true,
+      "detail": "CSV 营收=710555000000 元 vs 独立重算 农业银行 FY2024 合并报表 revenue=710555000000 元"
+    },
+    {
+      "check": "share_matches_rederived",
+      "passed": true,
+      "detail": "CSV 营收占比=17.51 vs 独立重算 710555000000/4058749070000*100=17.51（未取整值 17.506749）"
+    },
+    {
+      "check": "share_two_decimals",
+      "passed": true,
+      "detail": "营收占比保留 2 位小数"
+    },
+    {
+      "check": "share_numeric_no_symbol",
+      "passed": true,
+      "detail": "营收占比为纯数值，未带 % 号/千分位"
+    },
+    {
+      "check": "revenue_numeric_no_symbol",
+      "passed": true,
+      "detail": "营收为纯数值，未带单位/千分位"
+    },
+    {
+      "check": "share_range",
+      "passed": true,
+      "detail": "占比 17.51 落在 0~100 合理区间"
+    },
+    {
+      "check": "entity_resolution_unique",
+      "passed": true,
+      "detail": "dim_company 精确匹配唯一命中 CN000141 中国农业银行股份有限公司（货币金融服务）"
+    },
+    {
+      "check": "period_scope_FY2024",
+      "passed": true,
+      "detail": "FY2024 = period_date 2024-12-31 + period_type FY（H1/Q3 累计值已排除）"
+    },
+    {
+      "check": "report_type_consistent",
+      "passed": true,
+      "detail": "分子与分母同为 report_type='合并报表'，口径一致（母公司口径备查值 689,620,000,000 / 3,664,179,536,000 = 18.82%，未采用）"
+    },
+    {
+      "check": "industry_denominator_complete",
+      "passed": true,
+      "detail": "行业分母含 15 家 FY2024 合并报表记录，与 dim_company 中货币金融服务全部 15 家公司数一致，无公司遗漏"
+    },
+    {
+      "check": "no_duplicate_pk",
+      "passed": true,
+      "detail": "(company_id, period_date, period_type, report_type) 复合主键全表无重复，无需去重"
+    },
+    {
+      "check": "mathematically_consistent",
+      "passed": true,
+      "detail": "占比与所给营收、行业合计自洽（SUM 覆盖非空、无 <=0 的异常营收值）"
+    },
+    {
+      "check": "matches_upstream_execute_summary",
+      "passed": true,
+      "detail": "execute_summary.json 记录的 营收=710555000000、行业合计=4058749070000、占比=17.51 与本次独立重算及 output.csv 三项全一致（仅未取整值 17.5067 处记录为 17.505912，第二位小数为舍入噪声，不影响 17.51）"
+    }
+  ],
+  "checks_passed": 18,
+  "checks_total": 18,
+  "issues": [],
+  "notes": [
+    "行业口径为 dim_company.industry_name='货币金融服务'（国民经济行业分类，15 家），分母为含农业银行自身的行业营收合计，与分子同口径",
+    "营收单位为元（CNY）原值，未做单位换算；营收占比为百分制数值并保留 2 位小数",
+    "数据集无 FY2025 数据，2024-12-31/FY 是唯一完整年度口径，结果不存在跨年度歧义"
+  ]
+}

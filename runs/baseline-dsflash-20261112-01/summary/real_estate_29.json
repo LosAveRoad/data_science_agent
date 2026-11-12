@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "real_estate_29",
+  "startedAt": "2026-11-11T19:21:11.760Z",
+  "finishedAt": "2026-11-11T19:22:10.536Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 1 个文件: output.json",
+  "totalSteps": 46,
+  "tokenUsage": {
+    "inputTokens": 10901,
+    "outputTokens": 10140,
+    "totalTokens": 21041
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:21:11.775Z",
+      "finishedAt": "2026-11-11T19:22:10.534Z",
+      "elapsedMs": 58759,
+      "error": null,
+      "steps": 46,
+      "tokenUsage": {
+        "inputTokens": 10901,
+        "outputTokens": 10140,
+        "totalTokens": 21041
+      }
+    }
+  ]
+}

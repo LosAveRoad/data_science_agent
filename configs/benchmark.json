@@ -1,0 +1,472 @@
+{
+  "version": "2026-11-12",
+  "frozen": true,
+  "size": 30,
+  "selection_criteria": [
+    "每任务数据集总大小 <= 50 MB（域内候选不足时放宽至 <= 300 MB 并记录）",
+    "15 个顶层域分层抽样，每域 2 个任务",
+    "同域两个任务的 skills 集合重叠尽量小（覆盖不同技能簇）",
+    "只选择 gold 标签齐全且 data_sources 全部可解析的任务",
+    "不含 data_sources 字段的任务（62 个，数据引用嵌在题干中）暂不纳入，降低工作区准备的不确定性"
+  ],
+  "tasks": [
+    {
+      "id": "agriculture_18",
+      "domain": "agriculture",
+      "data_size_mb": 0.86,
+      "n_skills": 34,
+      "hf_paths": [
+        "datasets/agriculture/Crop Recommendation using Soil Properties and Weather Prediction.csv"
+      ],
+      "output_file_name": [
+        "output1.csv",
+        "output2.csv",
+        "output.png"
+      ]
+    },
+    {
+      "id": "agriculture_30",
+      "domain": "agriculture",
+      "data_size_mb": 6.05,
+      "n_skills": 22,
+      "hf_paths": [
+        "datasets/agriculture/Crop Yield Prediction Dataset/pesticides.csv",
+        "datasets/agriculture/Crop Yield Prediction Dataset/rainfall.csv",
+        "datasets/agriculture/Crop Yield Prediction Dataset/yield.csv",
+        "datasets/agriculture/Crop Yield Prediction Dataset/temp.csv"
+      ],
+      "output_file_name": [
+        "output.csv",
+        "output.txt"
+      ]
+    },
+    {
+      "id": "ecommerce_30",
+      "domain": "ecommerce",
+      "data_size_mb": 124.56,
+      "n_skills": 31,
+      "hf_paths": [
+        "datasets/ecommerce/EbayPcLaptopsAndNetbooksUnclean.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_customers_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_geolocation_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_order_items_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_order_reviews_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_orders_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_products_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_sellers_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/product_category_name_translation.csv"
+      ],
+      "output_file_name": [
+        "output1.csv",
+        "output2.csv",
+        "output3.csv",
+        "output.json"
+      ]
+    },
+    {
+      "id": "ecommerce_35",
+      "domain": "ecommerce",
+      "data_size_mb": 120.41,
+      "n_skills": 29,
+      "hf_paths": [
+        "datasets/ecommerce/Brazilian E-Commerce/olist_orders_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_customers_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_sellers_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_order_items_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_order_reviews_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_geolocation_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/olist_products_dataset.csv",
+        "datasets/ecommerce/Brazilian E-Commerce/product_category_name_translation.csv"
+      ],
+      "output_file_name": [
+        "output.db",
+        "output.json"
+      ]
+    },
+    {
+      "id": "energy_03",
+      "domain": "energy",
+      "data_size_mb": 95.81,
+      "n_skills": 33,
+      "hf_paths": [
+        "datasets/energy/Steel_industry_data.csv",
+        "datasets/energy/U.S._Electricity_Prices.csv",
+        "datasets/energy/US_Energy_Generation_2001-2022.csv",
+        "datasets/energy/global-data-on-sustainable-energy.csv",
+        "datasets/energy/owid-co2-data.csv",
+        "datasets/energy/Google Project Sunroof/project-sunroof-state-09082017.csv",
+        "datasets/energy/Google Project Sunroof/project-sunroof-county-09082017.csv",
+        "datasets/energy/Google Project Sunroof/project-sunroof-city-09082017.csv",
+        "datasets/energy/Google Project Sunroof/project-sunroof-postal_code-09082017.csv"
+      ],
+      "output_file_name": [
+        "output.png"
+      ]
+    },
+    {
+      "id": "energy_09",
+      "domain": "energy",
+      "data_size_mb": 43.7,
+      "n_skills": 15,
+      "hf_paths": [
+        "datasets/energy/US_Energy_Generation_2001-2022.csv",
+        "datasets/energy/Google Project Sunroof/project-sunroof-state-09082017.csv",
+        "datasets/energy/U.S._Electricity_Prices.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "entertainment_03",
+      "domain": "entertainment",
+      "data_size_mb": 60.91,
+      "n_skills": 16,
+      "hf_paths": [
+        "datasets/entertainment/books.csv",
+        "datasets/entertainment/netflix_titles.csv",
+        "datasets/entertainment/spotify_tracks.csv",
+        "datasets/entertainment/top2017.csv",
+        "datasets/entertainment/top2018.csv",
+        "datasets/entertainment/top50_2020.csv",
+        "datasets/entertainment/vgsales.csv",
+        "datasets/entertainment/The Movies Dataset/movies_metadata.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "entertainment_04",
+      "domain": "entertainment",
+      "data_size_mb": 37.39,
+      "n_skills": 19,
+      "hf_paths": [
+        "datasets/entertainment/books.csv",
+        "datasets/entertainment/top2017.csv",
+        "datasets/entertainment/top2018.csv",
+        "datasets/entertainment/top50_2020.csv",
+        "datasets/entertainment/vgsales.csv",
+        "datasets/entertainment/The Movies Dataset/movies_metadata.csv"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    },
+    {
+      "id": "financial_234",
+      "domain": "financial",
+      "data_size_mb": 1.57,
+      "n_skills": 14,
+      "hf_paths": [
+        "datasets/financial/dataset_pub_fin_data.md",
+        "datasets/financial/pub_fin_data.sqlite"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "financial_310",
+      "domain": "financial",
+      "data_size_mb": 1.57,
+      "n_skills": 10,
+      "hf_paths": [
+        "datasets/financial/dataset_pub_fin_data.md",
+        "datasets/financial/pub_fin_data.sqlite"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "healthcare_05",
+      "domain": "healthcare",
+      "data_size_mb": 0.46,
+      "n_skills": 29,
+      "hf_paths": [
+        "datasets/healthcare/Healthcare-Diabetes.csv",
+        "datasets/healthcare/healthcare-dataset-stroke-data.csv",
+        "datasets/healthcare/Chronic_Kidney_Disease/chronic_kidney_disease_full.arff"
+      ],
+      "output_file_name": [
+        "output.png",
+        "output.csv"
+      ]
+    },
+    {
+      "id": "healthcare_20",
+      "domain": "healthcare",
+      "data_size_mb": 0.54,
+      "n_skills": 27,
+      "hf_paths": [
+        "datasets/healthcare/Healthcare-Diabetes.csv",
+        "datasets/healthcare/Chronic_Kidney_Disease/chronic_kidney_disease_full.arff",
+        "datasets/healthcare/healthcare-dataset-stroke-data.csv",
+        "datasets/healthcare/heart_disease_uci.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "healthcare_24",
+      "domain": "healthcare",
+      "data_size_mb": 0.49,
+      "n_skills": 26,
+      "hf_paths": [
+        "datasets/healthcare/Healthcare-Diabetes.csv",
+        "datasets/healthcare/healthcare-dataset-stroke-data.csv",
+        "datasets/healthcare/heart_disease_uci.csv"
+      ],
+      "output_file_name": [
+        "meta_analysis_results.csv"
+      ]
+    },
+    {
+      "id": "healthcare_31",
+      "domain": "healthcare",
+      "data_size_mb": 0.52,
+      "n_skills": 37,
+      "hf_paths": [
+        "datasets/healthcare/Healthcare-Diabetes.csv",
+        "datasets/healthcare/healthcare-dataset-stroke-data.csv",
+        "datasets/healthcare/heart_disease_uci.csv",
+        "datasets/healthcare/Sleep_health_and_lifestyle_dataset.csv"
+      ],
+      "output_file_name": [
+        "feature_coefficients.csv",
+        "selected_features.csv",
+        "feature_analysis.png",
+        "top_coefficient.txt"
+      ]
+    },
+    {
+      "id": "loan_model_2",
+      "domain": "loan_model",
+      "data_size_mb": 24.48,
+      "n_skills": 28,
+      "hf_paths": [
+        "datasets/loan_model/features.csv",
+        "datasets/loan_model/label.csv"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    },
+    {
+      "id": "loan_model_9",
+      "domain": "loan_model",
+      "data_size_mb": 24.48,
+      "n_skills": 25,
+      "hf_paths": [
+        "datasets/loan_model/features.csv",
+        "datasets/loan_model/label.csv"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    },
+    {
+      "id": "loan_risk_5",
+      "domain": "loan_risk",
+      "data_size_mb": 0.17,
+      "n_skills": 24,
+      "hf_paths": [
+        "datasets/loan_risk/loan_risk_5/input.csv"
+      ],
+      "output_file_name": [
+        "output_1.csv",
+        "output_2.csv"
+      ]
+    },
+    {
+      "id": "loan_risk_8",
+      "domain": "loan_risk",
+      "data_size_mb": 0.54,
+      "n_skills": 9,
+      "hf_paths": [
+        "datasets/loan_risk/loan_risk_8/input.csv"
+      ],
+      "output_file_name": [
+        "summary_output.csv"
+      ]
+    },
+    {
+      "id": "real_estate_04",
+      "domain": "real_estate",
+      "data_size_mb": 1.07,
+      "n_skills": 17,
+      "hf_paths": [
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_AllHomes.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_1bedroom.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_2bedroom.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_3bedroom.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_4bedroom.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_5BedroomOrMore.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_Condominum.csv",
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_SingleFamilyResidence.csv"
+      ],
+      "output_file_name": [
+        "top5_cagr_disparity.csv"
+      ]
+    },
+    {
+      "id": "real_estate_29",
+      "domain": "real_estate",
+      "data_size_mb": 3.34,
+      "n_skills": 16,
+      "hf_paths": [
+        "datasets/real_estate/Zillow House Price Data/State_Zhvi_AllHomes.csv",
+        "datasets/real_estate/Unemployment in America Per US State.csv"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    },
+    {
+      "id": "social_network_10",
+      "domain": "social_network",
+      "data_size_mb": 10.19,
+      "n_skills": 15,
+      "hf_paths": [
+        "datasets/social_network/bot_detection_data.csv",
+        "datasets/social_network/twitter_dataset.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "social_network_18",
+      "domain": "social_network",
+      "data_size_mb": 5.04,
+      "n_skills": 21,
+      "hf_paths": [
+        "datasets/social_network/Twitter_US_Airline_Sentiment.sqlite"
+      ],
+      "output_file_name": [
+        "output.csv",
+        "negative_reasons.csv"
+      ]
+    },
+    {
+      "id": "sports_14",
+      "domain": "sports",
+      "data_size_mb": 2.06,
+      "n_skills": 26,
+      "hf_paths": [
+        "datasets/sports/NBA Database/common_player_info.csv",
+        "datasets/sports/NBA Database/draft_combine_stats.csv",
+        "datasets/sports/NBA Database/draft_history.csv"
+      ],
+      "output_file_name": [
+        "output.csv",
+        "physical_attributes_analysis.png"
+      ]
+    },
+    {
+      "id": "sports_30",
+      "domain": "sports",
+      "data_size_mb": 42.54,
+      "n_skills": 28,
+      "hf_paths": [
+        "datasets/sports/athlete_events.csv",
+        "datasets/sports/noc_regions.csv",
+        "datasets/sports/NBA Database/common_player_info.csv",
+        "datasets/sports/NBA Database/team.csv"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    },
+    {
+      "id": "strategy_2",
+      "domain": "strategy",
+      "data_size_mb": 2.73,
+      "n_skills": 4,
+      "hf_paths": [
+        "datasets/strategy/data_5.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "strategy_3",
+      "domain": "strategy",
+      "data_size_mb": 38.78,
+      "n_skills": 15,
+      "hf_paths": [
+        "datasets/strategy/data_1.csv"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "tourism_01",
+      "domain": "tourism",
+      "data_size_mb": 38.51,
+      "n_skills": 22,
+      "hf_paths": [
+        "datasets/tourism/Airbnb_Open_Data.csv",
+        "datasets/tourism/FISETIO A FIne-grained, Structured and Enriched Tourism Dataset for Indoor and Outdoor attractions/datasets/indoors.csv",
+        "datasets/tourism/FISETIO A FIne-grained, Structured and Enriched Tourism Dataset for Indoor and Outdoor attractions/datasets/outdoors.csv",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/Transaction.xlsx"
+      ],
+      "output_file_name": [
+        "output1.csv",
+        "output2.csv"
+      ]
+    },
+    {
+      "id": "tourism_02",
+      "domain": "tourism",
+      "data_size_mb": 3.17,
+      "n_skills": 18,
+      "hf_paths": [
+        "datasets/tourism/countries of the world.csv",
+        "datasets/tourism/henley_passport_index_2025_new.csv",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/Continent.xlsx",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/Item.xlsx",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/Transaction.xlsx",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/Type.xlsx",
+        "datasets/tourism/TripAdvisor Indonesia Tourism/User.xlsx"
+      ],
+      "output_file_name": [
+        "output.csv"
+      ]
+    },
+    {
+      "id": "transportation_05",
+      "domain": "transportation",
+      "data_size_mb": 100.31,
+      "n_skills": 23,
+      "hf_paths": [
+        "datasets/transportation/taxi_zones/taxi_zones.shp",
+        "datasets/transportation/yellow_tripdata/yellow_tripdata_2024-01.parquet",
+        "datasets/transportation/yellow_tripdata/yellow_tripdata_2024-02.parquet"
+      ],
+      "output_file_name": [
+        "output1.json",
+        "output2.png"
+      ]
+    },
+    {
+      "id": "transportation_06",
+      "domain": "transportation",
+      "data_size_mb": 181.55,
+      "n_skills": 25,
+      "hf_paths": [
+        "datasets/transportation/taxi_zones/taxi_zones.shp",
+        "datasets/transportation/yellow_tripdata/yellow_tripdata_2024-04.parquet",
+        "datasets/transportation/yellow_tripdata/yellow_tripdata_2024-05.parquet",
+        "datasets/transportation/yellow_tripdata/yellow_tripdata_2024-06.parquet"
+      ],
+      "output_file_name": [
+        "output.json"
+      ]
+    }
+  ]
+}

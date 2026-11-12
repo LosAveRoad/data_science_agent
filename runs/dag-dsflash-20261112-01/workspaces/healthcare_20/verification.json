@@ -1,0 +1,289 @@
+{
+ "node": "verify / quality_check",
+ "deliverable": "output.csv",
+ "file_info": {
+  "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/dag-dsflash-20261112-01/workspaces/healthcare_20/output.csv",
+  "bytes": 155,
+  "sha256": "64760171bfa4d76793e5e789a72054455ac901392df125fde1914c71c495cf28"
+ },
+ "status": "PASS",
+ "checks": [
+  {
+   "check": "file_exists_nonempty",
+   "passed": true,
+   "detail": "155 bytes"
+  },
+  {
+   "check": "columns_exact",
+   "passed": true,
+   "detail": [
+    "risk_factor",
+    "posterior_mean",
+    "ci_lower_2.5%",
+    "ci_upper_97.5%"
+   ]
+  },
+  {
+   "check": "row_count_4",
+   "passed": true,
+   "detail": "4 rows"
+  },
+  {
+   "check": "row_labels",
+   "passed": true,
+   "detail": [
+    "age",
+    "bmi",
+    "bp",
+    "glucose"
+   ]
+  },
+  {
+   "check": "no_duplicate_or_extra_rows",
+   "passed": true,
+   "detail": "unique, exact expected set"
+  },
+  {
+   "check": "numeric_dtypes",
+   "passed": true,
+   "detail": [
+    "float64",
+    "float64",
+    "float64"
+   ]
+  },
+  {
+   "check": "no_nan",
+   "passed": true,
+   "detail": "no missing cells"
+  },
+  {
+   "check": "ci_ordering_strict",
+   "passed": true,
+   "detail": "ci_lower < mean < ci_upper for all rows"
+  },
+  {
+   "check": "values_positive_as_expected",
+   "passed": true,
+   "detail": "all four posterior means positive (matches plan expected_signs)"
+  },
+  {
+   "check": "traceable_to_mcmc_draws",
+   "passed": true,
+   "detail": "every value reproduces to 4dp from pooled 6x3000 MCMC draws (mcmc_draws_centered.npy)"
+  },
+  {
+   "check": "consistent_across_artifacts",
+   "passed": true,
+   "detail": "risk_coefficients.json / posterior_detail.json / execute_summary.json all agree"
+  },
+  {
+   "check": "model_frame_gate",
+   "passed": true,
+   "detail": "model_frame.pkl: 18228 rows, 8 groups, y in {0,1}, 0 NaN in z_* (matches risk_coefficients.json n_rows/n_groups)"
+  },
+  {
+   "check": "mcmc_convergence_gate",
+   "passed": true,
+   "detail": {
+    "age": [
+     1.0004,
+     4439
+    ],
+    "bmi": [
+     1.0009,
+     4131
+    ],
+    "bp": [
+     1.0005,
+     4326
+    ],
+    "glucose": [
+     1.0011,
+     4250
+    ]
+   }
+  },
+  {
+   "check": "laplace_crosscheck_gate",
+   "passed": true,
+   "detail": {
+    "age": 0.0013,
+    "bmi": 0.0008,
+    "bp": 0.0028,
+    "glucose": 0.0006
+   }
+  },
+  {
+   "check": "stroke_model_hyperparams_match_spec",
+   "passed": true,
+   "detail": {
+    "rf": {
+     "n_estimators": 50,
+     "max_depth": 5,
+     "min_samples_split": 10,
+     "min_samples_leaf": 5,
+     "class_weight": "balanced",
+     "random_state": 42
+    },
+    "lr": {
+     "C": 0.1,
+     "penalty": "l2",
+     "max_iter": 1000,
+     "class_weight": "balanced",
+     "n_iter": 27
+    }
+   }
+  },
+  {
+   "check": "stroke_metrics_reproducible_from_predictions",
+   "passed": true,
+   "detail": "AUC/PR-AUC/Brier recomputed from stroke_predictions.npz match stroke_model_validation.json exactly (RF 0.8216/0.2295/0.1593, LR 0.8425/0.2652/0.1602)"
+  },
+  {
+   "check": "stroke_models_refit_close",
+   "passed": true,
+   "detail": "independent refit (same seeds/pipeline) in this node: RF AUC 0.8169 vs 0.8216, LR AUC 0.8421 vs 0.8425 -> within re-run tolerance, no sign of fabricated metrics"
+  }
+ ],
+ "traceability": [
+  {
+   "risk_factor": "age",
+   "csv": [
+    0.957,
+    0.8886,
+    1.0259
+   ],
+   "mcmc_draws_recomputed": [
+    0.957,
+    0.8886,
+    1.0259
+   ],
+   "abs_diff": [
+    1.427e-05,
+    3.818e-05,
+    3.96e-06
+   ],
+   "match_4dp": true
+  },
+  {
+   "risk_factor": "bmi",
+   "csv": [
+    0.2258,
+    0.1587,
+    0.2919
+   ],
+   "mcmc_draws_recomputed": [
+    0.2258,
+    0.1587,
+    0.2919
+   ],
+   "abs_diff": [
+    4.379e-05,
+    4.496e-05,
+    4.162e-05
+   ],
+   "match_4dp": true
+  },
+  {
+   "risk_factor": "bp",
+   "csv": [
+    0.19,
+    0.0956,
+    0.284
+   ],
+   "mcmc_draws_recomputed": [
+    0.19,
+    0.0956,
+    0.284
+   ],
+   "abs_diff": [
+    1.436e-05,
+    5.8e-07,
+    2.561e-05
+   ],
+   "match_4dp": true
+  },
+  {
+   "risk_factor": "glucose",
+   "csv": [
+    0.3567,
+    0.3097,
+    0.4036
+   ],
+   "mcmc_draws_recomputed": [
+    0.3567,
+    0.3097,
+    0.4036
+   ],
+   "abs_diff": [
+    1.19e-06,
+    1.823e-05,
+    8.85e-06
+   ],
+   "match_4dp": true
+  }
+ ],
+ "cross_artifact_consistency": [
+  {
+   "risk_factor": "age",
+   "matches_risk_coefficients_json": true,
+   "matches_posterior_detail_json": true,
+   "matches_execute_summary_json": true
+  },
+  {
+   "risk_factor": "bmi",
+   "matches_risk_coefficients_json": true,
+   "matches_posterior_detail_json": true,
+   "matches_execute_summary_json": true
+  },
+  {
+   "risk_factor": "bp",
+   "matches_risk_coefficients_json": true,
+   "matches_posterior_detail_json": true,
+   "matches_execute_summary_json": true
+  },
+  {
+   "risk_factor": "glucose",
+   "matches_risk_coefficients_json": true,
+   "matches_posterior_detail_json": true,
+   "matches_execute_summary_json": true
+  }
+ ],
+ "sensitivity_context": {
+  "variants": [
+   "S1_primary_MAPLaplace",
+   "S2_completecase_bp",
+   "S4_equal_group_weight",
+   "S5_drop_Stroke",
+   "S5_drop_CKD",
+   "S5_drop_Diabetes",
+   "S5_drop_HeartUCI"
+  ],
+  "value_range_per_factor": {
+   "age": [
+    0.5105,
+    1.0751
+   ],
+   "bmi": [
+    0.1812,
+    0.5039
+   ],
+   "bp": [
+    -0.0053,
+    0.2919
+   ],
+   "glucose": [
+    0.3016,
+    0.9249
+   ]
+  },
+  "note": "Primary estimates (output.csv) equal S1 (MAP/Laplace) within rounding; sign of bp flips to ~0 when CKD is dropped (S5_drop_CKD) and age ranges 0.51-1.08 across variants, so cohort weighting strongly affects age/bp."
+ },
+ "warnings": [
+  "Minor formatting: values are written without fixed 4-decimal padding (0.19 / 0.284 instead of 0.1900 / 0.2840); numeric values equal the 4-dp rounded contract values, pandas float parsing fine.",
+  "bp has 84.8% missingness (absent in Stroke cohort); its CI (0.0956-0.284) is the widest of the four, consistent with the plan mitigation. Sign is not robust (S5_drop_CKD ~ -0.005).",
+  "Raw (uncalibrated) stroke probabilities are poorly calibrated (RF ECE10=0.289, HL p=0.0) because of class_weight=balanced; the artifact reports a prior-corrected variant (ECE10=0.0123) which should be cited when discussing calibration."
+ ],
+ "conclusion": "output.csv is present, well-formed (exact required 4 columns, 4 rows for age/bmi/bp/glucose, all numeric, no NaN, strictly ordered CIs) and every value is bit-for-bit traceable (to 4dp) to the saved MCMC draws; supporting artifacts are mutually consistent and all plan validation gates pass. Deliverable accepted."
+}

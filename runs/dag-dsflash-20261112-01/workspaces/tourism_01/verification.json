@@ -1,0 +1,208 @@
+{
+  "node": "verification",
+  "task": "Verify output1.csv (per-source robust-Z statistics) and output2.csv (one-way ANOVA) for the 4-domain satisfaction comparison.",
+  "status": "pass",
+  "checks": [
+    {
+      "check": "output1_exists",
+      "status": "PASS",
+      "detail": "output1.csv present, 272 bytes"
+    },
+    {
+      "check": "output2_exists",
+      "status": "PASS",
+      "detail": "output2.csv present, 55 bytes"
+    },
+    {
+      "check": "output1_schema",
+      "status": "PASS",
+      "detail": "columns=['source', 'n', 'mean', 'std', 'ci_lower', 'ci_upper']; required mean/std/ci_lower/ci_upper all present (+ n, source key)"
+    },
+    {
+      "check": "output2_schema",
+      "status": "PASS",
+      "detail": "columns=['statistic', 'p_value', 'effect_size'] matches required statistic,p_value,effect_size"
+    },
+    {
+      "check": "output1_rowcount",
+      "status": "PASS",
+      "detail": "4 rows, unique sources=['accommodation', 'destination', 'indoor_attraction', 'outdoor_attraction']"
+    },
+    {
+      "check": "output2_rowcount",
+      "status": "PASS",
+      "detail": "1 row (one one-way ANOVA)"
+    },
+    {
+      "check": "numeric_and_no_nan",
+      "status": "PASS",
+      "detail": "all stat columns numeric, zero NaN in both files"
+    },
+    {
+      "check": "n_matches_raw_source_counts",
+      "status": "PASS",
+      "detail": "output1 n vs raw valid_n: {'accommodation': 102273, 'indoor_attraction': 2676, 'outdoor_attraction': 2923, 'destination': 52930} (raw: accommodation 102273/102599 rows, indoor 2676/2754, outdoor 2923/2923, destination 52930); sum n=160802 = df_within+4 = 160802"
+    },
+    {
+      "check": "source_stats_reproduced",
+      "status": "PASS",
+      "detail": "max |output1 - independent recomputation(from raw files, robust Z=(x-median)/(1.4826*MAD))| = {'mean': 4.846982753214935e-07, 'std': 4.134975405412078e-07, 'ci_lower': 4.5008949273173116e-07, 'ci_upper': 3.8079473696495114e-07}; tolerance 1e-6 (file rounded to 6 dp)"
+    },
+    {
+      "check": "ci_internal_consistency",
+      "status": "PASS",
+      "detail": "ci_lower < mean < ci_upper for all 4 sources; CI width equals 2*t(0.975,n-1)*se (t-based, not 1.96 for small n), rtol 1e-5"
+    },
+    {
+      "check": "anova_F_reproduced",
+      "status": "PASS",
+      "detail": "output2 statistic=1064.888298 vs recomputed F=1064.888298 (rel.diff 1.74e-10); manual SS-based F = 1064.888298"
+    },
+    {
+      "check": "anova_effect_size_reproduced",
+      "status": "PASS",
+      "detail": "output2 effect_size=0.019481 (eta^2) vs recomputed 0.019481; omega^2=0.019462; eta^2=SS_between/SS_total with SS_between=2284.266, SS_total=117258.906"
+    },
+    {
+      "check": "anova_df_consistency",
+      "status": "PASS",
+      "detail": "df=(3,160798) with N=160802 total observations across 4 groups"
+    },
+    {
+      "check": "p_value_underflow_documented",
+      "status": "PASS",
+      "detail": "output2 p_value=0.0 is a float64 underflow (p < 1e-300), NOT an exact zero; exact F(3,160798) tail computed in log space = 1e-685.26. Decision unaffected (p << 0.05)"
+    },
+    {
+      "check": "cross_artifact_consistency",
+      "status": "PASS",
+      "detail": "output1/output2 agree to 6 dp with anova_detail.json (F, eta_sq, ss_between/ss_within sum to ss_total) and execute_summary.json"
+    },
+    {
+      "check": "direction_consistent_with_posthoc",
+      "status": "PASS",
+      "detail": "ordering on robust-Z: accommodation +0.1883 > destination +0.1064 > outdoor -0.1885 > indoor -0.6502; all 6 pairwise Welch contrasts in posthoc.json significant and sign-consistent with these means"
+    }
+  ],
+  "recomputed": {
+    "method": "Independent re-derivation from raw files (Airbnb_Open_Data.csv['review rate number'], indoors.csv['rating'], outdoors.csv['rate'], tx_clean.csv['Rating']); clip to [1,5]; per-source robust Z = (x - median)/(1.4826*MAD); 95% CI = mean +/- t(0.975,n-1)*std/sqrt(n); one-way ANOVA via scipy.stats.f_oneway with SS-based eta^2.",
+    "source_statistics": [
+      {
+        "source": "accommodation",
+        "n": 102273,
+        "mean": 0.188254,
+        "std": 0.866489,
+        "ci_lower": 0.182944,
+        "ci_upper": 0.193565,
+        "se": 0.002709,
+        "t_crit": 1.959987,
+        "median": 3.0,
+        "mad": 1.0
+      },
+      {
+        "source": "indoor_attraction",
+        "n": 2676,
+        "mean": -0.650175,
+        "std": 2.100832,
+        "ci_lower": -0.729808,
+        "ci_upper": -0.570542,
+        "se": 0.040611,
+        "t_crit": 1.960851,
+        "median": 4.55,
+        "mad": 0.18
+      },
+      {
+        "source": "outdoor_attraction",
+        "n": 2923,
+        "mean": -0.188517,
+        "std": 1.125382,
+        "ci_lower": -0.229331,
+        "ci_upper": -0.147702,
+        "se": 0.020815,
+        "t_crit": 1.960776,
+        "median": 4.714286,
+        "mad": 0.156682
+      },
+      {
+        "source": "destination",
+        "n": 52930,
+        "mean": 0.106366,
+        "std": 0.654622,
+        "ci_lower": 0.100789,
+        "ci_upper": 0.111943,
+        "se": 0.002845,
+        "t_crit": 1.960009,
+        "median": 4.0,
+        "mad": 1.0
+      }
+    ],
+    "anova": {
+      "statistic": 1064.888298,
+      "p_value": 0.0,
+      "effect_size_eta_squared": 0.019481,
+      "omega_squared": 0.019462,
+      "df_between": 3,
+      "df_within": 160798,
+      "N_total": 160802,
+      "log10_p_exact": -685.26,
+      "p_exact_approx": "1e-685",
+      "ss_between": 2284.266,
+      "ss_within": 114974.64,
+      "ss_total": 117258.906
+    },
+    "max_abs_diff_vs_output1": {
+      "mean": 4.85e-07,
+      "std": 4.13e-07,
+      "ci_lower": 4.5e-07,
+      "ci_upper": 3.81e-07
+    },
+    "ordering_on_robust_z": [
+      "accommodation",
+      "destination",
+      "outdoor_attraction",
+      "indoor_attraction"
+    ],
+    "raw_scale_means_1to5": {
+      "accommodation": 3.2791,
+      "indoor_attraction": 4.3765,
+      "outdoor_attraction": 4.6705,
+      "destination": 4.1577
+    }
+  },
+  "outputs_verified": [
+    {
+      "file": "output1.csv",
+      "rows": 4,
+      "columns": [
+        "source",
+        "n",
+        "mean",
+        "std",
+        "ci_lower",
+        "ci_upper"
+      ],
+      "bytes": 272,
+      "sha256": "9b5206c9dcd80859"
+    },
+    {
+      "file": "output2.csv",
+      "rows": 1,
+      "columns": [
+        "statistic",
+        "p_value",
+        "effect_size"
+      ],
+      "bytes": 55,
+      "sha256": "4f2e4199020d8f19"
+    }
+  ],
+  "notes": [
+    "p-value display artifact: anova_detail.json/execute_summary.json report log10(p) ~= -692.06 (p_display '~1e-693') from a chi-squared limit approximation; an independent converged log-space quadrature of the exact F tail (validated against scipy.stats.f.sf on cases that do not underflow) gives log10(p) ~= -685.26, i.e. p ~ 1e-685. The gap (about 7 orders of magnitude, both astronomically small) concerns only that intermediate display value; output2.csv correctly stores the float64 result 0.0 and the significance decision is unchanged.",
+    "Interpretation caveat: each source is robust-Z-scored against its OWN median/MAD, so the reported means measure how far a domain's typical value sits from its own median (in robust SD units), not absolute satisfaction. On the raw 1-5 scale the ranking is different (outdoor 4.67 > indoor 4.38 > destination 4.16 > accommodation 3.28) and eta^2 rises to 0.1269 (verified: F=7791.61).",
+    "Effect size is small: eta^2=0.0195 (Cohen's benchmarks: 0.01 small / 0.06 medium); with N=160,802 the ANOVA is statistically decisive but only ~1.9% of variance in robust-Z scores is between domains.",
+    "Independence caveat: FISETIO rows are venue-month aggregates (27 museums, 83 parks) with repeated monthly ratings, i.e. pseudo-replication; variance heterogeneity is severe (Levene on raw values = 4764.64, p~0, reproduced), so the equal-variance F test is approximate. Upstream venue-level sensitivity check (robust-Z with venue means replacing venue-month rows: F=127.97, eta^2=0.0025) was reproduced exactly, confirming the between-domain signal survives but is modest.",
+    "raw_scale_anova (F=7791.61, eta^2=0.1269) and all 6 pairwise Welch t-tests in posthoc.json were independently reproduced.",
+    "No out-of-range values in any source (all within 1-5), so harmonization required no rescaling/winsorizing; valid_n matches data_profile.json exactly for all four sources."
+  ],
+  "bottom_line": "Both deliverables exist, are schema-valid, complete (4 sources / 1 ANOVA row), and every reported statistic reproduces to within 1e-6 of an independent recomputation from the raw data. Domains differ significantly (F=1064.89, df=(3,160798), p<1e-300, eta^2=0.0195) with a small effect size; accommodation (+0.19) and destination (+0.11) sit above their own medians while outdoor (-0.19) and indoor (-0.65) sit below."
+}

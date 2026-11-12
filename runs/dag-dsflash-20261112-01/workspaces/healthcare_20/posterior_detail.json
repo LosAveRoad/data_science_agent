@@ -1,0 +1,30 @@
+[
+ {
+  "risk_factor":"age",
+  "posterior_mean":0.957,
+  "ci_lower":0.8886,
+  "ci_upper":1.0259,
+  "posterior_sd":0.0346
+ },
+ {
+  "risk_factor":"bmi",
+  "posterior_mean":0.2258,
+  "ci_lower":0.1587,
+  "ci_upper":0.2919,
+  "posterior_sd":0.034
+ },
+ {
+  "risk_factor":"bp",
+  "posterior_mean":0.19,
+  "ci_lower":0.0956,
+  "ci_upper":0.284,
+  "posterior_sd":0.0478
+ },
+ {
+  "risk_factor":"glucose",
+  "posterior_mean":0.3567,
+  "ci_lower":0.3097,
+  "ci_upper":0.4036,
+  "posterior_sd":0.0241
+ }
+]

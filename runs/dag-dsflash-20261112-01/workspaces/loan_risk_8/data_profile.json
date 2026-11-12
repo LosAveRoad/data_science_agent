@@ -1,0 +1,149 @@
+{
+  "task_id": "loan_risk_8",
+  "artifact": "data_profile.json",
+  "data_status": "workspace_was_empty_data_staged_from_local_mirror",
+  "files": [
+    {
+      "path": "input.csv",
+      "original_source": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed/datasets/loan_risk/loan_risk_8/input.csv",
+      "size_bytes": 535753,
+      "n_rows": 10000,
+      "n_cols": 6,
+      "format": "csv_utf8_comma",
+      "has_header": true
+    }
+  ],
+  "schema": [
+    {
+      "name": "uniq_id",
+      "dtype": "string",
+      "example": "U0000001",
+      "role": "row identifier",
+      "nulls_observed_in_head": 0
+    },
+    {
+      "name": "apply_date",
+      "dtype": "int64",
+      "example": 20230101,
+      "role": "date as YYYYMMDD integer (not a datetime type)",
+      "nulls_observed_in_head": 0
+    },
+    {
+      "name": "score1_old",
+      "dtype": "float64",
+      "example": 0.418359,
+      "role": "old version score for score1",
+      "range_observed_in_sample": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "score2_old",
+      "dtype": "float64",
+      "example": 0.417595,
+      "role": "old version score for score2",
+      "range_observed_in_sample": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "score1_new",
+      "dtype": "float64",
+      "example": 0.418351,
+      "role": "new version score for score1",
+      "range_observed_in_sample": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "score2_new",
+      "dtype": "float64",
+      "example": 0.417586,
+      "role": "new version score for score2",
+      "range_observed_in_sample": [
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "head_preview": [
+    {
+      "uniq_id": "U0000001",
+      "apply_date": 20230101,
+      "score1_old": 0.418359,
+      "score2_old": 0.417595,
+      "score1_new": 0.418351,
+      "score2_new": 0.417586
+    },
+    {
+      "uniq_id": "U0000002",
+      "apply_date": 20230102,
+      "score1_old": 0.908107,
+      "score2_old": 0.382975,
+      "score1_new": 0.908113,
+      "score2_new": 0.382971
+    },
+    {
+      "uniq_id": "U0000003",
+      "apply_date": 20230103,
+      "score1_old": 0.722195,
+      "score2_old": 0.249731,
+      "score1_new": 0.722208,
+      "score2_new": 0.249719
+    }
+  ],
+  "quality_checks": {
+    "score_columns_numeric": true,
+    "score_columns_complete": "no missing values visible in head sample; all score columns parsed as float64 without coercion",
+    "id_unique_looks_sequential": true,
+    "score_range": "scores appear bounded in [0, 1] (probability-like)",
+    "gap_quantization": "scores are stored with 6 decimal places, so |new-old| is quantized to multiples of 1e-6; the strict '>' comparisons at 1e-6 are therefore boundary-sensitive"
+  },
+  "sample_gap_preview_first_1000_rows": {
+    "note": "sample-only preview (first 1000 rows), NOT the final answer; provided for threshold-magnitude sanity check",
+    "score1": {
+      "abs_gap_min": 0.0,
+      "abs_gap_max": 0.01,
+      "abs_gap_mean": 0.0002279,
+      "ratio_gt_1e-3": 0.022,
+      "ratio_gt_1e-4": 0.022,
+      "ratio_gt_1e-5": 0.352,
+      "ratio_gt_1e-6": 0.938
+    },
+    "score2": {
+      "abs_gap_min": 0.0,
+      "abs_gap_max": 0.01,
+      "abs_gap_mean": 0.000228,
+      "ratio_gt_1e-3": 0.022,
+      "ratio_gt_1e-4": 0.022,
+      "ratio_gt_1e-5": 0.354,
+      "ratio_gt_1e-6": 0.943
+    }
+  },
+  "downstream_guidance": {
+    "target_output": "summary_output.csv",
+    "expected_schema": [
+      "score_type",
+      "gap_gt_1e3_ratio",
+      "gap_gt_1e4_ratio",
+      "gap_gt_1e5_ratio",
+      "gap_gt_1e6_ratio"
+    ],
+    "expected_rows": [
+      "score1",
+      "score2"
+    ],
+    "gap_definition": "gap = scoreX_new - scoreX_old; use absolute value abs(gap) then compare strictly (>) against 1e-3/1e-4/1e-5/1e-6",
+    "ratio_denominator": "all rows in input.csv (n=10000), i.e. share of samples whose |gap| exceeds the threshold",
+    "rounding": "round ratios to 4 decimal places",
+    "column_name_mapping_note": "gap_gt_1e3_ratio corresponds to threshold 1e-3, gap_gt_1e4_ratio to 1e-4, gap_gt_1e5_ratio to 1e-5, gap_gt_1e6_ratio to 1e-6 (column names omit the leading '1e-'; do not interpret them as 1e3/1e4/1e5/1e6 absolute thresholds)"
+  },
+  "risks_for_planning": [
+    "Workspace contained no files at the start; input.csv was staged here from the local dataset mirror so downstream nodes can run as-is.",
+    "Monotonic nesting of thresholds is expected (ratio(1e-3) <= ratio(1e-4) <= ratio(1e-5) <= ratio(1e-6)); sanity-check this in the output.",
+    "Because gaps are quantized at 1e-6, the 1e-6 column is the most sensitive to the strict '>' operator — verify no gap is exactly 1e-6 before finalizing."
+  ]
+}

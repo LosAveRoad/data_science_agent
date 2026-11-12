@@ -1,0 +1,156 @@
+{
+  "task_id": "loan_risk_8",
+  "artifact": "analysis_plan.json",
+  "node_role": "plan",
+  "objective": "Produce summary_output.csv: for score1 and score2, the sample proportion of rows whose absolute new-vs-old version score gap strictly exceeds each of four thresholds (1e-3, 1e-4, 1e-5, 1e-6), ratios rounded to 4 decimals.",
+  "input_data": {
+    "path": "input.csv",
+    "verified_n_rows": 10000,
+    "verified_n_cols": 6,
+    "columns": [
+      "uniq_id",
+      "apply_date",
+      "score1_old",
+      "score2_old",
+      "score1_new",
+      "score2_new"
+    ],
+    "dtypes": {
+      "uniq_id": "string",
+      "apply_date": "int64",
+      "score1_old": "float64",
+      "score2_old": "float64",
+      "score1_new": "float64",
+      "score2_new": "float64"
+    },
+    "missing_values": "0 in all columns (verified, not just in head)",
+    "duplicate_uniq_id": 0,
+    "score_value_range": "roughly [0.09, 0.96]; probability-like, 6 decimal places stored"
+  },
+  "analysis_steps": [
+    {
+      "step": 1,
+      "action": "Load input.csv with pandas; assert 10000 rows, 6 expected columns, no nulls in the four score columns."
+    },
+    {
+      "step": 2,
+      "action": "For each score_type in ['score1','score2'] compute gap = scoreX_new - scoreX_old, then abs_gap = |gap|."
+    },
+    {
+      "step": 3,
+      "action": "Quantize abs_gap to 6 decimal places (round to 6dp) so comparisons are performed on the same precision the data is stored in; convert to Decimal for exact comparison."
+    },
+    {
+      "step": 4,
+      "action": "For each threshold in [1e-3, 1e-4, 1e-5, 1e-6] count rows with abs_gap > threshold (STRICT, exclusive) using exact decimal comparison, not raw float '>'."
+    },
+    {
+      "step": 5,
+      "action": "Divide each count by the denominator (all 10000 rows) and round to 4 decimal places."
+    },
+    {
+      "step": 6,
+      "action": "Assemble a 2-row DataFrame with columns score_type, gap_gt_1e3_ratio, gap_gt_1e4_ratio, gap_gt_1e5_ratio, gap_gt_1e6_ratio; write summary_output.csv (header, 2 data rows, no index column)."
+    },
+    {
+      "step": 7,
+      "action": "Validate output: monotone nesting of ratios within each row (1e-3 <= 1e-4 <= 1e-5 <= 1e-6), values in [0,1], exactly 4 decimals, score_type values exactly 'score1'/'score2'."
+    }
+  ],
+  "definitions": {
+    "gap": "scoreX_new - scoreX_old (signed); comparisons always use its absolute value",
+    "strict_comparison": "abs_gap > threshold, i.e. gaps exactly equal to a threshold are NOT counted",
+    "denominator": "10000 = all rows of input.csv (NOT the count of non-null gaps, since there are no nulls)",
+    "column_threshold_mapping": {
+      "gap_gt_1e3_ratio": 0.001,
+      "gap_gt_1e4_ratio": 0.0001,
+      "gap_gt_1e5_ratio": 1e-05,
+      "gap_gt_1e6_ratio": 1e-06
+    },
+    "column_name_warning": "Column names omit the leading '1e-'. gap_gt_1e3_ratio means threshold 1e-3, NOT 1e3. Do not read them as 1e3/1e4/1e5/1e6."
+  },
+  "critical_decision_float_boundary": {
+    "issue": "abs gaps are stored on a 1e-6 grid, so many gaps are EXACTLY equal to the 1e-5 and 1e-6 thresholds. Binary float representation makes naive (abs_gap > thr) misclassify some exactly-equal gaps as greater.",
+    "verified_evidence": {
+      "score1": {
+        "exact_gaps_equal_to_1e-5": 489,
+        "exact_gaps_equal_to_1e-6": 806,
+        "naive_gt_counts": {
+          "1e-3": 224,
+          "1e-4": 224,
+          "1e-5": 3342,
+          "1e-6": 9370
+        },
+        "exact_decimal_gt_counts": {
+          "1e-3": 224,
+          "1e-4": 224,
+          "1e-5": 3071,
+          "1e-6": 8791
+        }
+      },
+      "score2": {
+        "exact_gaps_equal_to_1e-5": 461,
+        "exact_gaps_equal_to_1e-6": 813,
+        "naive_gt_counts": {
+          "1e-3": 224,
+          "1e-4": 224,
+          "1e-5": 3463,
+          "1e-6": 9395
+        },
+        "exact_decimal_gt_counts": {
+          "1e-3": 224,
+          "1e-4": 224,
+          "1e-5": 3199,
+          "1e-6": 8807
+        }
+      },
+      "gaps_exactly_equal_to_1e-3_or_1e-4": 0
+    },
+    "required_approach": "round abs_gap to 6 decimals, convert to Decimal(str(rounded_value)) and compare strictly against Decimal threshold; never use raw float '>' on the 1e-5 / 1e-6 columns.",
+    "impact_if_ignored": "1e-6 ratio would be ~0.937 instead of ~0.879 for score1 (and ~0.9395 vs ~0.8807 for score2) — a 5.8pp error; the 1e-5 column would be off by ~2.7pp."
+  },
+  "expected_output": {
+    "path": "summary_output.csv",
+    "format": "csv with header",
+    "columns": [
+      "score_type",
+      "gap_gt_1e3_ratio",
+      "gap_gt_1e4_ratio",
+      "gap_gt_1e5_ratio",
+      "gap_gt_1e6_ratio"
+    ],
+    "rows": 2,
+    "score_type_values": [
+      "score1",
+      "score2"
+    ],
+    "rounding": "4 decimal places for all ratio columns",
+    "reference_counts_from_plan_precheck": {
+      "note": "counts computed under the exact-decimal rule; final ratios must be recomputed by the analysis node and rounded to 4dp — these are a cross-check, not the deliverable",
+      "score1": {
+        "1e-3": 0.0224,
+        "1e-4": 0.0224,
+        "1e-5": 0.3071,
+        "1e-6": 0.8791
+      },
+      "score2": {
+        "1e-3": 0.0224,
+        "1e-4": 0.0224,
+        "1e-5": 0.3199,
+        "1e-6": 0.8807
+      }
+    }
+  },
+  "sanity_checks_for_downstream": [
+    "Within each score_type row: ratio_1e3 <= ratio_1e4 <= ratio_1e5 <= ratio_1e6 (monotone nesting expected).",
+    "All ratios within [0, 1] and equal to count/10000 rounded to 4dp.",
+    "score1 and score2 gap_gt_1e3_ratio / gap_gt_1e4_ratio are expected to coincide (224 rows each) because gaps are quantized and only jump between grid levels; do not 'fix' this — it is a genuine property of the data.",
+    "Data profile sample-preview (first 1000 rows) suggested 1e-6 ratios ~0.94 via naive float comparison; the full-data exact result ~0.88 is consistent once the boundary handling above is applied. Do not tune toward the profile preview."
+  ],
+  "risks": [
+    "Float boundary at 1e-6 grid (primary risk, mitigation above).",
+    "Column-name threshold ambiguity ('1e3' in the name means 1e-3 threshold).",
+    "Rounding: round only at the final presentation step, not before counting.",
+    "Output must not include an index column; header names must match exactly as specified."
+  ]
+}

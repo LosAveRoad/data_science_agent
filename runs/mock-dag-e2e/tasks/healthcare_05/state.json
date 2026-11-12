@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "workflowId": "inspect-plan-execute-verify",
+  "nodeIds": [
+    "inspect",
+    "plan",
+    "execute",
+    "verify"
+  ],
+  "taskId": "healthcare_05",
+  "updatedAt": "2026-11-11T18:25:54.207Z",
+  "totalTokenUsage": {
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "totalTokens": 0
+  },
+  "completedNodes": [
+    {
+      "nodeId": "inspect",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:25:54.205Z",
+      "finishedAt": "2026-11-11T18:25:54.206Z",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "steps": 1,
+      "artifacts": [
+        {
+          "name": "data_profile.json",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/data_profile.json"
+        }
+      ],
+      "stepRecords": [
+        {
+          "kind": "tool_call",
+          "content": "写出 data_profile.json",
+          "at": "2026-11-11T18:25:54.206Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 data_profile.json",
+          "at": "2026-11-11T18:25:54.206Z"
+        }
+      ]
+    },
+    {
+      "nodeId": "plan",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:25:54.206Z",
+      "finishedAt": "2026-11-11T18:25:54.206Z",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "steps": 1,
+      "artifacts": [
+        {
+          "name": "analysis_plan.json",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/analysis_plan.json"
+        }
+      ],
+      "stepRecords": [
+        {
+          "kind": "tool_call",
+          "content": "写出 analysis_plan.json",
+          "at": "2026-11-11T18:25:54.206Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 analysis_plan.json",
+          "at": "2026-11-11T18:25:54.206Z"
+        }
+      ]
+    },
+    {
+      "nodeId": "execute",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:25:54.206Z",
+      "finishedAt": "2026-11-11T18:25:54.207Z",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "steps": 4,
+      "artifacts": [
+        {
+          "name": "result.json",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/result.json"
+        },
+        {
+          "name": "execute_summary.json",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/execute_summary.json"
+        },
+        {
+          "name": "output.png",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/output.png"
+        },
+        {
+          "name": "output.csv",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/output.csv"
+        }
+      ],
+      "stepRecords": [
+        {
+          "kind": "tool_call",
+          "content": "写出 result.json",
+          "at": "2026-11-11T18:25:54.206Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 result.json",
+          "at": "2026-11-11T18:25:54.206Z"
+        },
+        {
+          "kind": "tool_call",
+          "content": "写出 execute_summary.json",
+          "at": "2026-11-11T18:25:54.207Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 execute_summary.json",
+          "at": "2026-11-11T18:25:54.207Z"
+        },
+        {
+          "kind": "tool_call",
+          "content": "写出 output.png",
+          "at": "2026-11-11T18:25:54.207Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 output.png",
+          "at": "2026-11-11T18:25:54.207Z"
+        },
+        {
+          "kind": "tool_call",
+          "content": "写出 output.csv",
+          "at": "2026-11-11T18:25:54.207Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 output.csv",
+          "at": "2026-11-11T18:25:54.207Z"
+        }
+      ]
+    },
+    {
+      "nodeId": "verify",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T18:25:54.207Z",
+      "finishedAt": "2026-11-11T18:25:54.207Z",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "steps": 1,
+      "artifacts": [
+        {
+          "name": "verification.json",
+          "path": "/Users/mac/Documents/学习/找工作/data_science_agent/runs/mock-dag-e2e/workspaces/healthcare_05/verification.json"
+        }
+      ],
+      "stepRecords": [
+        {
+          "kind": "tool_call",
+          "content": "写出 verification.json",
+          "at": "2026-11-11T18:25:54.207Z",
+          "name": "mock_write"
+        },
+        {
+          "kind": "observation",
+          "content": "写出 verification.json",
+          "at": "2026-11-11T18:25:54.207Z"
+        }
+      ]
+    }
+  ]
+}

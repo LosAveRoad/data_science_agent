@@ -1,0 +1,32 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "taskId": "healthcare_31",
+  "startedAt": "2026-11-11T19:12:02.696Z",
+  "finishedAt": "2026-11-11T19:14:14.601Z",
+  "status": "succeeded",
+  "error": null,
+  "result": "任务完成，产出 4 个文件: feature_analysis.png, feature_coefficients.csv, selected_features.csv, top_coefficient.txt",
+  "totalSteps": 80,
+  "tokenUsage": {
+    "inputTokens": 11825,
+    "outputTokens": 21094,
+    "totalTokens": 32919
+  },
+  "nodes": [
+    {
+      "nodeId": "baseline",
+      "status": "succeeded",
+      "startedAt": "2026-11-11T19:12:02.707Z",
+      "finishedAt": "2026-11-11T19:14:14.598Z",
+      "elapsedMs": 131891,
+      "error": null,
+      "steps": 80,
+      "tokenUsage": {
+        "inputTokens": 11825,
+        "outputTokens": 21094,
+        "totalTokens": 32919
+      }
+    }
+  ]
+}

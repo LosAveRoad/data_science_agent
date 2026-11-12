@@ -1,0 +1,214 @@
+{
+  "node": "verify",
+  "target_artifact": "output.json",
+  "status": "pass",
+  "summary": {
+    "checks_total": 24,
+    "checks_passed": 24,
+    "checks_failed": 0
+  },
+  "output_received": {
+    "probability": 0.0283,
+    "shared_countries_count": 42,
+    "nba_median_height": 200.66,
+    "olympic_athletes_count": 16243
+  },
+  "recomputed_from_raw_data": {
+    "probability": 0.0283,
+    "shared_countries_count": 42,
+    "nba_median_height": 200.66,
+    "olympic_athletes_count": 16243,
+    "numerator_rows_height_gt_median": 460,
+    "denominator_olympic_records": 16243
+  },
+  "schema_conformance": {
+    "keys_exact": [
+      "nba_median_height",
+      "olympic_athletes_count",
+      "probability",
+      "shared_countries_count"
+    ],
+    "types": {
+      "probability": "float",
+      "shared_countries_count": "int",
+      "nba_median_height": "float",
+      "olympic_athletes_count": "int"
+    },
+    "rounding": {
+      "probability": "4 dp",
+      "nba_median_height": "2 dp"
+    },
+    "conformant": true
+  },
+  "reproduction_pipeline": {
+    "olympic": "athlete_events.csv, Year 1980-2016 & Medal notna -> 21926 records; NOC->region via noc_regions (8 unmapped SGP dropped) -> 21918; 383 missing heights imputed with sport median of the same medalist subset (imputed range 162-193 cm)",
+    "nba": "team.csv year_founded > 1970 -> 13 teams; team.csv.id == common_player_info.team_id -> 911 players; height (ft*12+in)*2.54, 0 nulls; 1 null-country player excluded from country set",
+    "country_standardization": "whitespace strip + alias map (e.g. United States->USA, United Kingdom->UK, US Virgin Islands->Virgin Islands, US); 5 NBA labels unmatched (Belize, Bosnia and Herzegovina, Republic of Congo, Saint Lucia, Scotland)",
+    "statistic": "P = #{shared-country 1980-2016 medalist records with height_cm > 200.66} / #{shared-country medalist records} = 460/16243 = 0.028319"
+  },
+  "sensitivity_analysis": [
+    {
+      "variant": "A_sport_median_impute (reported method)",
+      "probability": 0.0283,
+      "shared_countries_count": 42,
+      "nba_median_height": 200.66,
+      "olympic_athletes_count": 16243
+    },
+    {
+      "variant": "B_drop_null_olympic_heights",
+      "probability": 0.0287,
+      "shared_countries_count": 42,
+      "nba_median_height": 200.66,
+      "olympic_athletes_count": 16050
+    },
+    {
+      "variant": "C_global_median_impute",
+      "probability": 0.0283,
+      "shared_countries_count": 42,
+      "nba_median_height": 200.66,
+      "olympic_athletes_count": 16243
+    },
+    {
+      "variant": "D_sport_sex_median_impute",
+      "probability": 0.0284,
+      "shared_countries_count": 42,
+      "nba_median_height": 200.66,
+      "olympic_athletes_count": 16243
+    },
+    {
+      "variant": "E_no_country_alias_mapping",
+      "probability": 0.0292,
+      "shared_countries_count": 40,
+      "nba_median_height": 200.66,
+      "olympic_athletes_count": 15503
+    }
+  ],
+  "checks": [
+    {
+      "check": "file_exists",
+      "passed": true,
+      "detail": "output.json present, 125 bytes"
+    },
+    {
+      "check": "valid_json",
+      "passed": true,
+      "detail": "json.loads succeeded"
+    },
+    {
+      "check": "exact_key_set",
+      "passed": true,
+      "detail": "got ['nba_median_height', 'olympic_athletes_count', 'probability', 'shared_countries_count'], expected ['nba_median_height', 'olympic_athletes_count', 'probability', 'shared_countries_count']"
+    },
+    {
+      "check": "type::probability",
+      "passed": true,
+      "detail": "value=0.0283, type=float, expected=float"
+    },
+    {
+      "check": "type::shared_countries_count",
+      "passed": true,
+      "detail": "value=42, type=int, expected=int"
+    },
+    {
+      "check": "type::nba_median_height",
+      "passed": true,
+      "detail": "value=200.66, type=float, expected=float"
+    },
+    {
+      "check": "type::olympic_athletes_count",
+      "passed": true,
+      "detail": "value=16243, type=int, expected=int"
+    },
+    {
+      "check": "no_null_values",
+      "passed": true,
+      "detail": "all four fields non-null"
+    },
+    {
+      "check": "probability_in_unit_interval",
+      "passed": true,
+      "detail": "probability=0.0283"
+    },
+    {
+      "check": "counts_positive",
+      "passed": true,
+      "detail": "shared=42, olympic=16243"
+    },
+    {
+      "check": "counts_leq_olympic_population",
+      "passed": true,
+      "detail": "shared-country count is a subset count of olympic records (42 <= 16243)"
+    },
+    {
+      "check": "median_height_plausible_cm",
+      "passed": true,
+      "detail": "nba_median_height=200.66 cm"
+    },
+    {
+      "check": "recompute_probability_matches",
+      "passed": true,
+      "detail": "independent recompute num=460/den=16243 -> 0.0283; output=0.0283"
+    },
+    {
+      "check": "internal_ratio_consistency",
+      "passed": true,
+      "detail": "0.0283 consistent with 460/16243=0.028319"
+    },
+    {
+      "check": "recompute_shared_countries_matches",
+      "passed": true,
+      "detail": "intersection of 1980-2016 medalist regions (21918 rows) with NBA countries on 13 post-1970 teams = 42"
+    },
+    {
+      "check": "recompute_nba_median_matches",
+      "passed": true,
+      "detail": "median of 911 qualifying NBA player heights (ft-in -> cm) = 200.66; identical over the 905 shared-country subset"
+    },
+    {
+      "check": "recompute_olympic_count_matches",
+      "passed": true,
+      "detail": "1980-2016 medalist records with mapped country restricted to shared countries = 16243"
+    },
+    {
+      "check": "rounding_probability_4dp",
+      "passed": true,
+      "detail": "probability=0.0283 is 4-dp rounded"
+    },
+    {
+      "check": "rounding_median_2dp",
+      "passed": true,
+      "detail": "nba_median_height=200.66 is 2-dp rounded"
+    },
+    {
+      "check": "cross_artifact::probability",
+      "passed": true,
+      "detail": "output=0.0283, analysis_details=0.0283, execute_summary=0.0283"
+    },
+    {
+      "check": "cross_artifact::shared_countries_count",
+      "passed": true,
+      "detail": "output=42, analysis_details=42, execute_summary=42"
+    },
+    {
+      "check": "cross_artifact::nba_median_height",
+      "passed": true,
+      "detail": "output=200.66, analysis_details=200.66, execute_summary=None"
+    },
+    {
+      "check": "cross_artifact::olympic_athletes_count",
+      "passed": true,
+      "detail": "output=16243, analysis_details=16243, execute_summary=None"
+    },
+    {
+      "check": "robust_to_method_choice",
+      "passed": true,
+      "detail": "probability range over 5 defensible method variants = [0.0283, 0.0292], spread 0.0009; all variants within +/-0.001 of output"
+    }
+  ],
+  "notes": [
+    "result.json was not present in the workspace; verification is therefore an independent full recomputation from the raw datasets plus internal and cross-artifact consistency, not a direct diff against the reference.",
+    "No ties at exactly 200.66 cm (0 rows), so the strict \">\" rule and a \">=\" rule give identical numerators.",
+    "Imputation choice provably cannot change the numerator: every imputed Olympic height is <= 193 cm, below the 200.66 cm threshold.",
+    "Floating-point caveat: NBA median is 200.66 cm exactly under the ft-in conversion; all four fields round stably at the required precision."
+  ]
+}

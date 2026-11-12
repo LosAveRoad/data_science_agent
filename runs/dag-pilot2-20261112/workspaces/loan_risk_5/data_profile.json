@@ -1,0 +1,262 @@
+{
+  "task": "score distribution statistics by group (overall + monthly)",
+  "data_source": {
+    "workspace_files_at_start": [],
+    "note": "The assigned workspace contained no data files. The task dataset was located elsewhere in the project repo and copied into the workspace as data.csv to unblock the pipeline.",
+    "provisioned_file": "data.csv",
+    "original_path": "data_science_agent/runs/baseline-pilot-20261112/workspaces/loan_risk_5/data.csv",
+    "size_bytes": 24086,
+    "verified_same_schema_as_task": true
+  },
+  "file": {
+    "name": "data.csv",
+    "format": "csv",
+    "encoding": "utf-8 (BOM tolerated)",
+    "n_rows": 1203,
+    "n_cols": 3
+  },
+  "schema": {
+    "apply_date": {
+      "raw_dtype": "string",
+      "target": "date YYYYMMDD, month key = YYYYMM",
+      "all_match_yyyymmdd": true,
+      "bad_rows": 0,
+      "range": [
+        "20240101",
+        "20240628"
+      ],
+      "n_months": 6,
+      "months": [
+        "202401",
+        "202402",
+        "202403",
+        "202404",
+        "202405",
+        "202406"
+      ],
+      "month_part_valid": true
+    },
+    "score": {
+      "raw_dtype": "string(parsed float)",
+      "missing": 0,
+      "non_numeric": 0,
+      "min": 487.0,
+      "max": 999.0,
+      "mean": 704.7689,
+      "median": 710.0,
+      "negatives": 0,
+      "all_integer_valued": true,
+      "note": "scores are integer-valued floats written with .0 (e.g. 693.0) -> frequent mode ties"
+    },
+    "group_id": {
+      "raw_dtype": "string",
+      "missing": 0,
+      "n_groups": 7,
+      "groups": [
+        "G001",
+        "G002",
+        "G003",
+        "G004",
+        "G005",
+        "G006",
+        "G007"
+      ],
+      "format": "G0NN",
+      "no_whitespace_issues": true
+    }
+  },
+  "quality": {
+    "null_counts": {
+      "apply_date": 0,
+      "score": 0,
+      "group_id": 0
+    },
+    "duplicate_full_rows": 5,
+    "date_format_issues": 0,
+    "score_format_issues": 0
+  },
+  "group_counts": {
+    "G001": 420,
+    "G002": 330,
+    "G003": 261,
+    "G004": 150,
+    "G005": 40,
+    "G006": 1,
+    "G007": 1
+  },
+  "month_counts": {
+    "202401": 266,
+    "202402": 216,
+    "202403": 194,
+    "202404": 175,
+    "202405": 176,
+    "202406": 176
+  },
+  "group_month_matrix": {
+    "n_cells_observed": 32,
+    "n_cells_expected_full_grid": 42,
+    "missing_cells": [
+      [
+        "G006",
+        "202401"
+      ],
+      [
+        "G006",
+        "202402"
+      ],
+      [
+        "G006",
+        "202403"
+      ],
+      [
+        "G006",
+        "202404"
+      ],
+      [
+        "G006",
+        "202405"
+      ],
+      [
+        "G007",
+        "202401"
+      ],
+      [
+        "G007",
+        "202402"
+      ],
+      [
+        "G007",
+        "202403"
+      ],
+      [
+        "G007",
+        "202404"
+      ],
+      [
+        "G007",
+        "202405"
+      ]
+    ],
+    "missing_note": "G006/G007 each have a single record in 202406, so they only exist in that month; they must not be emitted as zero/NaN rows for other months.",
+    "cell_size_min": 1,
+    "cell_size_max": 88
+  },
+  "edge_cases_for_downstream": {
+    "mode_ties": {
+      "policy": "take minimum value among tied modes",
+      "n_group_cells_with_ties": 16,
+      "n_groups_with_ties": 2,
+      "per_group_overall_mode": {
+        "G001": {
+          "n": 420,
+          "n_modes": 2,
+          "modes": [
+            722.0,
+            726.0
+          ],
+          "mode_min": 722.0,
+          "std_defined": true
+        },
+        "G002": {
+          "n": 330,
+          "n_modes": 1,
+          "modes": [
+            688.0
+          ],
+          "mode_min": 688.0,
+          "std_defined": true
+        },
+        "G003": {
+          "n": 261,
+          "n_modes": 1,
+          "modes": [
+            724.0
+          ],
+          "mode_min": 724.0,
+          "std_defined": true
+        },
+        "G004": {
+          "n": 150,
+          "n_modes": 1,
+          "modes": [
+            655.0
+          ],
+          "mode_min": 655.0,
+          "std_defined": true
+        },
+        "G005": {
+          "n": 40,
+          "n_modes": 4,
+          "modes": [
+            682.0,
+            683.0,
+            722.0,
+            726.0
+          ],
+          "mode_min": 682.0,
+          "std_defined": true
+        },
+        "G006": {
+          "n": 1,
+          "n_modes": 1,
+          "modes": [
+            700.0
+          ],
+          "mode_min": 700.0,
+          "std_defined": false
+        },
+        "G007": {
+          "n": 1,
+          "n_modes": 1,
+          "modes": [
+            640.0
+          ],
+          "mode_min": 640.0,
+          "std_defined": false
+        }
+      }
+    },
+    "std_not_computable": {
+      "policy": "fill 0 when sample size < 2",
+      "cells_with_n_lt_2": [
+        [
+          "G005",
+          "202403",
+          1
+        ],
+        [
+          "G006",
+          "202406",
+          1
+        ],
+        [
+          "G007",
+          "202406",
+          1
+        ]
+      ],
+      "groups_with_n_lt_2_overall": [
+        "G006",
+        "G007"
+      ]
+    },
+    "small_groups": {
+      "note": "G006 (n=1) and G007 (n=1) give std=0, mode=mean=median=the single value.",
+      "groups": {
+        "G006": 1,
+        "G007": 1
+      }
+    },
+    "output_conventions": {
+      "overall_month_marker": "'overall' (internal only, dropped from output_1.csv)",
+      "cnt_type": "float",
+      "std": "sample standard deviation (ddof=1)",
+      "grouping": "output includes one row per observed group (overall) and one row per observed (group, month) cell"
+    }
+  },
+  "sanity_checks": {
+    "overall_total_group_count_equals_n": true,
+    "monthly_counts_sum_equals_n": true,
+    "sum_of_cell_sizes_equals_n": true
+  }
+}

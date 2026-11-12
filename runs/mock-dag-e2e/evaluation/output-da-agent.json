@@ -1,0 +1,171 @@
+{
+    "num_results": 1,
+    "average_score": 0.0,
+    "results": [
+        {
+            "id": "healthcare_05",
+            "total_score": 0.0,
+            "finished": true,
+            "steps": 14,
+            "result": "\u4efb\u52a1\u5b8c\u6210\uff0c\u4ea7\u51fa 2 \u4e2a\u6587\u4ef6: output.csv, output.png",
+            "added_files": [
+                "output.csv",
+                "output.png"
+            ],
+            "changed_files": [],
+            "actions": [
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa analysis_plan.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa result.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.006
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa execute_summary.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.png",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa output.csv",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "\u5199\u51fa verification.json",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.007
+                    }
+                },
+                {
+                    "action": "Python",
+                    "content": 1,
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.008
+                    }
+                },
+                {
+                    "action": "Observation",
+                    "content": "",
+                    "observation": "",
+                    "token_usage": null,
+                    "timing": {
+                        "elapsed": 0.008
+                    }
+                }
+            ],
+            "info": [
+                {
+                    "img": false,
+                    "score": 0.0,
+                    "subplot_scores": {
+                        "single": 0.0
+                    },
+                    "errors": [
+                        "Result numpy file not found",
+                        "Result JSON file /Users/mac/Documents/\u5b66\u4e60/\u627e\u5de5\u4f5c/data_science_agent/runs/mock-dag-e2e/output-da-agent/healthcare_05/output.json not found"
+                    ],
+                    "meaning": "Image comparison: compare figure properties: type (0.0/1 subplots matched)"
+                },
+                {
+                    "score": 0.0,
+                    "errors": [
+                        "Missing matched columns in input files: columns ['test', 'comparison'] are not found in either result file or gold file. Available columns in result: ['{']. Available columns in gold: ['test', 'comparison', 'statistic', 'p_value', 'significant']."
+                    ],
+                    "meaning": "Evaluating model predictions using metric 'mae' with lower_bound=0.0, upper_bound=1.0 and row alignment based on matched_columns=['test', 'comparison'], calculating on columns=['statistic', 'p_value', 'significant']",
+                    "output_data": null,
+                    "gold_data": null
+                }
+            ],
+            "domain": "healthcare"
+        }
+    ],
+    "average_finished": 1.0
+}

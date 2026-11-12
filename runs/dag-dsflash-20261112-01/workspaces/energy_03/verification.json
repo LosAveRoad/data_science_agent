@@ -1,0 +1,158 @@
+{
+ "node": "inspector",
+ "task": "Verify existence, format, structural completeness and data fidelity of the required 2x3 energy-analysis visualization (output.png)",
+ "checked_files": [
+  "output.png",
+  "make_figure.py",
+  "derived/state_pca_scored.csv",
+  "derived/pca_explained_var.npy",
+  "derived/analysis_results.json",
+  "execute_summary.json"
+ ],
+ "primary_output": {
+  "path": "output.png",
+  "exists": true,
+  "size_bytes": 441920,
+  "size_kb": 431.6,
+  "format": "PNG",
+  "mode": "RGBA",
+  "dimensions_px": [
+   2986,
+   1648
+  ],
+  "dpi": 150,
+  "sha256_12": "367abf6562fa",
+  "content_check": "non-white pixel fraction 0.1956; all six 2x3 grid regions contain plotted content",
+  "region_ink_fraction": {
+   "r0c0": 0.0843,
+   "r0c1": 0.087,
+   "r0c2": 0.2209,
+   "r1c0": 0.4018,
+   "r1c1": 0.1741,
+   "r1c2": 0.2056
+  },
+  "blank_margin_above_suptitle_rows": 12
+ },
+ "structure_verification": {
+  "grid": "2 rows x 3 cols (matplotlib subplots(2,3), figsize 20x11, dpi 150)",
+  "suptitle": {
+   "required": "Comprehensive Energy Analysis: Multi-dimensional Perspective",
+   "found": "Comprehensive Energy Analysis: Multi-dimensional Perspective",
+   "match": true,
+   "rendered": "confident: bold suptitle ink band present at rows 15-50, not clipped"
+  },
+  "panels": [
+   {
+    "position": "row0col0",
+    "type": "PCA scatter with colorbar",
+    "title_required": "U.S. States: PCA Analysis of Energy Indicators (colored by electricity price)",
+    "title_found": "U.S. States: PCA Analysis of Energy Indicators (colored by electricity price)",
+    "xlabel": "Principal Component 1",
+    "ylabel": "Principal Component 2",
+    "colorbar_label": "Residential Electricity Price (cents/kWh)",
+    "match": true,
+    "data_basis": "derived/state_pca_scored.csv, n=51 (50 states + DC); PC1 in [-2.58, 4.62], PC2 in [-2.82, 2.14], color = res_price in [9.70, 29.53] cents/kWh, no nulls; 8 state annotations; zero reference lines; PC1 40.8% / PC2 23.0% (cum 63.8%) note matches pca_explained_var.npy"
+   },
+   {
+    "position": "row0col1",
+    "type": "bubble chart",
+    "title_required": "Global: CO2 Per Capita vs Renewable Energy Share (bubble=population)",
+    "title_found": "Global: CO2 Per Capita vs Renewable Energy Share (bubble=population)",
+    "xlabel": "Renewable Energy Share (%)",
+    "ylabel": "CO2 Per Capita (tons)",
+    "xlim": [
+     0,
+     100
+    ],
+    "ylim": [
+     0,
+     30
+    ],
+    "match": true,
+    "data_basis": "join of global-data-on-sustainable-energy (2019) with owid-co2-data (2019) on country with non-null iso_code -> n=172; ren_share in [0.0, 95.0] (all within xlim); 1 country above ylim (Qatar 36.25 t) clipped and explicitly annotated on-panel ('Qatar clipped at 36.3 t'); bubble size = population"
+   },
+   {
+    "position": "row0col2",
+    "type": "pie chart",
+    "title_required": "Steel Industry: Load Type Distribution (2018)",
+    "title_found": "Steel Industry: Load Type Distribution (2018)",
+    "match": true,
+    "data_basis": "Steel_industry_data.csv, 35040 15-min intervals covering 2018-01-01..2018-12-31; Load_Type Light 18072 (51.6%), Medium 9696 (27.7%), Maximum 7272 (20.8%), sums to 35040; autopct labels present"
+   },
+   {
+    "position": "row1col0",
+    "type": "bar chart",
+    "title_required": "Solar Potential Comparison by Geographic Granularity",
+    "title_found": "Solar Potential Comparison by Geographic Granularity",
+    "xlabel": "Geographic Granularity (State, County, City, Postal Code) -> shows all four required granularity levels",
+    "ylabel": "Total Solar Potential (kW)",
+    "match": true,
+    "data_basis": "sum(kw_total) of 4 Project Sunroof files after dropna(region_name): State 832.46M (51 regions), County 819.52M (909), City 819.02M (7928), Postal Code 829.81M (10620) kW; spread max-min only 1.61% (additivity note on-panel); value labels in M kW"
+   },
+   {
+    "position": "row1col1",
+    "type": "horizontal bar chart",
+    "title_required": "Top 10 U.S. States: Fossil Fuel Generation (2017)",
+    "title_found": "Top 10 U.S. States: Fossil Fuel Generation (2017)",
+    "xlabel": "Fossil Fuel Generation (MWh)",
+    "ylabel": "State",
+    "match": true,
+    "data_basis": "US_Energy_Generation_2001-2022.csv: YEAR=2017, TYPE OF PRODUCER='Total Electric Power Industry', ENERGY SOURCE in {Coal, Petroleum, Natural Gas, Other Gases}, US-TOTAL excluded -> 51 states, total 2536.1 TWh; top10 = TX 341.8M, FL 200.1M, PA 120.9M, OH 99.2M, IN 92.5M, CA 90.1M, GA 85.5M, AL 84.5M, LA 78.0M, NC 73.3M MWh (descending order, horizontal bars)"
+   },
+   {
+    "position": "row1col2",
+    "type": "time series line chart",
+    "title_required": "Steel Industry: Energy Usage Patterns (sampled)",
+    "title_found": "Steel Industry: Energy Usage Patterns (sampled)",
+    "xlabel": "Time (sampled points)",
+    "ylabel": "Energy Usage (kWh)",
+    "match": true,
+    "data_basis": "first 672 date-sorted 15-min intervals (7 days from 2018-01-01); Usage_kWh mean 27.15, max 147.46, min 3.10; weekend band shading at x=288..479 (2018-01-06 Sat / 01-07 Sun, verified); annotation 'mean 27.2 / max 147.5' consistent with data"
+   }
+  ],
+  "all_titles_labels_match_spec": true,
+  "n_panels_found": 6
+ },
+ "integrity_checks": {
+  "reproducibility": "make_figure.py re-executed with save path redirected to a temporary file; resulting image is 2986x1648 identical to output.png (100.0% identical pixels, mean abs diff 0.0, byte size 441920 both) => output.png is exactly the render of the checked script/data",
+  "upstream_artifacts_unmodified": true,
+  "numerical_cross_checks": {
+   "state_pca_rows": 51,
+   "pca_explained_var_pct": [
+    40.84,
+    23.01,
+    17.11,
+    15.81,
+    3.23
+   ],
+   "bubble_n_countries": 172,
+   "steel_intervals": 35040,
+   "granularity_totals_kw": {
+    "State": 832455286.75,
+    "County": 819518132.5,
+    "City": 819015380.75,
+    "Postal Code": 829809383.25
+   },
+   "fossil_2017_top1_mwh": 341796033.0,
+   "all_match_execute_summary": true
+  },
+  "artifact_consistency": "derived/analysis_results.json, derived/corr_pca.json, derived/pca_explained_var.npy and derived/state_pca_scored.csv are mutually consistent and consistent with the values plotted"
+ },
+ "issues": [
+  {
+   "severity": "info",
+   "detail": "One bubble (Qatar, 36.25 t CO2/capita) falls outside the mandated ylim [0,30] and is clipped; this is disclosed by an on-panel note rather than hidden."
+  },
+  {
+   "severity": "info",
+   "detail": "Panel-4 x-axis label pads the required granularity words with the words 'Geographic Granularity (...)'; all four required levels (State, County, City, Postal Code) literally appear."
+  },
+  {
+   "severity": "info",
+   "detail": "Panels 2/3/6 mix global, India-steel and U.S. data sources; the suptitle frames this as a multi-dimensional perspective, so the mixture is intentional but means cross-panel comparisons are not like-for-like."
+  }
+ ],
+ "verdict": "PASS",
+ "output_file": "output.png",
+ "output_file_name": "output.png"
+}

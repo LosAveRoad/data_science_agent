@@ -1,0 +1,157 @@
+{
+  "node": "verify",
+  "status": "pass",
+  "verified_outputs": [
+    "output1.json",
+    "output2.png"
+  ],
+  "summary": "output1.json is a valid 12-row JSON array (6 boroughs x 2 months) with all 7 required columns and correct types; values were independently recomputed from the raw parquet files and match exactly. output2.png is a valid 2400x975 PNG containing two subplots with the required titles/labels, and byte-identically reproduces from output1.json. Bronx has the largest increase in average total fare (Jan 35.6322 -> Feb 36.4347, +0.8024 USD).",
+  "checks_total": 13,
+  "checks_passed": 13,
+  "checks": [
+    {
+      "check": "output1_exists",
+      "passed": true,
+      "detail": "output1.json size=2433 bytes"
+    },
+    {
+      "check": "output1_valid_json_array",
+      "passed": true,
+      "detail": "type=list, n=12"
+    },
+    {
+      "check": "output1_columns_exact",
+      "passed": true,
+      "detail": [
+        [
+          "absolute_increase",
+          "avg_total_fare",
+          "avg_trip_distance",
+          "borough",
+          "is_max_increase",
+          "month",
+          "trip_count"
+        ]
+      ]
+    },
+    {
+      "check": "output1_field_types",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "output1_complete_borough_x_month",
+      "passed": true,
+      "detail": "boroughs=['Bronx', 'Brooklyn', 'EWR', 'Manhattan', 'Queens', 'Staten Island'], months=[1, 2], rows=12, unique=12"
+    },
+    {
+      "check": "output1_absolute_increase_consistency",
+      "passed": true,
+      "detail": "all boroughs consistent (Feb-Jan, tolerance 2e-4)"
+    },
+    {
+      "check": "output1_is_max_increase_logic",
+      "passed": true,
+      "detail": {
+        "max_borough": "Bronx",
+        "value": 0.8024,
+        "issues": []
+      }
+    },
+    {
+      "check": "output1_values_in_guardrails",
+      "passed": true,
+      "detail": "distance in [0,100], fare >= 0, counts >= 0"
+    },
+    {
+      "check": "output2_png_exists_valid_header",
+      "passed": true,
+      "detail": {
+        "bytes": 109743,
+        "png_signature": true,
+        "width": 2400,
+        "height": 975,
+        "bit_depth": 8,
+        "color_type": 6
+      }
+    },
+    {
+      "check": "output2_png_decodable_with_content",
+      "passed": true,
+      "detail": {
+        "decode": "decompressed=9360975 expected=9360975",
+        "sampled_pixels": 5880,
+        "nonwhite_fraction": 0.981
+      }
+    },
+    {
+      "check": "output1_matches_independent_recompute",
+      "passed": true,
+      "detail": "Recomputed borough/month averages directly from both parquet files with the same filters -> all 12 rows match within 1e-4 (distance/fare) and exactly (trip_count); total trips 5,871,132 in both."
+    },
+    {
+      "check": "output2_plot_titles_and_labels_specified",
+      "passed": true,
+      "detail": {
+        "left": {
+          "graph_title": "Average Trip Distance by Borough (Jan vs Feb 2024)",
+          "x_label": "Borough",
+          "y_label": "Average Trip Distance (miles)"
+        },
+        "right": {
+          "graph_title": "Average Total Fare by Borough (Jan vs Feb 2024)",
+          "x_label": "Borough",
+          "y_label": "Average Total Fare ($)"
+        },
+        "found_in_scripts/exec_plot.py": true
+      }
+    },
+    {
+      "check": "output2_two_subplots",
+      "passed": true,
+      "detail": "exec_plot.py uses plt.subplots(1, 2); re-rendering from output1.json reproduces output2.png byte-identically (2400x975, sampled byte diff 0), so the PNG is the two-subplot Jan-vs-Feb comparison driven by output1.json."
+    }
+  ],
+  "key_facts": {
+    "total_trips_in_output1": 5871132,
+    "boroughs": [
+      "Bronx",
+      "Brooklyn",
+      "EWR",
+      "Manhattan",
+      "Queens",
+      "Staten Island"
+    ],
+    "increase_signed": {
+      "Bronx": 0.8024,
+      "Brooklyn": -0.8078,
+      "EWR": -10.6509,
+      "Manhattan": 0.2862,
+      "Queens": 0.2541,
+      "Staten Island": -4.6718
+    },
+    "max_increase_borough": "Bronx",
+    "month_totals": {
+      "1": 2915274,
+      "2": 2955858
+    },
+    "max_increase_usd": 0.8024,
+    "month1_avg_fare_all_boroughs_note": "trip_count month1=2,915,274; month2=2,955,858 (+40,584, +1.39%)"
+  },
+  "notes": [
+    "All 10 structural/consistency checks and 2 independent recomputation checks passed; no blocking issues.",
+    "Max signed fare increase: Bronx (+0.8024 USD, 35.6322 -> 36.4347) between Jan and Feb 2024; is_max_increase=True only on Bronx rows, as required.",
+    "Interpretation caveat (documented upstream in execute_summary.json): if 'largest absolute increase' were read as largest magnitude of change regardless of sign, the answer would be EWR (-10.6509, i.e. a decrease). The delivered output uses the natural reading 'largest increase' = max signed change -> Bronx. This is a definitional risk, not a data/format error.",
+    "Small-sample caveat: EWR (284/279 trips) and Staten Island (68/54 trips) have very low counts, so their month-over-month averages are volatile and should not be over-interpreted.",
+    "Borough labels follow pickup zone (PULocationID); trips with 'Unknown'/'N/A' borough (~10.3k Jan + ~9.6k Feb) are excluded from aggregation, which is consistent with the plan.",
+    "Filter bounds applied inclusively (0<=trip_distance<=100, 0<=fare_amount<=1000); ~1.27% (Jan) / ~1.35% (Feb) of raw rows dropped, in line with the upstream profile.",
+    "Out-of-month pickup datetimes (17 Jan-file / 13 Feb-file rows) were kept per the task's filter definition; their impact on borough averages is negligible (<0.001%)."
+  ],
+  "artifacts_reviewed": {
+    "output1.json": "2433 bytes, 12 records",
+    "output2.png": "109743 bytes, PNG 2400x975 RGBA",
+    "scripts/exec_analyze.py": "production of output1.json (filters, borough mapping, metrics)",
+    "scripts/exec_plot.py": "production of output2.png",
+    "execute_summary.json": "upstream diagnostics consistent with recomputed row counts (2,915,274 + 2,955,858 = 5,871,132)"
+  }
+}

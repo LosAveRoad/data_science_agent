@@ -1,0 +1,193 @@
+{
+  "files": {
+    "athlete_events.csv": {
+      "rows": 271116,
+      "columns": [
+        "ID",
+        "Name",
+        "Sex",
+        "Age",
+        "Height",
+        "Weight",
+        "Team",
+        "NOC",
+        "Games",
+        "Year",
+        "Season",
+        "City",
+        "Sport",
+        "Event",
+        "Medal"
+      ],
+      "year_range": [
+        1896,
+        2016
+      ],
+      "height_null_ratio": 0.2219,
+      "medal_value_counts": {
+        "NaN": 231333,
+        "Gold": 13372,
+        "Bronze": 13295,
+        "Silver": 13116
+      },
+      "medalist_1980_2016_rows": 21926,
+      "medalist_1980_2016_height_null": 383,
+      "season_values": [
+        "Summer",
+        "Winter"
+      ]
+    },
+    "noc_regions.csv": {
+      "rows": 230,
+      "columns": [
+        "NOC",
+        "region",
+        "notes"
+      ],
+      "region_null": 3,
+      "note": "NOC->region mapping; 3 NOCs without region (ROT/TUV/UNK); SGP missing from mapping (8 medalist rows dropped)"
+    },
+    "NBA Database/common_player_info.csv": {
+      "rows": 4171,
+      "columns": [
+        "person_id",
+        "first_name",
+        "last_name",
+        "display_first_last",
+        "display_last_comma_first",
+        "display_fi_last",
+        "player_slug",
+        "birthdate",
+        "school",
+        "country",
+        "last_affiliation",
+        "height",
+        "weight",
+        "season_exp",
+        "jersey",
+        "position",
+        "rosterstatus",
+        "games_played_current_season_flag",
+        "team_id",
+        "team_name",
+        "team_abbreviation",
+        "team_code",
+        "team_city",
+        "playercode",
+        "from_year",
+        "to_year",
+        "dleague_flag",
+        "nba_flag",
+        "games_played_flag",
+        "draft_year",
+        "draft_round",
+        "draft_number",
+        "greatest_75_flag"
+      ],
+      "height_format": "feet-inches string e.g. '6-10'",
+      "height_null": 96,
+      "country_unique": 73,
+      "position_values": {
+        "Guard": 1604,
+        "Forward": 1533,
+        "Center": 571,
+        "Guard-Forward": 142,
+        "Forward-Center": 117,
+        "Center-Forward": 76,
+        "Forward-Guard": 65,
+        "NaN": 63
+      },
+      "team_id_not_in_team_csv": [
+        0,
+        1610610023,
+        1610610024,
+        1610610025,
+        1610610026,
+        1610610027,
+        1610610028,
+        1610610029,
+        1610610030,
+        1610610031,
+        1610610032,
+        1610610033,
+        1610610034,
+        1610610035,
+        1610610036,
+        1610610037
+      ]
+    },
+    "NBA Database/team.csv": {
+      "rows": 30,
+      "columns": [
+        "id",
+        "full_name",
+        "abbreviation",
+        "nickname",
+        "city",
+        "state",
+        "year_founded"
+      ],
+      "year_founded_min": 1946.0,
+      "year_founded_max": 2002.0
+    }
+  },
+  "decisions": {
+    "olympic_filter": "Year 1980-2016 (inclusive, Summer+Winter) and Medal not null; unit = athlete-event record",
+    "country_standardization": "NOC -> noc_regions.region, then aliases: UK->United Kingdom, Virgin Islands, US->US Virgin Islands, Trinidad->Trinidad and Tobago, Cape Verde->Cabo Verde, Republic of Congo->Congo, Democratic Republic of the Congo->DRC",
+    "olympic_height_imputation": "missing Height imputed with sport-specific median of 1980-2016 medalists (fallback: full-dataset sport median, then overall median); 383 of 21926 rows imputed",
+    "nba_height_conversion": "(feet*12+inches)*2.54 cm",
+    "nba_team_filter": "players whose team_id belongs to team.csv rows with year_founded > 1970 (13 teams, 911 players); players on defunct/unknown team_ids excluded",
+    "nba_height_imputation": "position-group median (Guard/Forward/Center) if missing; none missing in filtered set",
+    "nba_median_height": 200.66
+  },
+  "result": {
+    "probability": 0.0283,
+    "numerator_records_height_gt_nba_median": 460,
+    "denominator_records_from_shared_countries": 16243,
+    "shared_countries_count": 42,
+    "shared_countries": [
+      "Argentina",
+      "Australia",
+      "Austria",
+      "Bahamas",
+      "Brazil",
+      "Cameroon",
+      "Canada",
+      "Croatia",
+      "Cuba",
+      "Dominican Republic",
+      "Estonia",
+      "Finland",
+      "France",
+      "Gabon",
+      "Georgia",
+      "Germany",
+      "Iran",
+      "Italy",
+      "Jamaica",
+      "Japan",
+      "Latvia",
+      "Lithuania",
+      "Mexico",
+      "Montenegro",
+      "Netherlands",
+      "New Zealand",
+      "Nigeria",
+      "Panama",
+      "Poland",
+      "Puerto Rico",
+      "Russia",
+      "Senegal",
+      "Serbia",
+      "Slovenia",
+      "Spain",
+      "Sudan",
+      "Tanzania",
+      "Turkey",
+      "US Virgin Islands",
+      "USA",
+      "Ukraine",
+      "United Kingdom"
+    ]
+  }
+}

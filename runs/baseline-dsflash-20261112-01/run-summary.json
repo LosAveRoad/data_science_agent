@@ -1,0 +1,408 @@
+{
+  "experimentId": "baseline-dsflash-20261112-01",
+  "system": "baseline-pi",
+  "startedAt": "2026-11-11T18:45:15.282Z",
+  "finishedAt": "2026-11-11T19:35:29.872Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": false,
+    "model": "deepseek-flash",
+    "baseUrl": "https://api.deepseek.com",
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 30,
+    "succeeded": 30,
+    "failed": 0,
+    "skipped": 0,
+    "tokenUsage": {
+      "inputTokens": 279658,
+      "outputTokens": 334662,
+      "totalTokens": 614320
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "agriculture_18",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 7317,
+        "outputTokens": 4443,
+        "totalTokens": 11760
+      },
+      "outputs": [
+        "output.png",
+        "output1.csv",
+        "output2.csv"
+      ]
+    },
+    {
+      "taskId": "agriculture_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 6400,
+        "outputTokens": 14443,
+        "totalTokens": 20843
+      },
+      "outputs": [
+        "output.csv",
+        "output.txt"
+      ]
+    },
+    {
+      "taskId": "ecommerce_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 12376,
+        "outputTokens": 18743,
+        "totalTokens": 31119
+      },
+      "outputs": [
+        "output.json",
+        "output1.csv",
+        "output2.csv",
+        "output3.csv"
+      ]
+    },
+    {
+      "taskId": "ecommerce_35",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 8841,
+        "outputTokens": 11182,
+        "totalTokens": 20023
+      },
+      "outputs": [
+        "output.db",
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "energy_03",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 11537,
+        "outputTokens": 13558,
+        "totalTokens": 25095
+      },
+      "outputs": [
+        "output.png"
+      ]
+    },
+    {
+      "taskId": "energy_09",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 10824,
+        "outputTokens": 6563,
+        "totalTokens": 17387
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "entertainment_03",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 12488,
+        "outputTokens": 15100,
+        "totalTokens": 27588
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "entertainment_04",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 6335,
+        "outputTokens": 8293,
+        "totalTokens": 14628
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "financial_234",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 15448,
+        "outputTokens": 6087,
+        "totalTokens": 21535
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "financial_310",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 14405,
+        "outputTokens": 6093,
+        "totalTokens": 20498
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 9225,
+        "outputTokens": 8719,
+        "totalTokens": 17944
+      },
+      "outputs": [
+        "output.csv",
+        "output.png"
+      ]
+    },
+    {
+      "taskId": "healthcare_20",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 11842,
+        "outputTokens": 17779,
+        "totalTokens": 29621
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_24",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 8776,
+        "outputTokens": 19285,
+        "totalTokens": 28061
+      },
+      "outputs": [
+        "meta_analysis_results.csv"
+      ]
+    },
+    {
+      "taskId": "healthcare_31",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 11825,
+        "outputTokens": 21094,
+        "totalTokens": 32919
+      },
+      "outputs": [
+        "feature_analysis.png",
+        "feature_coefficients.csv",
+        "selected_features.csv",
+        "top_coefficient.txt"
+      ]
+    },
+    {
+      "taskId": "loan_model_2",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 8412,
+        "outputTokens": 7793,
+        "totalTokens": 16205
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "loan_model_9",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 8419,
+        "outputTokens": 8450,
+        "totalTokens": 16869
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "loan_risk_5",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 5200,
+        "outputTokens": 6133,
+        "totalTokens": 11333
+      },
+      "outputs": [
+        "output_1.csv",
+        "output_2.csv"
+      ]
+    },
+    {
+      "taskId": "loan_risk_8",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 10161,
+        "outputTokens": 5545,
+        "totalTokens": 15706
+      },
+      "outputs": [
+        "summary_output.csv"
+      ]
+    },
+    {
+      "taskId": "real_estate_04",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 6715,
+        "outputTokens": 4597,
+        "totalTokens": 11312
+      },
+      "outputs": [
+        "top5_cagr_disparity.csv"
+      ]
+    },
+    {
+      "taskId": "real_estate_29",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 10901,
+        "outputTokens": 10140,
+        "totalTokens": 21041
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "social_network_10",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 7421,
+        "outputTokens": 14775,
+        "totalTokens": 22196
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "social_network_18",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 2984,
+        "outputTokens": 3035,
+        "totalTokens": 6019
+      },
+      "outputs": [
+        "negative_reasons.csv",
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "sports_14",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 14080,
+        "outputTokens": 22137,
+        "totalTokens": 36217
+      },
+      "outputs": [
+        "output.csv",
+        "physical_attributes_analysis.png"
+      ]
+    },
+    {
+      "taskId": "sports_30",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 8473,
+        "outputTokens": 7023,
+        "totalTokens": 15496
+      },
+      "outputs": [
+        "output.json"
+      ]
+    },
+    {
+      "taskId": "strategy_2",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 4007,
+        "outputTokens": 3017,
+        "totalTokens": 7024
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "strategy_3",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 5650,
+        "outputTokens": 9397,
+        "totalTokens": 15047
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "tourism_01",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 10324,
+        "outputTokens": 25131,
+        "totalTokens": 35455
+      },
+      "outputs": [
+        "output1.csv",
+        "output2.csv"
+      ]
+    },
+    {
+      "taskId": "tourism_02",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 7520,
+        "outputTokens": 9020,
+        "totalTokens": 16540
+      },
+      "outputs": [
+        "output.csv"
+      ]
+    },
+    {
+      "taskId": "transportation_05",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 13911,
+        "outputTokens": 15653,
+        "totalTokens": 29564
+      },
+      "outputs": [
+        "output1.json",
+        "output2.png"
+      ]
+    },
+    {
+      "taskId": "transportation_06",
+      "status": "succeeded",
+      "tokenUsage": {
+        "inputTokens": 7841,
+        "outputTokens": 11434,
+        "totalTokens": 19275
+      },
+      "outputs": [
+        "output.json"
+      ]
+    }
+  ]
+}

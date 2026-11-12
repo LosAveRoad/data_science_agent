@@ -1,0 +1,210 @@
+{
+  "artifact": "verification.json",
+  "generated_by": "verify_node",
+  "target_artifact": "output.csv",
+  "status": "PASS",
+  "summary": "output.csv 存在、格式与列名完全符合要求，10 档分箱（0.99 起宽度 0.001，最高档 [0.999,1] 右闭）正确；本节点从 data_1.csv 独立重算的 10x7 个计数与 output.csv 逐格完全一致（0 处差异），各列合计与上游 data_profile.expected_output_contract 及 execute_summary 全部吻合。",
+  "checks_total": 15,
+  "checks_passed": 15,
+  "checks_failed": 0,
+  "checks": [
+    {
+      "check": "file_exists_and_parses",
+      "passed": true,
+      "detail": "output.csv 可解析，10 行 x 8 列"
+    },
+    {
+      "check": "header_exact_match",
+      "passed": true,
+      "detail": "['score_bucket', 'total', 'oncall', 'cnt_send', 'cnt_click', 'cnt_check', 'cnt_apply', 'cnt_upgrade']"
+    },
+    {
+      "check": "row_count_10",
+      "passed": true,
+      "detail": "rows=10"
+    },
+    {
+      "check": "no_nulls",
+      "passed": true,
+      "detail": "{'score_bucket': 0, 'total': 0, 'oncall': 0, 'cnt_send': 0, 'cnt_click': 0, 'cnt_check': 0, 'cnt_apply': 0, 'cnt_upgrade': 0}"
+    },
+    {
+      "check": "values_numeric_integral",
+      "passed": true,
+      "detail": "全部可解析为整数"
+    },
+    {
+      "check": "label_format_brackets",
+      "passed": true,
+      "detail": "全部符合 [A,B) / [A,B] 格式"
+    },
+    {
+      "check": "bin_width_0.001",
+      "passed": true,
+      "detail": "[0.001]"
+    },
+    {
+      "check": "bins_ascending_contiguous",
+      "passed": true,
+      "detail": "asc=True, contiguous=True"
+    },
+    {
+      "check": "highest_bin_right_closed_only",
+      "passed": true,
+      "detail": "right-closed bins at index [9]"
+    },
+    {
+      "check": "starts_at_0.99",
+      "passed": true,
+      "detail": "first lo=0.99"
+    },
+    {
+      "check": "top_bin_label_is_0.999_1",
+      "passed": true,
+      "detail": "[0.999,1]"
+    },
+    {
+      "check": "boundary_format_no_padding",
+      "passed": true,
+      "detail": "[]"
+    },
+    {
+      "check": "column_sums_vs_data_profile",
+      "passed": true,
+      "detail": "actual={'total': 477049, 'oncall': 225356, 'cnt_send': 261517, 'cnt_click': 3866, 'cnt_check': 182, 'cnt_apply': 182, 'cnt_upgrade': 182}"
+    },
+    {
+      "check": "per_bucket_total_vs_profile",
+      "passed": true,
+      "detail": "[21336, 42367, 49432, 48075, 50724, 48333, 47915, 50767, 46828, 71272]"
+    },
+    {
+      "check": "funnel_nesting",
+      "passed": true,
+      "detail": "send<=total:True, oncall<=total:True, click<=send:True, check<=click:True, apply<=check:True, upgrade<=apply:True"
+    }
+  ],
+  "independent_recomputation": {
+    "method": "pandas 全量读取 data_1.csv（477,049 行）→ score.round(3) 映射到固定 10 档标签 → groupby 聚合 size/(type=='call')/5 个时间列 notna() 计数 → reindex 固定档位顺序 → 与 output.csv 按 score_bucket 外连接逐格比对",
+    "rows_compared": 10,
+    "cell_mismatches": 0,
+    "bucket_key_mismatch": 0,
+    "recomputed_column_sums": {
+      "total": 477049,
+      "oncall": 225356,
+      "cnt_send": 261517,
+      "cnt_click": 3866,
+      "cnt_check": 182,
+      "cnt_apply": 182,
+      "cnt_upgrade": 182
+    }
+  },
+  "data_coverage": {
+    "source_rows": 477049,
+    "rows_covered_by_buckets": 477049,
+    "rows_below_0.99_or_above_1": 0,
+    "all_rows_accounted_for": true,
+    "note": "score 取值全部落在 [0.99,1.0] 的 0.001 网格（11 个唯一值），故每档实质对应单个 score 值；最高档 [0.999,1] 合并 0.999 与 1.0 两个值共 71,272 行。"
+  },
+  "cross_checks": {
+    "per_bucket_total_vs_data_profile_binning_spec": "一致（21336,42367,49432,48075,50724,48333,47915,50767,46828,71272）",
+    "per_bucket_total_vs_data_existing_score_bucket_column": "完全一致（数据自带 score_bucket 列的行数分布逐档相同；score→label 映射为严格一对多无歧义）",
+    "column_sums_vs_execute_summary": "一致（total 477049 / oncall 225356 / cnt_send 261517 / cnt_click 3866 / cnt_check=apply=upgrade=182）",
+    "funnel_nesting_per_bucket": "全部成立：cnt_click<=cnt_send<=total，cnt_check<=cnt_click，cnt_upgrade<=cnt_apply"
+  },
+  "format_compliance": {
+    "headers": [
+      "score_bucket",
+      "total",
+      "oncall",
+      "cnt_send",
+      "cnt_click",
+      "cnt_check",
+      "cnt_apply",
+      "cnt_upgrade"
+    ],
+    "headers_match_required": true,
+    "score_bucket_format": "9 档为 [A,B) 左闭右开，仅最高档 [0.999,1] 右闭；边界用 %g 风格（0.99 而非 0.990），无冗余补零",
+    "bin_width": 0.001,
+    "bins_ascending_and_contiguous": true,
+    "dtype_integral_counts": true,
+    "nulls": 0
+  },
+  "notes_and_caveats": [
+    {
+      "id": "CALIBER-oncall",
+      "severity": "low",
+      "issue": "任务文字同时提到 'number of outbound calls' 与 'calls connected'，存在两种口径。output.csv 采用上游 analysis_plan/data_profile 的决定：total=该档全部记录数(call+sms)，oncall=外呼尝试数(type=='call')。若需口径 B（total=外呼数、oncall=接通数），把 total 换成下列 call 列、oncall 换成 connected 列即可，其余 5 列不变。",
+      "alternative_by_bucket": {
+        "[0.99,0.991)": {
+          "call": 12864,
+          "connected": 2098
+        },
+        "[0.991,0.992)": {
+          "call": 25245,
+          "connected": 4184
+        },
+        "[0.992,0.993)": {
+          "call": 21102,
+          "connected": 3412
+        },
+        "[0.993,0.994)": {
+          "call": 20602,
+          "connected": 3448
+        },
+        "[0.994,0.995)": {
+          "call": 21521,
+          "connected": 3467
+        },
+        "[0.995,0.996)": {
+          "call": 21095,
+          "connected": 3444
+        },
+        "[0.996,0.997)": {
+          "call": 20853,
+          "connected": 3303
+        },
+        "[0.997,0.998)": {
+          "call": 22042,
+          "connected": 3416
+        },
+        "[0.998,0.999)": {
+          "call": 24309,
+          "connected": 3407
+        },
+        "[0.999,1]": {
+          "call": 35723,
+          "connected": 4630
+        }
+      },
+      "alternative_totals": {
+        "call": 225356,
+        "connected": 34809
+      }
+    },
+    {
+      "id": "DATA-cnt_send_semantics",
+      "severity": "info",
+      "issue": "cnt_send 为 send_time 非空计数（261,517），其中含 90,837 条 call 记录，故大于短信行数 251,693；这是数据事实，非计算错误。"
+    },
+    {
+      "id": "DATA-check_apply_upgrade_equal",
+      "severity": "info",
+      "issue": "cnt_check == cnt_apply == cnt_upgrade 在每一档都完全相等（总计各 182 行，为同一批记录），属数据特征，不能据此判定输出错误。"
+    },
+    {
+      "id": "DATA-87sms-anomaly",
+      "severity": "info",
+      "issue": "87 行 type=='sms' 但 if_call_suc==1 且时间戳全空（渠道与结果标记矛盾），不影响按 type 口径的 oncall，也不计入 cnt_send。"
+    },
+    {
+      "id": "BIN-multi-value-not-merged",
+      "severity": "info",
+      "issue": "由于 score 只落在 0.001 网格上，每档（除最高档）实际只包含一个 score 值，分箱结果对边界处理方式（左闭/右闭）不敏感，稳健性高。"
+    }
+  ],
+  "recommendations": [
+    "output.csv 无需修改，可直接交付下游。",
+    "若下游明确 oncall 指 'calls connected'，请按 CALIBER-oncall 的替代列替换 total/oncall 两列（其余列无需改动）。"
+  ]
+}

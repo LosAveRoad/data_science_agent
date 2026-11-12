@@ -1,0 +1,40 @@
+{
+  "experimentId": "mock-baseline-e2e",
+  "system": "baseline-pi",
+  "startedAt": "2026-11-11T18:23:20.730Z",
+  "finishedAt": "2026-11-11T18:23:20.736Z",
+  "subset": {
+    "configPath": "/Users/mac/Documents/学习/找工作/data_science_agent/configs/benchmark.json",
+    "version": "2026-11-12",
+    "dataDir": "/Users/mac/Documents/学习/找工作/agenticdatabench/testbed"
+  },
+  "config": {
+    "mock": true,
+    "maxSteps": 40,
+    "tokenBudget": 2000000,
+    "overwriting": false
+  },
+  "totals": {
+    "tasks": 1,
+    "succeeded": 0,
+    "failed": 0,
+    "skipped": 1,
+    "tokenUsage": {
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "totalTokens": 0
+    }
+  },
+  "tasks": [
+    {
+      "taskId": "healthcare_05",
+      "status": "skipped",
+      "tokenUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      },
+      "outputs": []
+    }
+  ]
+}

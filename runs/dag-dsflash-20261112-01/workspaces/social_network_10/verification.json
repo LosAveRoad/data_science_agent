@@ -1,0 +1,85 @@
+{
+  "node": "verify",
+  "status": "pass",
+  "artifact": "output.csv",
+  "verified_at_rows": 10,
+  "artifact_checks": {
+    "file_exists": {
+      "status": "pass",
+      "detail": "output.csv present, 324 bytes, 11 lines (header + 10 data rows), ends with LF, no CRLF"
+    },
+    "header_exact": {
+      "status": "pass",
+      "detail": "header == 'rank,username,pagerank_score,mention_count,follower_count'; every row has exactly 5 fields"
+    },
+    "row_count": {
+      "status": "pass",
+      "detail": "10 data rows, 10 distinct usernames, 0 nulls"
+    },
+    "rank_column": {
+      "status": "pass",
+      "detail": "rank = 1..10 exactly, integer dtype"
+    },
+    "pagerank_score_format": {
+      "status": "pass",
+      "detail": "all finite, in (0,1), strictly non-increasing; textual values carry exactly 6 decimals; each equals round(recomputed_score,6) within 1e-12"
+    },
+    "metric_columns": {
+      "status": "pass",
+      "detail": "mention_count = SUM('Mention Count') and follower_count = MAX('Follower Count') recomputed from bot_detection_data.csv match all 10 rows exactly"
+    }
+  },
+  "requirement_checks": {
+    "username_case_insensitive_join": {
+      "status": "pass_with_caveat",
+      "detail": "normalization strip().lower() applied and re-derived node set = 2694 matched users (bot-only 37872, twitter-only 6753 excluded -> inner join). CAVEAT: all 50,000 bot and 10,000 twitter usernames are already lowercase, so case-sensitive and case-insensitive matching give the identical 2694 users (delta 0); case-insensitivity is applied but non-binding on this dataset."
+    },
+    "graph_construction": {
+      "status": "pass",
+      "detail": "independent rebuild: 11344 edges = sum(min(mention_count,10)); per-target in-degree == min(mention_count,10) for all 2694 nodes; max in-degree 10 (cap respected); no self-loops; no duplicate src->dst; all weights = mention_count/in_degree > 0; sum of in-weights per node == mention_count"
+    },
+    "follower_weighted_source_sampling": {
+      "status": "pass",
+      "detail": "sources drawn without replacement, p proportional to follower_count (max follower 10000); rebuilt edges are bit-identical to edges.csv (row order, src/dst and weights max diff 0.0)"
+    },
+    "random_seed_42_reproducible": {
+      "status": "pass",
+      "detail": "numpy default_rng(42) with sorted node iteration reproduces edges.csv exactly (md5 of seed-42 edge list 2c28233bb7f755f0714845805086d637, rerun in-session deterministic); seed 7 produces 11337 differing edges, so the seed genuinely drives the draw"
+    },
+    "pagerank_alpha_0.85_weighted": {
+      "status": "pass",
+      "detail": "independent power iteration (alpha=0.85, weight='weight', tol=1e-10) converged in 29 iterations, L1 delta 6.13e-11, scores sum 1.0; max abs difference vs full_ranking.pagerank_score = 8.7e-19 over all 2694 nodes, Spearman rank corr = 1.0; top-10 order identical to output.csv"
+    },
+    "top10_selection": {
+      "status": "pass",
+      "detail": "output.csv top-10 == top-10 of recomputed ranking (pagerank desc, username asc tie-break) and == full_ranking rank 1..10"
+    }
+  },
+  "independent_recomputation": {
+    "reimplemented_pipeline": "read both CSVs -> lower/strip username key -> per-user mention_count=SUM, follower_count=MAX -> inner join -> directed edges s->u: k=min(mention,10), k distinct sources sampled without replacement weighted by follower_count (rng=default_rng(42), sorted node order) -> PageRank alpha=0.85, weight=mention/k, tol 1e-10",
+    "nodes": 2694,
+    "edges_rebuilt": 11344,
+    "edges_bit_identical_to_upstream": true,
+    "pagerank_max_abs_diff_vs_full_ranking": 8.7e-19,
+    "pagerank_spearman_vs_full_ranking": 1.0,
+    "top10_identical": true,
+    "pagerank_sum": 1.0,
+    "top10_score_range": [
+      0.001811,
+      0.002418
+    ],
+    "uniform_baseline_1_over_2694": 0.000371
+  },
+  "observations_and_risks": [
+    "PageRank values rest on a SYNTHETIC graph: no observed interaction log links specific users, so in-edges are simulated from mention counts and follower-weighted sampling; the scores measure simulated attention flow, not verified real influence.",
+    "Ranking covers only the 2694 users present in both sources (inner join); 6753 twitter-only and 37872 bot-only users are excluded, so this is not a global leaderboard. Users with mention_count=0 (283 nodes) have zero in-degree and are ranked purely by damping redistribution.",
+    "Seed sensitivity: an independent seed-7 draw under the same recipe changes every source selection and yields 0/10 overlap with the reported top-10 (upstream sensitivity files report 4/10 and Spearman 0.787 using a differently-sequenced draw). Upstream seed-42 output is reproducible bit-exactly, but the exact composition of the top-10 is seed-dependent — treat adjacent ranks as effectively tied.",
+    "Score spread is modest (0.001811-0.002418 vs 0.000371 uniform baseline, ~4.9x-6.5x baseline), consistent with mention-driven in-degree (Spearman 0.883 vs mention_count, 0.278 vs follower_count) rather than follower magnitude.",
+    "Robustness to the weight convention is high (alternative weight=mention_count on every edge: Spearman 0.985, 8/10 top-10 overlap); the cross-source engagement columns (retweets/likes) are present in full_ranking but do not enter the mandated output columns.",
+    "Minor upstream note: execute_summary claims validation 10/10 pass and matches this re-verification; the only unverifiable item is the exact seed-7 sensitivity variant (see above)."
+  ],
+  "conclusion": "output.csv is present, schema-exact, complete (10 rows, ranks 1-10), correctly rounded to 6 dp, its mention/follower values match source aggregation exactly, and the whole pipeline (join -> sampled directed graph -> weighted PageRank) reproduces to floating-point noise. Artifact accepted with the documented caveats (synthetic graph, inner-join scope, seed-dependent top-10).",
+  "produced_files": [
+    "verification.json"
+  ]
+}

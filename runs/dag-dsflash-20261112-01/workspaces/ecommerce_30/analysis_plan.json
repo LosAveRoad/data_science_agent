@@ -1,0 +1,309 @@
+{
+  "meta": {
+    "node": "plan",
+    "task": "Cross-platform (eBay vs Olist) brand/market benchmark analysis -> output1.csv, output2.csv, output3.csv, output.json",
+    "artifact": "analysis_plan.json",
+    "note": "本节点只输出分析计划，不产出/覆盖 output1-3 与 output.json；由下游执行节点按本计划计算。",
+    "env_note": "run_python 以 python3 -I 启动，pandas/numpy/sklearn 位于用户 site-packages，脚本首部需 sys.path.append('/Users/mac/Library/Python/3.13/lib/python/site-packages')。"
+  },
+  "inputs": {
+    "EbayPcLaptopsAndNetbooksUnclean.csv": {
+      "rows": 6620,
+      "cols": 23,
+      "used_columns": [
+        "Brand",
+        "Price",
+        "Rating",
+        "Ram Size",
+        "SSD Capacity",
+        "Storage Type"
+      ],
+      "role": "eBay 侧品牌/价格/规格与评分来源（output3 + output1 的 eBay 行 + output.json.total_ebay_listings）"
+    },
+    "olist_products_dataset.csv": {
+      "rows": 32951,
+      "cols": 9,
+      "used_columns": [
+        "product_id",
+        "product_category_name"
+      ],
+      "role": "product_id -> 品类（葡语，需翻译）"
+    },
+    "product_category_name_translation.csv": {
+      "rows": 71,
+      "cols": 2,
+      "used_columns": [
+        "product_category_name",
+        "product_category_name_english"
+      ],
+      "role": "葡语品类 -> 英文品类；目标：telefonia->telephony, informatica_acessorios->computers_accessories, eletronicos->electronics（实测 3 个目标名均可映射）"
+    },
+    "olist_order_items_dataset.csv": {
+      "rows": 112650,
+      "cols": 7,
+      "used_columns": [
+        "order_id",
+        "product_id",
+        "seller_id",
+        "price"
+      ],
+      "role": "订单-商品明细；提供 price(=BRL) 与 seller_id"
+    },
+    "olist_orders_dataset.csv": {
+      "rows": 99441,
+      "cols": 8,
+      "used_columns": [
+        "order_id",
+        "customer_id",
+        "order_status",
+        "order_delivered_customer_date",
+        "order_estimated_delivery_date"
+      ],
+      "role": "关联 customer/卖家距离；配送延迟计算；electronics 订单计数"
+    },
+    "olist_customers_dataset.csv": {
+      "rows": 99441,
+      "used_columns": [
+        "customer_id",
+        "customer_zip_code_prefix"
+      ],
+      "role": "customer_id -> 客户 zip 前缀"
+    },
+    "olist_sellers_dataset.csv": {
+      "rows": 3095,
+      "used_columns": [
+        "seller_id",
+        "seller_zip_code_prefix"
+      ],
+      "role": "seller_id -> 卖家 zip 前缀"
+    },
+    "olist_geolocation_dataset.csv": {
+      "rows": 1000163,
+      "used_columns": [
+        "geolocation_zip_code_prefix",
+        "geolocation_lat",
+        "geolocation_lng"
+      ],
+      "role": "zip 前缀 -> 经纬度；必须 groupby 聚合为前缀级坐标，禁止逐行 merge（会行数爆炸）"
+    },
+    "olist_order_reviews_dataset.csv": {
+      "rows": 99224,
+      "used_columns": [
+        "order_id",
+        "review_score",
+        "review_comment_message"
+      ],
+      "role": "评分（品类均值 / eBay 对比 / 情感真值）与评论正文（情感规则预测）"
+    }
+  },
+  "data_quality_findings_inspected": {
+    "ebay_price": "字符串，含 '$' 前缀与尾部空格，117 行为 '$a to $b' 区间，需去 '$'/空格/逗号后解析，区间取两端中点。",
+    "ebay_rating": "格式 '4.5 out of 5 stars'，仅约 286 行非空（样本稀疏，eBay 平均评分需在结论中标注样本量）。",
+    "ebay_brand": "空值 2596 行（39.2%），存在大小写/空白变体（Dell/DELL、HP/Hp），需 strip + 大小写归一后合并；空品牌不进入 output3。",
+    "ebay_ram_ssd": "值存在 '8 GB' 与 '8GB'、'1 TB' 与 '2TB' 两种书写，需去空格并统一单位大小写；无效值如 'Not Applicable'/'0'/'See Options'/'1 Used, ...' 不计入众数；SSD Capacity 存在疑似错位值（16/32/64 GB），按字面值统计不做语义过滤（该假设需在报告声明）。",
+    "olist_geolocation": "100 万行明细且 zip 前缀重复，必须先聚合；距离定义用经纬度上的欧氏度数距离 sqrt(dlat^2 + dlng^2)（题面要求 in degrees）。",
+    "olist_orders": "order_status: delivered 96478；实际送达+预计送达双日期齐全 96476 单（延迟计算样本量）。",
+    "olist_reviews": "99224 条评论，评论正文非空 40977 条（41.3%）；绝大多数为葡语，英文关键词规则命中率极低 -> 预期宏 F1 很低。评分分布 1:11424, 2:3151, 3:8179, 4:19142, 5:57328。",
+    "join_cardinality": "review 与 order 一对多、order 与 items 一对多：品类统计按 (order, item) 行级求均值会在多评论/多商品时重复加权；采用行级口径（items -> products -> orders -> reviews 合并后按品类求均值），并在报告中标注该口径。"
+  },
+  "steps": [
+    {
+      "id": "S0",
+      "name": "环境与公共工具",
+      "detail": "脚本首部 sys.path.append 用户 site-packages；定义 parse_price / normalize_capacity / mode_value 工具函数；中间结果落盘（intermediate/*.csv）以便分步执行，避免单次 120s 超时。"
+    },
+    {
+      "id": "S1",
+      "name": "eBay 品牌统计 -> output3.csv",
+      "steps": [
+        "读 EbayPcLaptopsAndNetbooksUnclean.csv，仅取 Brand/Price/Rating/Ram Size/SSD Capacity。",
+        "Brand: strip 后丢弃空值；统一大小写变体（upper 归并后挑代表写法输出，保持命名一致）。",
+        "Price: 去 '$'、逗号、空格；若匹配 'a to b' 取 (a+b)/2；转 float，解析失败丢弃。",
+        "Ram Size / SSD Capacity: 去空格并统一单位（GB/TB），过滤 NaN 与无效值（Not Applicable / See Options / '0' / 含 'Used'/'support Max' 的描述串）。",
+        "按 brand 聚合：avg_price_usd=mean(Price) 保留 4 位；most_common_ram / most_common_ssd 取众数（并列取字典序最小），无有效值填 'Unknown'。",
+        "列顺序 brand, avg_price_usd, most_common_ram, most_common_ssd。"
+      ],
+      "output": "output3.csv（约 120+ 品牌）"
+    },
+    {
+      "id": "S2",
+      "name": "Olist 三品类统计 -> output2.csv",
+      "steps": [
+        "products merge translation，筛英文品类 in {telephony, computers_accessories, electronics}（raw: telefonia, informatica_acessorios, eletronicos）。",
+        "order_items join products 得行级明细（price 单位 BRL）。",
+        "geolocation groupby zip 前缀 -> (lat_mean, lng_mean) 前缀级坐标表。",
+        "orders join customers 得 customer zip 前缀；items join sellers 得 seller zip 前缀；两者 map 坐标后计算 sqrt(dlat^2+dlng^2) 作为距离（度）。",
+        "reviews 按 order_id 聚合后合并得到 review_score（一对多时取订单均值，避免放大行数）。",
+        "按 category 分组：avg_review_score / avg_price_brl / avg_shipping_distance，均 mean 并保留 4 位；行顺序 telephony, computers_accessories, electronics。"
+      ],
+      "output": "output2.csv"
+    },
+    {
+      "id": "S3",
+      "name": "Olist 配送延迟众数区间",
+      "steps": [
+        "orders 中筛选 order_delivered_customer_date 与 order_estimated_delivery_date 均非空的记录（实测 96476 单）。",
+        "to_datetime 后 delay_days = (delivered - estimated).dt.days（floor 到整日，可为负）。",
+        "value_counts 取最高频值作为 max_frequency_delay_bin；并列取数值较小者保证确定性。"
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "情感规则 + 宏 F1",
+      "steps": [
+        "取 review_comment_message 非空记录（以 notna().sum() 实际值记录，实测 40977）。",
+        "文本 lower() 后对 9 个正关键词、8 个负关键词分别做 str.count 统计子串出现次数（题面要求 substring occurrences，不加词边界）。",
+        "pos>neg -> positive；neg>pos -> negative；否则 neutral。",
+        "真值：review_score>=4 positive，<=2 negative，==3 neutral。",
+        "sklearn.metrics.f1_score(y_true, y_pred, labels=['negative','neutral','positive'], average='macro', zero_division=0)。",
+        "附带输出各类别计数/precision/recall，用于解释极低 F1（葡语文本 vs 英文词典）。"
+      ]
+    },
+    {
+      "id": "S5",
+      "name": "跨平台汇总 -> output1.csv",
+      "steps": [
+        "eBay 行：avg_review_score = Rating 均值（样本约 286，需注释）；avg_price = Price 均值（USD）；macro_f1_sentiment=0.0；max_delay_bin=0（不适用占位）。",
+        "Olist 行：取 output2 的 electronics 行作为 avg_review_score / avg_price(BRL)；macro_f1_sentiment = S4；max_delay_bin = S3。",
+        "列顺序 platform, avg_review_score, avg_price, macro_f1_sentiment, max_delay_bin；platform 取值 'eBay'/'Olist'；float 保留 4 位。",
+        "报告须说明跨平台价格币种不同（USD vs BRL），不可直接比较。"
+      ],
+      "output": "output1.csv"
+    },
+    {
+      "id": "S6",
+      "name": "output.json 汇总",
+      "steps": [
+        "macro_f1_score = S4 宏 F1（float）；max_frequency_delay_bin = S3（int）；",
+        "total_olist_electronics_orders = electronics 品类下 unique order_id 数（订单级去重，需与实际 items 行数区分）；",
+        "total_ebay_listings = eBay 总行数 6620（int）。"
+      ]
+    }
+  ],
+  "output_specs": {
+    "output1.csv": {
+      "columns": [
+        "platform",
+        "avg_review_score",
+        "avg_price",
+        "macro_f1_sentiment",
+        "max_delay_bin"
+      ],
+      "dtypes": [
+        "str",
+        "float",
+        "float",
+        "float",
+        "int"
+      ],
+      "rows": 2
+    },
+    "output2.csv": {
+      "columns": [
+        "category",
+        "avg_review_score",
+        "avg_price_brl",
+        "avg_shipping_distance"
+      ],
+      "dtypes": [
+        "str",
+        "float",
+        "float",
+        "float"
+      ],
+      "rows": 3
+    },
+    "output3.csv": {
+      "columns": [
+        "brand",
+        "avg_price_usd",
+        "most_common_ram",
+        "most_common_ssd"
+      ],
+      "dtypes": [
+        "str",
+        "float",
+        "str",
+        "str"
+      ],
+      "rows": "约 100+（上游文件 124 行）"
+    },
+    "output.json": {
+      "keys": [
+        "macro_f1_score",
+        "max_frequency_delay_bin",
+        "total_olist_electronics_orders",
+        "total_ebay_listings"
+      ]
+    }
+  },
+  "validation_checks": [
+    "行数/列序/dtype 与 output_specs 一致；float round(4)；CSV 写入不带 index。",
+    "output1 中 eBay 与 Olist 的 avg_price 应分别落在 $50-$1000 与 BRL 20-200 量级；出现 0 或 1e6 级异常说明价格解析有误（' to ' 区间 / '$' 残留）。",
+    "output2 三品类行数应达千级（目标品类 items 约 1.5 万行）；avg_shipping_distance 应在 0-30 度内（巴西境内经纬差上限约 39 度），>50 说明前缀错配。",
+    "avg_review_score 必须落在 [1,5]。",
+    "output.json: macro_f1_score ∈ [0,1]；max_frequency_delay_bin 为整数（预期为负，代表普遍提前送达）。",
+    "情感预测分布极不平衡（neutral 占 >99%）属规则与语种导致，不得为提升 F1 而修改题面给定关键词规则。",
+    "每步 join 后记录行数放大比例（orders×items×reviews 的 1:N 效应）。"
+  ],
+  "decisions_and_assumptions": [
+    "距离为经纬度欧氏距离（非 haversine），单位度，符合题面 in degrees。",
+    "geolocation 使用 zip 前缀均值坐标；无坐标前缀样本被丢弃并记录覆盖率。",
+    "品类统计为订单-商品行级均值（多商品订单按行加权），与上游 data_profile 方法一致。",
+    "众数并列时取字典序/数值最小者，保证可复现。",
+    "eBay 行不适用字段（macro_f1_sentiment、max_delay_bin）填 0 而非空，以满足 dtype 约束。",
+    "Olist 代表价格使用 electronics 品类（题面明确），与 output2 的 electronics 行保持一致。"
+  ],
+  "reference_from_upstream_profile": {
+    "note": "上游 data_profile.json 记录的历史结果，仅作交叉校验参考；执行节点必须自行计算，不得直接复制。",
+    "output1": [
+      {
+        "platform": "eBay",
+        "avg_review_score": 4.5629,
+        "avg_price": 310.0466,
+        "macro_f1_sentiment": 0.0,
+        "max_delay_bin": 0
+      },
+      {
+        "platform": "Olist",
+        "avg_review_score": 4.0375,
+        "avg_price": 57.9135,
+        "macro_f1_sentiment": 0.05979,
+        "max_delay_bin": -14
+      }
+    ],
+    "output2": [
+      {
+        "category": "telephony",
+        "avg_review_score": 3.9469,
+        "avg_price_brl": 71.214,
+        "avg_shipping_distance": 6.5024
+      },
+      {
+        "category": "computers_accessories",
+        "avg_review_score": 3.9308,
+        "avg_price_brl": 116.5139,
+        "avg_shipping_distance": 6.2791
+      },
+      {
+        "category": "electronics",
+        "avg_review_score": 4.0375,
+        "avg_price_brl": 57.9135,
+        "avg_shipping_distance": 5.8447
+      }
+    ],
+    "output3_brand_count": 124,
+    "output_json": {
+      "macro_f1_score": 0.05979,
+      "max_frequency_delay_bin": -14,
+      "total_olist_electronics_orders": 2550,
+      "total_ebay_listings": 6620
+    }
+  },
+  "risks": [
+    "eBay Rating 覆盖约 4%，平均评分代表性弱，结论须标注样本量。",
+    "葡语评论 + 英文关键词规则导致情感预测近乎全 neutral，宏 F1 极低（约 0.06），属方法局限，须在报告中明确。",
+    "SSD Capacity 列疑似错位值（16/32/64 GB）会污染 most_common_ssd；主口径按字面统计，报告中给出敏感性提示。",
+    "跨平台价格币种不同（USD vs BRL），output1 并列 avg_price 需说明口径。"
+  ]
+}

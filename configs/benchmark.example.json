@@ -1,0 +1,10 @@
+{
+  "version": "example",
+  "_format": "configs/benchmark.json 的格式示例。字段约定：version 为子集冻结版本（如 \"2026-11-12\"）；selection_criteria 为选样标准说明（保证子集可追溯、可复现）；task_ids 为冻结的任务 ID 列表（第一阶段固定 30 个），ID 必须真实存在于 $AGENTIC_DATA_BENCH_DATA_DIR/tasks/dev.jsonl。本文件仅为格式说明，正式子集由 configs/benchmark.json 定义。",
+  "selection_criteria": "示例说明：优先选择数据集 < 50MB 的任务，覆盖不少于 5 个 skill cluster，保留部分高难度任务，只选 gold 标签齐全、官方 evaluate.py 可正常评测的任务（见 docs/design.md §3.2）。",
+  "task_ids": [
+    "agriculture_02",
+    "agriculture_03",
+    "agriculture_04"
+  ]
+}

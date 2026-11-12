@@ -1,0 +1,261 @@
+{
+  "node": "analysis_plan",
+  "task_goal": "Assess whether systematic differences in user satisfaction exist across four tourism domains (accommodation, indoor attractions, outdoor attractions, destination): harmonize to a common 1-5 scale, robust-Z-standardize per domain, report mean/std/95%CI per source, and run a one-way ANOVA (F, p, eta^2).",
+  "hypotheses": {
+    "H0": "The four domains share a common mean satisfaction level (mu_accommodation = mu_indoor = mu_outdoor = mu_destination) on the harmonized 1-5 metric / on robust-Z scores.",
+    "H1": "At least one domain mean differs from the others.",
+    "decision_rule": "two-sided alpha = 0.05 on the ANOVA F test; effect size interpreted alongside p (large n makes p near-certain)."
+  },
+  "data_inventory": {
+    "accommodation": {
+      "file": "Airbnb_Open_Data.csv",
+      "n_rows": 102599,
+      "variable": "review rate number",
+      "dtype_in_file": "numeric",
+      "raw_range": [
+        1,
+        5
+      ],
+      "valid_n": 102273,
+      "missing": 326,
+      "granularity": "one row per short-term rental listing (listing-level rating)",
+      "observed_value_counts": {
+        "1": 9212,
+        "2": 23098,
+        "3": 23265,
+        "4": 23329,
+        "5": 23369
+      },
+      "note": "Nearly uniform across 1-5 (mean 3.28); the only source with a materially negative mode share. Uses only this one column; read with usecols to avoid loading 35MB of irrelevant price/host fields."
+    },
+    "indoor_attraction": {
+      "file": "FISETIO .../datasets/indoors.csv",
+      "n_rows": 2754,
+      "variable": "rating",
+      "dtype_in_file": "float",
+      "raw_range": [
+        1.0,
+        5.0
+      ],
+      "valid_n": 2676,
+      "missing": 78,
+      "granularity": "museum-month record (27 distinct museums, monthly rating repeated per venue)",
+      "note": "Venue-level aggregate repeated over many months -> strong left skew and pseudo-replication; the effective independent n is ~27 venues, not 2676 rows."
+    },
+    "outdoor_attraction": {
+      "file": "FISETIO .../datasets/outdoors.csv",
+      "n_rows": 2923,
+      "variable": "rate",
+      "dtype_in_file": "float",
+      "raw_range": [
+        3.0,
+        5.0
+      ],
+      "valid_n": 2923,
+      "missing": 0,
+      "granularity": "park-month record (83 distinct parks)",
+      "note": "Truncated at a 3.0 floor: no 1-2 observations exist, so the raw 1-5 scale is de-facto censored and dispersion is not comparable in raw units. Mean 4.67, sd ~0.26."
+    },
+    "destination": {
+      "file": "tx_clean.csv (derived from TripAdvisor Indonesia Tourism/Transaction.xlsx)",
+      "n_rows": 52930,
+      "variable": "Rating",
+      "dtype_in_file": "string/integer text",
+      "raw_range": [
+        1,
+        5
+      ],
+      "valid_n": 52930,
+      "missing": 0,
+      "granularity": "one row per transaction (individual tourist rating of an attraction)",
+      "observed_value_counts": {
+        "1": 1263,
+        "2": 2035,
+        "3": 7730,
+        "4": 17966,
+        "5": 23936
+      },
+      "note": "Rating is stored as text (or read as object) and MUST be coerced with pd.to_numeric(errors='coerce') before any arithmetic; otherwise groupby mean silently drops/fails."
+    }
+  },
+  "analysis_steps": [
+    {
+      "step": 1,
+      "name": "load_and_extract",
+      "actions": [
+        "Airbnb: read only usecols=['review rate number'] -> rename to value, source='accommodation'.",
+        "indoors: read usecols=['rating','mus_ID'] -> value=rating, source='indoor_attraction'; keep mus_ID for the venue-level sensitivity check.",
+        "outdoors: read usecols=['rate','park_id'] -> value=rate, source='outdoor_attraction'; keep park_id for sensitivity.",
+        "destination: read tx_clean.csv usecols=['Rating'] -> pd.to_numeric(..., errors='coerce'); if tx_clean.csv were absent, rebuild it by parsing the Transaction.xlsx OOXML stream (openpyxl unavailable in env; sharedStrings + sheet1.xml, dimension A1:G52931)."
+      ],
+      "check": "row counts and valid_n must match data_profile.json (102273 / 2676 / 2923 / 52930) within 0 tolerance; mismatch => stop and re-inspect dtype coercion."
+    },
+    {
+      "step": 2,
+      "name": "harmonize_to_1_5",
+      "actions": [
+        "coerce to numeric -> drop NaN",
+        "clip to [1,5] (winsorize any out-of-range onto the boundary)",
+        "no min-max or ratio rescaling needed: all four variables already use a 1-5 metric (verified: accommodation 1-5, indoor 1-5, outdoor 3-5, destination 1-5; zero out-of-range values in the current data)."
+      ],
+      "rationale": "Equal-interval 1-5 comparison is only defensible because no source uses a 10-point / 100-point / percentage scale. If a future refresh introduces such a source, map it linearly to 1-5 first and log the transform."
+    },
+    {
+      "step": 3,
+      "name": "robust_z_standardization",
+      "formula": "z = (x - median) / (1.4826 * MAD), MAD = median(|x - median|)",
+      "fallback": "MAD == 0 -> (x - median)/(IQR/1.349) -> (x - median)/sd (record scale_method per group)",
+      "actions": "compute median, MAD, robust_scale per source INDEPENDENTLY (each domain is centred on its own median and rescaled by its own robust spread), then transform all observations of that source.",
+      "expected_refs": {
+        "accommodation": {
+          "median": 3.0,
+          "robust_scale": 1.4826
+        },
+        "indoor_attraction": {
+          "median": 4.55,
+          "robust_scale": 0.266868
+        },
+        "outdoor_attraction": {
+          "median": 4.714286,
+          "robust_scale": 0.232297
+        },
+        "destination": {
+          "median": 4.0,
+          "robust_scale": 1.4826
+        }
+      },
+      "interpretation": "z=0 is the domain's own typical (median) value and 1 unit = 1 robust SD of that domain, so between-domain z means measure how far each domain's central tendency sits from its own anchor, NOT raw satisfaction differences."
+    },
+    {
+      "step": 4,
+      "name": "source_statistics",
+      "per_source_metrics": [
+        "n",
+        "mean",
+        "std (sample, ddof=1)",
+        "se = std/sqrt(n)",
+        "ci_lower = mean - t_crit*se",
+        "ci_upper = mean + t_crit*se"
+      ],
+      "ci_method": "normal-approximation / t with df=n-1 and t_crit from scipy.stats.t.ppf(0.975, n-1); with n>=2676 the two coincide to 4 decimals",
+      "report_on": "robust-Z scores (primary, as specified), and optionally the raw 1-5 means as a supplementary sanity table"
+    },
+    {
+      "step": 5,
+      "name": "one_way_anova",
+      "actions": [
+        "pool the four robust-Z vectors into one frame (source, z)",
+        "scipy.stats.f_oneway(z_accommodation, z_indoor, z_outdoor, z_destination) -> F, p",
+        "eta_squared = SS_between / SS_total, with SS_between = sum(n_g*(mean_g - grand_mean)^2), SS_within = sum over groups of sum((z - mean_g)^2)",
+        "also compute omega_squared = (SS_between - (k-1)*MS_within) / (SS_total + MS_within) as an unbiased companion"
+      ],
+      "expected": {
+        "F": 1064.888298,
+        "p": 0.0,
+        "eta_sq": 0.019481,
+        "df_between": 3,
+        "df_within": 160798,
+        "omega_sq": 0.019462
+      },
+      "p_value_handling": "F is astronomically large; p underflows to 0.0 in float64. Write p as 0.0 but ALSO record p_display as '<1e-300' (or log10 p) in anova_detail.json so the result is not misread as an exact zero.",
+      "effect_size_note": "eta^2 ~ 0.019 is a SMALL effect (Cohen: 0.01 small, 0.06 medium, 0.14 large) even though p is decisive: the significance is driven by n~1.6e5, so the practical conclusion is 'differences are statistically certain but small in magnitude'."
+    },
+    {
+      "step": 6,
+      "name": "post_hoc_and_diagnostics",
+      "actions": [
+        "pairwise Welch t-tests on all 6 pairs (does not assume equal variance, which is clearly violated here: z sd ranges 0.65 -> 2.10) with Cohen's d per pair",
+        "Levene / Brown-Forsythe test on the raw 1-5 values to document variance heterogeneity",
+        "skew + kurtosis per source to justify the robust Z (indoor skew ~ -2.5, outdoor truncated at 3.0)",
+        "sensitivity: re-run the ANOVA on VENUE-LEVEL means for FISETIO (aggregate months to one mean per mus_ID / park_id, n=27 and n=83) to remove monthly pseudo-replication; report whether the direction of the ordering and eta^2 sign survive. This is the single most important robustness check because ~1900 of the indoor rows are repeated venue aggregates."
+      ]
+    },
+    {
+      "step": 7,
+      "name": "write_outputs_and_validate",
+      "actions": [
+        "write output1.csv, output2.csv, anova_detail.json, posthoc.json, and a findings summary",
+        "validate schemas, dtypes, no NaN, CI ordering lower<mean<upper, eta_sq in (0,1)"
+      ]
+    }
+  ],
+  "outputs_schema": {
+    "output1.csv": {
+      "description": "per-source statistics on robust-Z scores",
+      "columns": {
+        "source": "str, one of accommodation / indoor_attraction / outdoor_attraction / destination",
+        "n": "int, valid observations after harmonization",
+        "mean": "float, mean robust-Z",
+        "std": "float, sample std of robust-Z",
+        "ci_lower": "float, 95% CI lower bound",
+        "ci_upper": "float, 95% CI upper bound"
+      },
+      "expected_rows": 4,
+      "expected_content": {
+        "accommodation": [
+          102273,
+          0.188254,
+          0.866489,
+          0.182944,
+          0.193565
+        ],
+        "indoor_attraction": [
+          2676,
+          -0.650175,
+          2.100832,
+          -0.729808,
+          -0.570542
+        ],
+        "outdoor_attraction": [
+          2923,
+          -0.188517,
+          1.125382,
+          -0.229331,
+          -0.147702
+        ],
+        "destination": [
+          52930,
+          0.106366,
+          0.654622,
+          0.100789,
+          0.111943
+        ]
+      }
+    },
+    "output2.csv": {
+      "description": "one row, one-way ANOVA on the four robust-Z groups",
+      "columns": {
+        "statistic": "float, F-statistic",
+        "p_value": "float, p-value (0.0 on underflow, see p_display in anova_detail.json)",
+        "effect_size": "float, eta-squared"
+      },
+      "expected_row": {
+        "statistic": 1064.888298,
+        "p_value": 0.0,
+        "effect_size": 0.019481
+      }
+    },
+    "supporting_artifacts": {
+      "anova_detail.json": "per-group median/MAD/robust_scale/z_mean/z_std/z_se/t_crit + F, p, eta_sq, omega_sq, df_between, df_within, ss_between, ss_within, ss_total",
+      "posthoc.json": "6 pairwise Welch t/p/Cohen's d"
+    }
+  },
+  "validation_checks": [
+    "valid_n per source equals data_profile value exactly (else dtype issue, e.g. destination Rating read as text)",
+    "CI contains the mean and has positive width for all four sources",
+    "df_between + df_within + 1 == total pooled N (3 + 160798 + 1 == 160802 = 102273+2676+2923+52930)",
+    "SS_between + SS_within == SS_total",
+    "eta_sq == SS_between/SS_total and matches F*df_between/(F*df_between+df_within)",
+    "no NaN / inf in either output CSV; output1 has exactly 4 rows and output2 exactly 1 row",
+    "re-running the pipeline reproduces the values to 6 decimals (deterministic, no random component)"
+  ],
+  "risks_and_caveats": [
+    "Construct mismatch: FISETIO rating/rate are VENUE-level aggregates repeated monthly, while Airbnb and TripAdvisor are listing/transaction-level ratings. Row counts therefore overstate independent information for the attraction domains and inflate the F statistic; the venue-level sensitivity run is the mitigation.",
+    "Truncation: outdoors 'rate' has a hard 3.0 floor, so its 1-5 scale is censored and its small dispersion is an artefact, not evidence that park visits are more homogeneous in feeling.",
+    "Robust-Z destroys absolute level information by construction: after centring each domain on its own median, between-domain mean differences no longer express 'which domain users like more' in raw points. Report the raw 1-5 means side by side for the substantive ranking (raw means: accommodation 3.28 < destination 4.16 < indoor 4.38 < outdoor 4.67).",
+    "Very large n means p-values are near-zero for trivially small differences; lead with eta^2 (~0.019, small) and the pairwise Cohen's d, not with p.",
+    "Domain labels are heterogeneous across underlying populations (London museums/parks vs global Airbnb listings vs Indonesian tourist attractions) - any 'domain effect' is confounded with geography, price tier and measurement protocol.",
+    "Scipy dependency: if scipy is unavailable, compute F/p via the F survival function implemented with math.erfc/betainc or use a chi-square approximation and record the method."
+  ],
+  "key_findings_preview": "ANOVA on robust-Z scores: F(3, 160798) = 1064.89, p < 1e-300, eta^2 = 0.0195 (small). Differences across the four domains are statistically decisive but explain only ~2% of variance; all 6 pairwise Welch comparisons are significant, with the largest gap between accommodation (z=+0.19) and indoor attractions (z=-0.65, Cohen's d=0.52). Raw-scale means order the domains accommodation 3.28 < destination 4.16 < indoor 4.38 < outdoor 4.67."
+}

@@ -1,0 +1,66 @@
+{
+  "node": "execute",
+  "task": "农业银行 2024 财年营业收入及其在所属行业中的营收占比（pub_fin_data.sqlite）",
+  "method": {
+    "entity_resolution": "dim_company 按 stock_name='农业银行' 或 stock_code='601288' 精确匹配，唯一命中 CN000141（中国农业银行股份有限公司，货币金融服务）",
+    "fiscal_year_filter": "fact_income_statement 中 period_date='2024-12-31' AND period_type='FY'（全年口径，排除 H1/Q3 累计）",
+    "report_type_scope": "合并报表（与母公司报表口径区分；全库 FY2024 合并报表覆盖 172 家公司）",
+    "industry_scope": "dim_company.industry_name='货币金融服务' 全部 15 家公司（含农业银行自身）",
+    "sql": "单条 SQL：fact_income_statement JOIN dim_company，WHERE industry_name='货币金融服务' AND period_date='2024-12-31' AND period_type='FY' AND report_type='合并报表'，条件聚合同时取农业银行营收与行业营收合计",
+    "share_formula": "营收占比 = 710555000000 / 4058749070000 * 100 = 17.51（百分制，round 2 位）"
+  },
+  "key_intermediate_results": {
+    "target_company_id": "CN000141",
+    "target_company_name": "中国农业银行股份有限公司",
+    "industry_name": "货币金融服务",
+    "industry_peer_count_FY2024_merged": 15,
+    "industry_peer_count_match_dim": true,
+    "revenue_null_count": 0,
+    "revenue_le_zero_count": 0,
+    "industry_total_revenue_cny": 4058749070000,
+    "bank_revenue_cny": 710555000000,
+    "share_pct_unrounded": 17.505912,
+    "top_peers": [
+      {
+        "stock_name": "工商银行",
+        "revenue": 821803000000
+      },
+      {
+        "stock_name": "农业银行",
+        "revenue": 710555000000
+      },
+      {
+        "stock_name": "中国银行",
+        "revenue": 630090000000
+      }
+    ],
+    "sensitivity_parent_company_scope": {
+      "bank_revenue": 689620000000,
+      "industry_total": 3664179536000,
+      "share_pct": 18.82,
+      "note": "仅备查；最终结果采用合并报表口径"
+    }
+  },
+  "validation": {
+    "columns": [
+      "营收",
+      "营收占比"
+    ],
+    "row_count": 1,
+    "numerators_and_denominator_same_scope": true,
+    "share_in_0_100": true,
+    "encoding": "utf-8-sig（与原 output.csv / 中文列名兼容）",
+    "matches_plan_acceptance_criteria": true
+  },
+  "output_files": [
+    {
+      "path": "output.csv",
+      "description": "单行结果：营收=710555000000（元），营收占比=17.51（%）"
+    }
+  ],
+  "caveats": [
+    "行业口径取 dim_company.industry_name='货币金融服务'（国民经济行业分类），非交易所/板块口径",
+    "营收为该数据集 fact_income_statement.revenue 字段值（元），未做单位换算",
+    "FY2025 数据不存在，2024 财年即数据中唯一完整年度口径"
+  ]
+}

@@ -1,0 +1,588 @@
+{
+ "artifact": "data_profile.json",
+ "generated_at": "2026-11-12T03:15:05",
+ "purpose": "Inspect-only profile of the 8 entertainment-media source files (books, movies, Netflix, Spotify, top-chart music, video games) used for cross-source TF-IDF + K-Means + LDA analysis.",
+ "target_task": {
+  "vectorizer": "TfidfVectorizer(max_features=5000, stop_words='english')",
+  "clustering": "KMeans(n_clusters=10, random_state=42)",
+  "topic_model": "LatentDirichletAllocation(n_components=10, random_state=42)",
+  "cluster_metrics": "dominant LDA topic + top-5 words; coherence_score = mean cosine similarity between cluster members and K-Means centroid (subsample 500 with np.random.seed(42) when cluster > 500); up to 5 representative items",
+  "output_schema": "cluster_id, dominant_topic, top_topic_words, coherence_score (4dp), representative_items ('source: title' joined by ' | '), 10 rows"
+ },
+ "workspace_files": [
+  "books.csv",
+  "netflix_titles.csv",
+  "spotify_tracks.csv",
+  "top2017.csv",
+  "top2018.csv",
+  "top50_2020.csv",
+  "vgsales.csv",
+  "The Movies Dataset/movies_metadata.csv"
+ ],
+ "sources": [
+  {
+   "source_key": "movies",
+   "path": "The Movies Dataset/movies_metadata.csv",
+   "size_mb": 32.9,
+   "parsed_rows": 45466,
+   "raw_line_count": 45572,
+   "columns": [
+    "adult",
+    "belongs_to_collection",
+    "budget",
+    "genres",
+    "homepage",
+    "id",
+    "imdb_id",
+    "original_language",
+    "original_title",
+    "overview",
+    "popularity",
+    "poster_path",
+    "production_companies",
+    "production_countries",
+    "release_date",
+    "revenue",
+    "runtime",
+    "spoken_languages",
+    "status",
+    "tagline",
+    "title",
+    "video",
+    "vote_average",
+    "vote_count"
+   ],
+   "title_field": "title",
+   "text_fields": [
+    "title",
+    "overview",
+    "tagline",
+    "genres",
+    "production_companies"
+   ],
+   "year_field": "release_date",
+   "year_coverage": {
+    "min": 1919,
+    "max": 2020,
+    "median": 1994,
+    "share_2017_2020": 0.012
+   },
+   "missing_rate_sample_n2000": {
+    "title": 0.0,
+    "overview": 0.008,
+    "tagline": 0.246,
+    "genres": 0.0,
+    "release_date": 0.001
+   },
+   "notes": [
+    "CSV is multiline-quoted (raw lines 45572 > parsed rows 45466); always read with on_bad_lines='skip' + low_memory=False.",
+    "'genres' and 'production_companies' are stringified python lists of dicts -> require ast.literal_eval to extract 'name'.",
+    "Only 538 rows fall in 2017-2020 and the file is popularity-sorted, so the first rows are all pre-2014; strict 2017-2020 filtering would nearly empty this source.",
+    "Richer/free-text ('overview' mean ~390 chars/record) -> dominant contributor of English vocabulary."
+   ],
+   "sample_records": [
+    {
+     "title": "Toy Story",
+     "overview": "Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences.",
+     "tagline": "",
+     "genres": "[{'id': 16, 'name': 'Animation'}, {'id': 35, 'name': 'Comedy'}, {'id': 10751, 'name': 'Family'}]"
+    },
+    {
+     "title": "Jumanji",
+     "overview": "When siblings Judy and Peter discover an enchanted board game that opens the door to a magical world, they unwittingly invite Alan -- an adult who's been trapped inside the game for 26 years -- into their living room. Alan's only hope for freedom is to finish the game, which proves risky as all three find themselves running from giant rhinoceroses, evil monkeys and other terrifying creatures.",
+     "tagline": "Roll the dice and unleash the excitement!",
+     "genres": "[{'id': 12, 'name': 'Adventure'}, {'id': 14, 'name': 'Fantasy'}, {'id': 10751, 'name': 'Family'}]"
+    },
+    {
+     "title": "Grumpier Old Men",
+     "overview": "A family wedding reignites the ancient feud between next-door neighbors and fishing buddies John and Max. Meanwhile, a sultry Italian divorcée opens a restaurant at the local bait shop, alarming the locals who worry she'll scare the fish away. But she's less interested in seafood than she is in cooking up a hot time with Max.",
+     "tagline": "Still Yelling. Still Fighting. Still Ready for Love.",
+     "genres": "[{'id': 10749, 'name': 'Romance'}, {'id': 35, 'name': 'Comedy'}]"
+    }
+   ]
+  },
+  {
+   "source_key": "books",
+   "path": "books.csv",
+   "size_mb": 1.5,
+   "parsed_rows": 11123,
+   "raw_line_count": 11127,
+   "columns": [
+    "bookID",
+    "title",
+    "authors",
+    "average_rating",
+    "isbn",
+    "isbn13",
+    "language_code",
+    "  num_pages",
+    "ratings_count",
+    "text_reviews_count",
+    "publication_date",
+    "publisher"
+   ],
+   "title_field": "title",
+   "text_fields": [
+    "title",
+    "authors",
+    "publisher",
+    "language_code"
+   ],
+   "year_field": "publication_date",
+   "year_coverage": {
+    "min": 1900,
+    "max": 2020,
+    "median": 2003,
+    "share_2017_2020": 0.0017
+   },
+   "missing_rate_sample_n2000": {
+    "title": 0.0,
+    "authors": 0.0,
+    "publisher": 0.0,
+    "publication_date": 0.0,
+    "language_code": 0.0
+   },
+   "notes": [
+    "Column '  num_pages' has leading spaces in its name.",
+    "Mixed date formats ('9/16/2006' and '2006-09-16') -> parse with errors='coerce', format='mixed'.",
+    "Only 19 books published 2017-2020; text is short (title+authors+publisher, mean ~77 chars).",
+    "Duplicate titles exist (e.g. reprints/box sets), 221 dup titles in first 3000 rows."
+   ],
+   "sample_records": [
+    {
+     "title": "Harry Potter and the Half-Blood Prince (Harry Potter  #6)",
+     "authors": "J.K. Rowling/Mary GrandPré",
+     "publisher": "Scholastic Inc.",
+     "publication_date": "9/16/2006",
+     "language_code": "eng"
+    },
+    {
+     "title": "Harry Potter and the Order of the Phoenix (Harry Potter  #5)",
+     "authors": "J.K. Rowling/Mary GrandPré",
+     "publisher": "Scholastic Inc.",
+     "publication_date": "9/1/2004",
+     "language_code": "eng"
+    },
+    {
+     "title": "Harry Potter and the Chamber of Secrets (Harry Potter  #2)",
+     "authors": "J.K. Rowling",
+     "publisher": "Scholastic",
+     "publication_date": "11/1/2003",
+     "language_code": "eng"
+    }
+   ]
+  },
+  {
+   "source_key": "netflix",
+   "path": "netflix_titles.csv",
+   "size_mb": 3.3,
+   "parsed_rows": 8807,
+   "raw_line_count": 8809,
+   "columns": [
+    "show_id",
+    "type",
+    "title",
+    "director",
+    "cast",
+    "country",
+    "date_added",
+    "release_year",
+    "rating",
+    "duration",
+    "listed_in",
+    "description"
+   ],
+   "title_field": "title",
+   "text_fields": [
+    "title",
+    "listed_in",
+    "description",
+    "cast",
+    "director",
+    "country",
+    "type"
+   ],
+   "year_field": "release_year",
+   "year_coverage": {
+    "min": 1925,
+    "max": 2021,
+    "median": 2017,
+    "share_2017_2020": 0.51
+   },
+   "missing_rate_sample_n2000": {
+    "title": 0.0,
+    "director": 0.326,
+    "cast": 0.1,
+    "country": 0.195,
+    "listed_in": 0.0,
+    "description": 0.0
+   },
+   "notes": [
+    "Only source that genuinely centers on 2017-2020 (51% of rows).",
+    "Long English descriptions (~316 chars/record) -> good vocabulary source.",
+    "type in {Movie, TV Show}; listed_in is a comma-separated genre list (top: International Movies, Dramas, Comedies)."
+   ],
+   "sample_records": [
+    {
+     "title": "Dick Johnson Is Dead",
+     "type": "Movie",
+     "listed_in": "Documentaries",
+     "release_year": "2020",
+     "description": "As her father nears the end of his life, filmmaker Kirsten Johnson stages his death in inventive and comical ways to help them both face the inevitable."
+    },
+    {
+     "title": "Blood & Water",
+     "type": "TV Show",
+     "listed_in": "International TV Shows, TV Dramas, TV Mysteries",
+     "release_year": "2021",
+     "description": "After crossing paths at a party, a Cape Town teen sets out to prove whether a private-school swimming star is her sister who was abducted at birth."
+    },
+    {
+     "title": "Ganglands",
+     "type": "TV Show",
+     "listed_in": "Crime TV Shows, International TV Shows, TV Action & Adventure",
+     "release_year": "2021",
+     "description": "To protect his family from a powerful drug lord, skilled thief Mehdi and his expert team of robbers are pulled into a violent and deadly turf war."
+    }
+   ]
+  },
+  {
+   "source_key": "spotify",
+   "path": "spotify_tracks.csv",
+   "size_mb": 19.7,
+   "parsed_rows": 114000,
+   "raw_line_count": 114000,
+   "columns": [
+    "Unnamed: 0",
+    "track_id",
+    "artists",
+    "album_name",
+    "track_name",
+    "popularity",
+    "duration_ms",
+    "explicit",
+    "danceability",
+    "energy",
+    "key",
+    "loudness",
+    "mode",
+    "speechiness",
+    "acousticness",
+    "instrumentalness",
+    "liveness",
+    "valence",
+    "tempo",
+    "time_signature",
+    "track_genre"
+   ],
+   "title_field": "track_name",
+   "text_fields": [
+    "track_name",
+    "artists",
+    "album_name",
+    "track_genre"
+   ],
+   "year_field": null,
+   "year_coverage": {
+    "note": "no year column; dataset is a 2020s Spotify snapshot, treated as 'streaming' source"
+   },
+   "missing_rate_sample_n2000": {
+    "track_name": 0.0,
+    "artists": 0.0,
+    "album_name": 0.0,
+    "track_genre": 0.0
+   },
+   "notes": [
+    "File is ordered in genre blocks (114 genres x 1000 rows: acoustic, afrobeat, alt-rock, ...); the first rows are all 'acoustic' -> shuffle before any subsampling.",
+    "Very short text (mean ~60 chars) and large row count: with only track/artist/album words, this source would dominate the TF-IDF matrix with near-empty documents. Including track_genre (and possibly album tokens) is required for this source to be clusterable.",
+    "Duplicate track_name values are common (367/3000 in sample) since the same song can appear under multiple genres; dedupe or keep per-genre rows deliberately.",
+    "First column is an unnamed pandas index ('Unnamed: 0')."
+   ],
+   "sample_records": [
+    {
+     "track_name": "Comedy",
+     "artists": "Gen Hoshino",
+     "album_name": "Comedy",
+     "track_genre": "acoustic",
+     "popularity": "73"
+    },
+    {
+     "track_name": "Ghost - Acoustic",
+     "artists": "Ben Woodward",
+     "album_name": "Ghost (Acoustic)",
+     "track_genre": "acoustic",
+     "popularity": "55"
+    },
+    {
+     "track_name": "To Begin Again",
+     "artists": "Ingrid Michaelson;ZAYN",
+     "album_name": "To Begin Again",
+     "track_genre": "acoustic",
+     "popularity": "57"
+    }
+   ]
+  },
+  {
+   "source_key": "top2017",
+   "path": "top2017.csv",
+   "size_mb": 0.013,
+   "parsed_rows": 100,
+   "raw_line_count": 100,
+   "columns": [
+    "id",
+    "name",
+    "artists",
+    "danceability",
+    "energy",
+    "key",
+    "loudness",
+    "mode",
+    "speechiness",
+    "acousticness",
+    "instrumentalness",
+    "liveness",
+    "valence",
+    "tempo",
+    "duration_ms",
+    "time_signature"
+   ],
+   "title_field": "name",
+   "text_fields": [
+    "name",
+    "artists"
+   ],
+   "year_field": "file name (2017)",
+   "missing_rate_sample_n2000": {
+    "name": 0.0,
+    "artists": 0.0
+   },
+   "notes": [
+    "Top-100 chart of 2017; no genre/free-text field, so text is extremely short (~30 chars, title+artist).",
+    "Column 'name' (not 'track_name'); no album/genre column -> will be weak/duplicate-prone documents."
+   ],
+   "sample_records": [
+    {
+     "name": "Shape of You",
+     "artists": "Ed Sheeran"
+    },
+    {
+     "name": "Despacito - Remix",
+     "artists": "Luis Fonsi"
+    },
+    {
+     "name": "Despacito (Featuring Daddy Yankee)",
+     "artists": "Luis Fonsi"
+    }
+   ]
+  },
+  {
+   "source_key": "top2018",
+   "path": "top2018.csv",
+   "size_mb": 0.013,
+   "parsed_rows": 100,
+   "raw_line_count": 100,
+   "columns": [
+    "id",
+    "name",
+    "artists",
+    "danceability",
+    "energy",
+    "key",
+    "loudness",
+    "mode",
+    "speechiness",
+    "acousticness",
+    "instrumentalness",
+    "liveness",
+    "valence",
+    "tempo",
+    "duration_ms",
+    "time_signature"
+   ],
+   "title_field": "name",
+   "text_fields": [
+    "name",
+    "artists"
+   ],
+   "year_field": "file name (2018)",
+   "missing_rate_sample_n2000": {
+    "name": 0.0,
+    "artists": 0.0
+   },
+   "notes": [
+    "Same schema as top2017 (title field is 'name', no genre column), very short text."
+   ],
+   "sample_records": [
+    {
+     "name": "God's Plan",
+     "artists": "Drake"
+    },
+    {
+     "name": "SAD!",
+     "artists": "XXXTENTACION"
+    },
+    {
+     "name": "rockstar (feat. 21 Savage)",
+     "artists": "Post Malone"
+    }
+   ]
+  },
+  {
+   "source_key": "top50_2020",
+   "path": "top50_2020.csv",
+   "size_mb": 0.008,
+   "parsed_rows": 50,
+   "raw_line_count": 50,
+   "columns": [
+    "Unnamed: 0",
+    "artist",
+    "album",
+    "track_name",
+    "track_id",
+    "energy",
+    "danceability",
+    "key",
+    "loudness",
+    "acousticness",
+    "speechiness",
+    "instrumentalness",
+    "liveness",
+    "valence",
+    "tempo",
+    "duration_ms",
+    "genre"
+   ],
+   "title_field": "track_name",
+   "text_fields": [
+    "track_name",
+    "artist",
+    "album",
+    "genre"
+   ],
+   "year_field": "file name (2020)",
+   "missing_rate_sample_n2000": {
+    "track_name": 0.0,
+    "artist": 0.0,
+    "album": 0.0,
+    "genre": 0.0
+   },
+   "notes": [
+    "Same musical features as the top2017/top2018 files plus 'genre' and 'album'; genre labels contain messy free text and stray whitespace (' Electro-pop', 'Dreampop/Hip-Hop/R&B').",
+    "Only 50 rows -> negligible weight in the pooled corpus."
+   ],
+   "sample_records": [
+    {
+     "track_name": "Blinding Lights",
+     "artist": "The Weeknd",
+     "album": "After Hours",
+     "genre": "R&B/Soul"
+    },
+    {
+     "track_name": "Dance Monkey",
+     "artist": "Tones And I",
+     "album": "Dance Monkey",
+     "genre": "Alternative/Indie"
+    },
+    {
+     "track_name": "The Box",
+     "artist": "Roddy Ricch",
+     "album": "Please Excuse Me For Being Antisocial",
+     "genre": "Hip-Hop/Rap"
+    }
+   ]
+  },
+  {
+   "source_key": "vgsales",
+   "path": "vgsales.csv",
+   "size_mb": 1.3,
+   "parsed_rows": 16598,
+   "raw_line_count": 16598,
+   "columns": [
+    "Rank",
+    "Name",
+    "Platform",
+    "Year",
+    "Genre",
+    "Publisher",
+    "NA_Sales",
+    "EU_Sales",
+    "JP_Sales",
+    "Other_Sales",
+    "Global_Sales"
+   ],
+   "title_field": "Name",
+   "text_fields": [
+    "Name",
+    "Genre",
+    "Publisher",
+    "Platform"
+   ],
+   "year_field": "Year",
+   "year_coverage": {
+    "min": 1980,
+    "max": 2020,
+    "share_2017_2020": 0.0002
+   },
+   "missing_rate_sample_n2000": {
+    "Name": 0.0,
+    "Genre": 0.0,
+    "Publisher": 0.0,
+    "Year": 0.0
+   },
+   "notes": [
+    "Categorical tokens only (title/genre/publisher/platform), ~48 chars/record; 'Misc' genre is uninformative.",
+    "Only 4 rows in 2017-2020 (dataset effectively ends 2016) -> strict year filtering is not viable.",
+    "Same game recurs once per platform (764/3000 duplicate names in sample)."
+   ],
+   "sample_records": [
+    {
+     "Name": "Wii Sports",
+     "Platform": "Wii",
+     "Genre": "Sports",
+     "Publisher": "Nintendo",
+     "Year": "2006"
+    },
+    {
+     "Name": "Super Mario Bros.",
+     "Platform": "NES",
+     "Genre": "Platform",
+     "Publisher": "Nintendo",
+     "Year": "1985"
+    },
+    {
+     "Name": "Mario Kart Wii",
+     "Platform": "Wii",
+     "Genre": "Racing",
+     "Publisher": "Nintendo",
+     "Year": "2008"
+    }
+   ]
+  }
+ ],
+ "combined_corpus_plan": {
+  "unit": "one document per item, field set = source_key, title, text",
+  "expected_size": "~160k documents (movies 45,466 + books 11,123 + netflix 8,807 + spotify 114,000 + top2017 100 + top2018 100 + top50_2020 50 + vgsales 16,598) before dedupe/cleaning",
+  "text_recipe": {
+   "movies": "title + overview + tagline + genres(names via ast.literal_eval) + production_companies",
+   "books": "title + authors('/'->' ') + publisher + language_code",
+   "netflix": "title + listed_in + description + cast + director + type",
+   "spotify": "track_name + artists(';'->' ') + album_name + track_genre (genre token repeated to weight it)",
+   "top2017": "name + artists",
+   "top2018": "name + artists",
+   "top50_2020": "track_name + artist + album + genre (strip/normalize whitespace)",
+   "vgsales": "Name + Genre + Publisher + Platform"
+  },
+  "drop_rules": [
+   "drop documents whose cleaned text is empty or < 2 tokens",
+   "fill NA with '' before concatenation",
+   "optionally dedupe on (source_key, title)"
+  ]
+ },
+ "risks_and_recommendations": [
+  "Year coverage is uneven: only Netflix actually centers on 2017-2020 (51%); movies 1.2%, books 0.17%, vgsales 0.02%, and Spotify has no year column. A hard 2017-2020 filter would leave ~4.7k documents (mostly Netflix) and make cross-source clustering meaningless, so the pooled corpus should NOT be hard-filtered by year.",
+  "Severe length imbalance across sources (movies ~390, netflix ~316, books ~77, spotify ~60, charts ~30, games ~48 chars). TF-IDF length normalization helps, but short-text sources (Spotify/charts/games) rely on categorical tokens (genre, artist, publisher) to have any signal.",
+  "Spotify is 71% of all documents and is stored in genre blocks -> shuffle (random_state) before any 500-item subsample so the coherence subsample is not one genre.",
+  "Token hygiene needed: lowercase, strip 'feat.'/punctuation, replace '/' and ';' inside author/artist lists with spaces, remove language codes and numeric-only tokens.",
+  "The movies CSV must be parsed with on_bad_lines='skip' and its dict-like 'genres' column parsed with ast.literal_eval."
+ ]
+}

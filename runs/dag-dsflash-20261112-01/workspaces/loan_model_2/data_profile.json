@@ -1,0 +1,319 @@
+{
+  "files": {
+    "features.csv": {
+      "rows": 49910,
+      "cols": 100,
+      "columns": {
+        "time": "int date YYYYMMDD",
+        "bizcode": "int id",
+        "f0-f66": "67 numeric features",
+        "e1-e11": "11 numeric features",
+        "x0-x19": "20 numeric features"
+      },
+      "feature_count": 98,
+      "dtypes": {
+        "int64": 60,
+        "float64": 40
+      },
+      "missing_values": 0,
+      "constant_columns": []
+    },
+    "label.csv": {
+      "rows": 49910,
+      "cols": 3,
+      "columns": [
+        "label",
+        "time",
+        "bizcode"
+      ],
+      "label_distribution": {
+        "0": 45260,
+        "1": 4650
+      },
+      "positive_rate": 0.0932,
+      "missing_values": 0
+    }
+  },
+  "join": {
+    "keys": [
+      "time",
+      "bizcode"
+    ],
+    "merged_rows": 49910,
+    "duplicate_key_rows": 0,
+    "note": "1:1 join, no row loss"
+  },
+  "time_field": {
+    "min": 20230701,
+    "max": 20231130,
+    "unique_time_values": 153,
+    "rows_per_time_mean": 326.2,
+    "note": "153 daily snapshots; multiple rows per date => split performed on time boundaries to avoid same-day leakage"
+  },
+  "correlation_filter": {
+    "method": "Pearson |r| on all 98 features, threshold 0.8, greedy keep-first representative",
+    "pairs_above_0.8": 133,
+    "max_abs_corr_offdiag": 0.9993,
+    "median_abs_corr_offdiag": 0.0972,
+    "high_corr_groups": [
+      [
+        "f2",
+        "f53",
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6",
+        "e7"
+      ],
+      [
+        "f8",
+        "f9"
+      ],
+      [
+        "f10",
+        "f11"
+      ],
+      [
+        "f12",
+        "f13",
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f18",
+        "f19",
+        "f20",
+        "f21"
+      ],
+      [
+        "f22",
+        "f41",
+        "f46"
+      ],
+      [
+        "f23",
+        "f24",
+        "f31",
+        "f32",
+        "f33",
+        "f34",
+        "f36",
+        "f37",
+        "f38",
+        "f39",
+        "f42",
+        "f43",
+        "f44",
+        "f45",
+        "f47",
+        "f48",
+        "f49",
+        "f50"
+      ],
+      [
+        "f27",
+        "f28",
+        "f29",
+        "f40",
+        "f51",
+        "f52"
+      ],
+      [
+        "f30",
+        "f35"
+      ],
+      [
+        "f55",
+        "f56"
+      ],
+      [
+        "f57",
+        "f58",
+        "f60"
+      ],
+      [
+        "f61",
+        "f62"
+      ],
+      [
+        "f64",
+        "f65"
+      ],
+      [
+        "e8",
+        "e9",
+        "e10",
+        "e11"
+      ]
+    ],
+    "n_groups_after_filter": 46,
+    "remaining_features": [
+      "f0",
+      "f1",
+      "f2",
+      "f3",
+      "f4",
+      "f5",
+      "f6",
+      "f7",
+      "f8",
+      "f10",
+      "f12",
+      "f13",
+      "f15",
+      "f22",
+      "f23",
+      "f24",
+      "f25",
+      "f26",
+      "f27",
+      "f29",
+      "f30",
+      "f31",
+      "f33",
+      "f48",
+      "f51",
+      "f54",
+      "f55",
+      "f57",
+      "f58",
+      "f59",
+      "f61",
+      "f63",
+      "f64",
+      "f66",
+      "e6",
+      "e8",
+      "x0",
+      "x1",
+      "x2",
+      "x3",
+      "x4",
+      "x5",
+      "x6",
+      "x7",
+      "x8",
+      "x9",
+      "x10",
+      "x11",
+      "x12",
+      "x13",
+      "x14",
+      "x15",
+      "x16",
+      "x17",
+      "x18",
+      "x19"
+    ],
+    "remaining_feature_count": 56,
+    "dropped_features": {
+      "f9": "f8",
+      "f11": "f10",
+      "f14": "f13",
+      "f16": "f15",
+      "f17": "f12",
+      "f18": "f13",
+      "f19": "f13",
+      "f20": "f15",
+      "f21": "f15",
+      "f28": "f27",
+      "f32": "f31",
+      "f34": "f33",
+      "f35": "f30",
+      "f36": "f31",
+      "f37": "f31",
+      "f38": "f33",
+      "f39": "f33",
+      "f40": "f29",
+      "f41": "f22",
+      "f42": "f23",
+      "f43": "f31",
+      "f44": "f33",
+      "f45": "f33",
+      "f46": "f22",
+      "f47": "f23",
+      "f49": "f24",
+      "f50": "f24",
+      "f52": "f29",
+      "f53": "f2",
+      "f56": "f55",
+      "f60": "f57",
+      "f62": "f61",
+      "f65": "f64",
+      "e1": "f2",
+      "e2": "f2",
+      "e3": "f2",
+      "e4": "f2",
+      "e5": "f2",
+      "e7": "f2",
+      "e9": "e8",
+      "e10": "e8",
+      "e11": "e8"
+    }
+  },
+  "model": {
+    "algorithm": "xgboost.XGBClassifier (hist, binary:logistic, eval_metric auc)",
+    "params": {
+      "learning_rate": 0.05,
+      "max_depth": 3,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "min_child_weight": 20,
+      "reg_lambda": 5.0
+    },
+    "n_estimators": 167,
+    "rounds_selected_by": "inner time-based validation (last 15% of train time points), early stopping 50",
+    "split": {
+      "type": "time ordered, 70% earliest dates train / remaining 30% dates test",
+      "cut_time": 20231024,
+      "train_rows": 34591,
+      "test_rows": 15319,
+      "train_row_share": 0.6931,
+      "train_time_range": [
+        20230701,
+        20231023
+      ],
+      "test_time_range": [
+        20231024,
+        20231130
+      ],
+      "train_pos_rate": 0.0953,
+      "test_pos_rate": 0.0883
+    },
+    "top_feature_importance": {
+      "f12": 0.15979087352752686,
+      "f5": 0.13945303857326508,
+      "e6": 0.05373639985918999,
+      "x10": 0.04645729809999466,
+      "f2": 0.03428559750318527,
+      "x0": 0.033747341483831406,
+      "f66": 0.02310311049222946,
+      "f22": 0.022293921560049057,
+      "f3": 0.021381141617894173,
+      "f24": 0.01536367554217577,
+      "f33": 0.01530193630605936,
+      "x13": 0.014406096190214157,
+      "x4": 0.013737475499510765,
+      "x19": 0.01368663553148508,
+      "f1": 0.013422262854874134,
+      "x3": 0.01330692507326603,
+      "f4": 0.013182634487748146,
+      "x11": 0.012912451289594173,
+      "x1": 0.012549575418233871,
+      "f23": 0.011641807854175568
+    }
+  },
+  "results": {
+    "remaining_feature_count": 56,
+    "train_auc": 0.702606,
+    "test_auc": 0.636571
+  },
+  "observations": [
+    "Features f12/f5 dominate importance; e6, x10, f2, x0 next.",
+    "Strong temporal drift: train AUC 0.703 vs test AUC 0.637 (inner validation AUC ~0.644), so generalisation across future dates is much harder than in-sample fit.",
+    "Greedy keep-first correlation filter reduced 98 -> 56 features; 133 feature pairs exceeded |r|>0.8 (large f12-f21 and f23-f50 blocks plus e1-e7 with f2).",
+    "Correlation filter was fit on the full dataset (standard practice requested by the task); a train-only filter would give the same selected columns since correlations are structural/stable."
+  ]
+}

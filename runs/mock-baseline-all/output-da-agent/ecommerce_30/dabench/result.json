@@ -1,0 +1,89 @@
+{
+  "finished": true,
+  "steps": 8,
+  "result": "任务完成，产出 4 个文件: output.json, output1.csv, output2.csv, output3.csv",
+  "result_files": {
+    "added_files": [
+      "output.json",
+      "output1.csv",
+      "output2.csv",
+      "output3.csv"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 output1.csv",
+      "observation": "写出 output1.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output1.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output2.csv",
+      "observation": "写出 output2.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output2.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output3.csv",
+      "observation": "写出 output3.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output3.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output.json",
+      "observation": "写出 output.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.26
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.26
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

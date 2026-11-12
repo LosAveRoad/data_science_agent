@@ -50,7 +50,7 @@
 ````markdown
 ```benchmark-results
 experiment_id: dag-proto-20261112-01
-tasks: 10
+tasks: 30
 score: 0.72
 evaluator: AgenticDataBench official evaluator
 ```
@@ -58,6 +58,7 @@ evaluator: AgenticDataBench official evaluator
 
 要求：
 
+- 评测基于 30 个任务的冻结子集（见 `docs/design.md` §3）；`tasks` 填本次实际评测的任务数（完整子集运行为 30）；
 - `experiment_id` 对应 `runs/<experiment_id>/`，只能包含字母、数字、`.`、`_`、`-`；
 - `tasks`、`score` 非空（`score` 填官方 Evaluator 给出的得分）；
 - **强烈建议**随 PR 附带 `runs/<experiment_id>/` 下的 JSON 评测产物（官方 Evaluator 输出）。若附带，CI 会校验其与描述中的 `experiment_id` 一致；后续阶段计划将其升级为强制项；

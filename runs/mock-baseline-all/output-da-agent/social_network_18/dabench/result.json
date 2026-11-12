@@ -1,0 +1,53 @@
+{
+  "finished": true,
+  "steps": 4,
+  "result": "任务完成，产出 2 个文件: negative_reasons.csv, output.csv",
+  "result_files": {
+    "added_files": [
+      "negative_reasons.csv",
+      "output.csv"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 output.csv",
+      "observation": "写出 output.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.018
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.018
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 negative_reasons.csv",
+      "observation": "写出 negative_reasons.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.018
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 negative_reasons.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.018
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}

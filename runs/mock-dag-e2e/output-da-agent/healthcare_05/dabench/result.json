@@ -1,0 +1,138 @@
+{
+  "finished": true,
+  "steps": 14,
+  "result": "任务完成，产出 2 个文件: output.csv, output.png",
+  "result_files": {
+    "added_files": [
+      "output.csv",
+      "output.png"
+    ],
+    "changed_files": []
+  },
+  "trajectory": [
+    {
+      "action": "Python",
+      "code": "写出 data_profile.json",
+      "observation": "写出 data_profile.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 data_profile.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 analysis_plan.json",
+      "observation": "写出 analysis_plan.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 analysis_plan.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 result.json",
+      "observation": "写出 result.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 result.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.004
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 execute_summary.json",
+      "observation": "写出 execute_summary.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 execute_summary.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output.png",
+      "observation": "写出 output.png",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output.png",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 output.csv",
+      "observation": "写出 output.csv",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 output.csv",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Python",
+      "code": "写出 verification.json",
+      "observation": "写出 verification.json",
+      "name": "mock_write",
+      "timing": {
+        "elapsed": 0.005
+      }
+    },
+    {
+      "action": "Observation",
+      "content": "写出 verification.json",
+      "observation": "",
+      "timing": {
+        "elapsed": 0.005
+      }
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  }
+}
